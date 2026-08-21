@@ -7,6 +7,198 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Esta etapa NO define modelos de negocio todavia.
-// Los modelos (User, Role, Tenant, Task, etc.) se anadiran
-// en la siguiente fase, siguiendo docs/00-analisis-y-arquitectura.md.
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum InstitutionStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+// ============================================================
+// INSTITUTION (Tenant)
+// ============================================================
+
+model Institution {
+  id        String            @id @default(uuid()) @db.Uuid
+  name      String            @db.VarChar(255)
+  slug      String            @unique @db.VarChar(100)
+  status    InstitutionStatus @default(ACTIVE)
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  memberships UserInstitution[]
+  roles       Role[]
+
+  @@map("institutions")
+}
+
+// ============================================================
+// USER (Platform-level identity)
+// ============================================================
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique @db.VarChar(255)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  firstName    String     @map("first_name") @db.VarChar(100)
+  lastName     String     @map("last_name") @db.VarChar(100)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  memberships UserInstitution[]
+  globalRoles GlobalUserRole[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+// ============================================================
+// USER <-> INSTITUTION (Membership)
+// ============================================================
+
+model UserInstitution {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @map("user_id") @db.Uuid
+  institutionId String           @map("institution_id") @db.Uuid
+  status        MembershipStatus @default(ACTIVE)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  roles       UserRole[]
+
+  @@unique([userId, institutionId])
+  @@index([institutionId])
+  @@map("user_institutions")
+}
+
+// ============================================================
+// ROLE
+// ============================================================
+
+model Role {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String   @db.VarChar(50)
+  description   String?  @db.Text
+  isSystem      Boolean  @default(false) @map("is_system")
+  institutionId String?  @map("institution_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution?     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  userRoles   UserRole[]
+  globalRoles GlobalUserRole[]
+
+  @@unique([name, institutionId])
+  @@index([institutionId])
+  @@map("roles")
+}
+
+// ============================================================
+// PERMISSION (Global definitions)
+// ============================================================
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(100)
+  module      String   @db.VarChar(50)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  roles RolePermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+// ============================================================
+// ROLE <-> PERMISSION (Many-to-Many)
+// ============================================================
+
+model RolePermission {
+  id           String @id @default(uuid()) @db.Uuid
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================================
+// USER <-> ROLE (Tenant-scoped, via UserInstitution)
+// ============================================================
+
+model UserRole {
+  id                String   @id @default(uuid()) @db.Uuid
+  userInstitutionId String   @map("user_institution_id") @db.Uuid
+  roleId            String   @map("role_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  userInstitution UserInstitution @relation(fields: [userInstitutionId], references: [id], onDelete: Cascade)
+  role            Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userInstitutionId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+// ============================================================
+// GLOBAL USER <-> ROLE (Platform-level, e.g. Super Admin)
+// ============================================================
+
+model GlobalUserRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@map("global_user_roles")
+}
+
+// ============================================================
+// AUDIT LOG (Prepared for future, not fully implemented)
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String?  @map("entity_id") @db.Uuid
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
