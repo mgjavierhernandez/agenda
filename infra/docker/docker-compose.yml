@@ -1,0 +1,34 @@
+# ============================================================
+# AGENDA ESCOLAR DIGITAL - Docker Compose (desarrollo local)
+# ============================================================
+#
+# Levanta solo la infraestructura local (PostgreSQL).
+# Los valores por defecto son SOLO PARA DESARROLLO.
+# Se sobreescriben desde el archivo `.env` de la raiz.
+#
+# Uso:
+#   npm run db:up
+#   npm run db:down
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agenda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agenda}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agenda_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-agenda_dev}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - agenda-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-agenda} -d ${POSTGRES_DB:-agenda_dev}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  agenda-postgres-data:
