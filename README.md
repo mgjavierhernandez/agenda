@@ -174,10 +174,10 @@ Ver [`docs/production-runbook.md`](docs/production-runbook.md) para el runbook o
 
 ## Testing
 
-- **Backend**: 418 tests (Jest) — `npm test`
+- **Backend**: 425 tests (Jest) — `npm test`
 - **Frontend**: 407 tests (Vitest) — `npm run test --workspace @agenda/web`
 - **E2E**: 76 tests (Playwright, Chromium) — `npm run test:e2e`
-- **Total**: 901 tests
+- **Total**: 908 tests
 
 ## Frontend Web (apps/web)
 
@@ -233,4 +233,4 @@ apps/web/src/
 
 ## Estado actual
 
-MVP v1.0.0 completo. Backend: 24 modulos, 418 tests. Frontend: 20+ modulos, 407 tests. E2E: 76 tests. Docker images validados. Security audit 29/30. CI/CD pipeline funcional. Produccion lista para deployment. Ver [`docs/53-production-release.md`](docs/53-production-release.md).
+MVP v1.0.1 completo. Backend: 24 modulos, 425 tests. Frontend: 20+ modulos, 407 tests. E2E: 76 tests. Docker images validados. Security audit 29/30. CI/CD pipeline funcional. Produccion lista para deployment. Ver [`docs/53-production-release.md`](docs/53-production-release.md).

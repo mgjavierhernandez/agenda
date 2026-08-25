@@ -230,6 +230,226 @@ describe('AgendaService', () => {
       expect(result.data).toBeDefined();
     });
 
+    it('should handle schedules with Date objects for startTime/endTime', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-dateobj',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: new Date('1970-01-01T08:00:00.000Z'),
+          endTime: new Date('1970-01-01T09:30:00.000Z'),
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.SCHEDULE],
+      });
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].start).toBeDefined();
+      expect(result.data[0].end).toBeDefined();
+    });
+
+    it('should skip schedule when startTime is null', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-null-start',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: null,
+          endTime: new Date('1970-01-01T09:30:00.000Z'),
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.SCHEDULE],
+      });
+
+      expect(result.data).toHaveLength(0);
+    });
+
+    it('should skip schedule when endTime is null', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-null-end',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: new Date('1970-01-01T08:00:00.000Z'),
+          endTime: null,
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.SCHEDULE],
+      });
+
+      expect(result.data).toHaveLength(0);
+    });
+
+    it('should skip schedule when both startTime and endTime are null', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-both-null',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: null,
+          endTime: null,
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.SCHEDULE],
+      });
+
+      expect(result.data).toHaveLength(0);
+    });
+
+    it('should skip schedule with invalid time value (NaN)', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-invalid',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: 'invalid-time',
+          endTime: 'also-invalid',
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.SCHEDULE],
+      });
+
+      expect(result.data).toHaveLength(0);
+    });
+
+    it('should not throw RangeError for any schedule time data', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-1',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: new Date('1970-01-01T08:00:00.000Z'),
+          endTime: new Date('1970-01-01T09:30:00.000Z'),
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+        {
+          id: 'sched-null',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'TUESDAY',
+          startTime: null,
+          endTime: null,
+          classroom: 'Room 102',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      await expect(
+        service.getAgenda(institutionId, userId, {
+          start: '2026-08-24',
+          end: '2026-08-30',
+          eventTypes: [AgendaEventType.SCHEDULE],
+        }),
+      ).resolves.toBeDefined();
+    });
+
+    it('should produce valid ISO dates for schedules with Date objects', async () => {
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { courseId: 'course-1' },
+      ]);
+      prismaMock.schedule.findMany.mockResolvedValue([
+        {
+          id: 'sched-iso',
+          institutionId,
+          courseId: 'course-1',
+          subjectId: 'subj-1',
+          dayOfWeek: 'MONDAY',
+          startTime: new Date('1970-01-01T14:00:00.000Z'),
+          endTime: new Date('1970-01-01T15:30:00.000Z'),
+          classroom: 'Room 101',
+          status: 'ACTIVE',
+          course: { id: 'course-1', name: 'Math' },
+          subject: { id: 'subj-1', name: 'Algebra' },
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.SCHEDULE],
+      });
+
+      expect(result.data).toHaveLength(1);
+      expect(new Date(result.data[0].start).toISOString()).toBe(result.data[0].start);
+      expect(new Date(result.data[0].end!).toISOString()).toBe(result.data[0].end);
+    });
+
     it('should sort events by start time', async () => {
       prismaMock.enrollment.findMany.mockResolvedValue([
         { courseId: 'course-1' },

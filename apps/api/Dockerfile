@@ -27,9 +27,9 @@ RUN apk add --no-cache openssl curl
 RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
-# Copy built app and production dependencies
+# Copy built app and production dependencies (workspace hoisting puts deps in root)
 COPY --from=builder --chown=appuser:appgroup /app/apps/api/dist ./dist
-COPY --from=builder --chown=appuser:appgroup /app/apps/api/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /app/apps/api/package.json ./
 COPY --from=builder --chown=appuser:appgroup /app/apps/api/prisma ./prisma
 

@@ -217,6 +217,13 @@ export class AgendaService {
         const startParts = this.parseTime(schedule.startTime);
         const endParts = this.parseTime(schedule.endTime);
 
+        if (!startParts || !endParts) {
+          this.logger.warn(
+            `Skipping schedule ${schedule.id} due to invalid time data: startTime=${String(schedule.startTime)}, endTime=${String(schedule.endTime)}`,
+          );
+          continue;
+        }
+
         const eventStart = new Date(currentDate);
         eventStart.setHours(startParts.hours, startParts.minutes, 0, 0);
 
@@ -490,12 +497,27 @@ export class AgendaService {
     return [...new Set([...guardianUserIds, ...students.map((s) => s.id)])];
   }
 
-  private parseTime(time: unknown): { hours: number; minutes: number } {
+  private parseTime(time: unknown): { hours: number; minutes: number } | null {
+    if (time === null || time === undefined) {
+      return null;
+    }
+
+    if (time instanceof Date) {
+      if (isNaN(time.getTime())) {
+        return null;
+      }
+      return { hours: time.getHours(), minutes: time.getMinutes() };
+    }
+
     const timeStr = String(time);
     const parts = timeStr.split(':');
-    return {
-      hours: parseInt(parts[0] ?? '0', 10),
-      minutes: parseInt(parts[1] ?? '0', 10),
-    };
+    const hours = parseInt(parts[0] ?? '', 10);
+    const minutes = parseInt(parts[1] ?? '', 10);
+
+    if (isNaN(hours) || isNaN(minutes)) {
+      return null;
+    }
+
+    return { hours, minutes };
   }
 }

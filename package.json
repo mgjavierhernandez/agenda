@@ -1,6 +1,6 @@
 {
   "name": "agenda-escolar-digital",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Agenda Escolar Digital - Plataforma SaaS multi-institucion de gestion y comunicacion escolar",
   "workspaces": [

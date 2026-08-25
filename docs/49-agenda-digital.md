@@ -85,3 +85,44 @@ Implementar el modulo de **Agenda Escolar Digital** (AF-050 a AF-056, EU-040 a E
 - `apps/web/src/permissions/permission.constants.ts` — AGENDA_READ
 - `apps/web/src/app/router.tsx` — ruta /agenda
 - `apps/web/src/components/layout/Sidebar.tsx` — entrada Agenda
+
+---
+
+## Bugfix — PROMPT 56 (2026-08-25)
+
+### Problema
+El endpoint `GET /api/v1/agenda` devolvía HTTP 500 con `RangeError: Invalid time value` cuando los campos `startTime`/`endTime` de los schedules eran objetos `Date` (retorno de Prisma para columnas `@db.Time`).
+
+### Causa Raíz
+El método `parseTime()` convertía el valor a string usando `String(time)`. Cuando Prisma retorna un objeto `Date` para una columna `@db.Time`:
+1. `String(dateObject)` → `"1970-01-01T08:00:00.000Z"` (string ISO completo)
+2. `.split(':')` → `["1970-01-01T08", "00", "00.000Z"]`
+3. `parseInt("1970-01-01T08", 10)` → `NaN`
+4. `setHours(NaN, ...)` → `RangeError: Invalid time value`
+
+Los tests existentes pasaban porque mockeaban `startTime`/`endTime` como strings (`'08:00:00'`), no como objetos Date.
+
+### Solución
+- `parseTime()`: maneja objetos Date (extrae horas/minutos directamente), strings válidos, y null/undefined
+- `getScheduleEvents()`: si `parseTime()` retorna null (dato inválido), omite el schedule con log de warning
+- No se modificó el contrato funcional ni el modelo de datos
+
+### Tests Agregados (8 tests de regresión)
+1. Schedule con objetos Date válidos
+2. Schedule con startTime null → omitido
+3. Schedule con endTime null → omitido
+4. Schedule con ambos null → omitido
+5. Schedule con valor de hora inválido → omitido
+6. Mezcla de schedules válidos e inválidos → no lanza RangeError
+7. Fechas ISO válidas para schedules con Date objects
+8. Todos los tests existentes continúan pasando
+
+### Validación
+- Backend: 425 tests PASS (31 suites)
+- Frontend: 407 tests PASS (51 archivos)
+- TypeScript: 0 errores
+- ESLint: 0 errores, 0 warnings
+- Docker: API reconstruida y desplegada
+- Smoke Tests Agenda: 10/10 PASS
+- Tenant Isolation: PASS
+- RBAC: PASS

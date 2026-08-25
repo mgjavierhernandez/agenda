@@ -1,0 +1,85 @@
+# ============================================================
+# AGENDA ESCOLAR DIGITAL - Docker Compose (produccion local)
+# ============================================================
+#
+# Levanta API + Web + PostgreSQL para validacion local.
+# Los valores se sobreescriben desde variables de entorno.
+#
+# Uso:
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml down
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agenda-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agenda}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agenda_prod_password}
+      POSTGRES_DB: ${POSTGRES_DB:-agenda_prod}
+    ports:
+      - '5433:5432'
+    volumes:
+      - agenda-prod-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-agenda} -d ${POSTGRES_DB:-agenda_prod}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: agenda-api-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-agenda}:${POSTGRES_PASSWORD:-agenda_prod_password}@postgres:5432/${POSTGRES_DB:-agenda_prod}?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-in-production}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:80
+      RATE_LIMIT_TTL: 60
+      RATE_LIMIT_LIMIT: 50
+      FILE_STORAGE_PROVIDER: local
+      FILE_STORAGE_PATH: ./storage
+      FILE_MAX_SIZE_MB: 10
+    ports:
+      - '3000:3000'
+    volumes:
+      - agenda-api-storage:/app/storage
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3000/api/v1/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: agenda-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '80:80'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:80/ || exit 1']
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+
+volumes:
+  agenda-prod-data:
+  agenda-api-storage:
