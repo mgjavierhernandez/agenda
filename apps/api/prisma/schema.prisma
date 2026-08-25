@@ -29,6 +29,159 @@ enum MembershipStatus {
   SUSPENDED
 }
 
+enum RoleType {
+  GLOBAL
+  TEMPLATE
+  TENANT
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CourseStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SubjectStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GradeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ScheduleStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TaskStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  INACTIVE
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum DocumentType {
+  DNI
+  PASSPORT
+  NATIONAL_ID
+  OTHER
+}
+
+enum CommunicationAudience {
+  ALL
+  TEACHERS
+  PARENTS
+  STUDENTS
+}
+
+enum CommunicationStatus {
+  DRAFT
+  PUBLISHED
+  INACTIVE
+}
+
+enum SignatureRequestStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+  EXPIRED
+  INACTIVE
+}
+
+enum SignatureRecipientStatus {
+  PENDING
+  SIGNED
+  DECLINED
+}
+
+enum NotificationType {
+  SIGNATURE_REQUEST
+  SIGNATURE_COMPLETED
+  SIGNATURE_DECLINED
+  COMMUNICATION
+  TASK_UPDATE
+  GENERAL
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+enum SchoolGradeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AcademicPeriodStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RelationshipType {
+  FATHER
+  MOTHER
+  LEGAL_GUARDIAN
+  OTHER
+}
+
+enum GuardianStudentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  INACTIVE
+  WITHDRAWN
+}
+
+enum TeacherAssignmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TaskAssignmentStatus {
+  ASSIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskSubmissionStatus {
+  PENDING
+  SUBMITTED
+  LATE
+  GRADED
+  RETURNED
+}
+
+enum CommunicationRecipientStatus {
+  DELIVERED
+  READ
+}
+
+enum FileAssetStatus {
+  ACTIVE
+  DELETED
+}
+
 // ============================================================
 // INSTITUTION (Tenant)
 // ============================================================
@@ -41,8 +194,30 @@ model Institution {
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 
-  memberships UserInstitution[]
-  roles       Role[]
+  memberships              UserInstitution[]
+  roles                    Role[]
+  userRoles                UserRole[]
+  auditLogs                AuditLog[]
+  students                 Student[]
+  courses                  Course[]
+  subjects                 Subject[]
+  grades                   Grade[]
+  schedules                Schedule[]
+  tasks                    Task[]
+  communications           Communication[]
+  signatureRequests        SignatureRequest[]
+  notifications            Notification[]
+  schoolGrades             SchoolGrade[]
+  academicPeriods          AcademicPeriod[]
+  enrollments              Enrollment[]
+  teacherAssignments       TeacherAssignment[]
+  guardianStudents         GuardianStudent[]
+  taskAssignments          TaskAssignment[]
+  taskSubmissions          TaskSubmission[]
+  communicationRecipients  CommunicationRecipient[]
+  fileAssets               FileAsset[]
+  taskAttachments          TaskAttachment[]
+  communicationAttachments CommunicationAttachment[]
 
   @@map("institutions")
 }
@@ -61,9 +236,18 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  memberships UserInstitution[]
-  globalRoles GlobalUserRole[]
-  auditLogs   AuditLog[]
+  memberships             UserInstitution[]
+  globalRoles             GlobalUserRole[]
+  auditLogs               AuditLog[]
+  refreshTokens           RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
+  signatureRecipients     SignatureRecipient[]
+  notifications           Notification[]
+  teacherAssignments      TeacherAssignment[]
+  guardianStudents        GuardianStudent[]
+  communicationRecipients CommunicationRecipient[]
+  uploadedFiles           FileAsset[]
+  student                 Student?
 
   @@map("users")
 }
@@ -85,6 +269,7 @@ model UserInstitution {
   roles       UserRole[]
 
   @@unique([userId, institutionId])
+  @@unique([id, institutionId])
   @@index([institutionId])
   @@map("user_institutions")
 }
@@ -98,6 +283,7 @@ model Role {
   name          String   @db.VarChar(50)
   description   String?  @db.Text
   isSystem      Boolean  @default(false) @map("is_system")
+  roleType      RoleType @default(TENANT) @map("role_type")
   institutionId String?  @map("institution_id") @db.Uuid
   createdAt     DateTime @default(now()) @map("created_at")
 
@@ -107,7 +293,9 @@ model Role {
   globalRoles GlobalUserRole[]
 
   @@unique([name, institutionId])
+  @@unique([id, institutionId])
   @@index([institutionId])
+  @@index([roleType])
   @@map("roles")
 }
 
@@ -153,13 +341,16 @@ model UserRole {
   id                String   @id @default(uuid()) @db.Uuid
   userInstitutionId String   @map("user_institution_id") @db.Uuid
   roleId            String   @map("role_id") @db.Uuid
+  institutionId     String   @map("institution_id") @db.Uuid
   createdAt         DateTime @default(now()) @map("created_at")
 
   userInstitution UserInstitution @relation(fields: [userInstitutionId], references: [id], onDelete: Cascade)
   role            Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  institution     Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 
   @@unique([userInstitutionId, roleId])
   @@index([roleId])
+  @@index([institutionId])
   @@map("user_roles")
 }
 
@@ -182,23 +373,645 @@ model GlobalUserRole {
 }
 
 // ============================================================
-// AUDIT LOG (Prepared for future, not fully implemented)
+// AUDIT LOG
 // ============================================================
 
 model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String?  @map("user_id") @db.Uuid
-  action     String   @db.VarChar(100)
-  entityType String   @map("entity_type") @db.VarChar(50)
-  entityId   String?  @map("entity_id") @db.Uuid
-  oldValues  Json?    @map("old_values")
-  newValues  Json?    @map("new_values")
-  ipAddress  String?  @map("ip_address") @db.VarChar(45)
-  createdAt  DateTime @default(now()) @map("created_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @map("user_id") @db.Uuid
+  institutionId String?  @map("institution_id") @db.Uuid
+  action        String   @db.VarChar(100)
+  entityType    String   @map("entity_type") @db.VarChar(50)
+  entityId      String?  @map("entity_id") @db.Uuid
+  oldValues     Json?    @map("old_values")
+  newValues     Json?    @map("new_values")
+  ipAddress     String?  @map("ip_address") @db.VarChar(45)
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([institutionId])
+  @@index([institutionId, createdAt])
   @@index([entityType, entityId])
   @@map("audit_logs")
+}
+
+// ============================================================
+// REFRESH TOKEN (Persisted, revocable)
+// ============================================================
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tokenHash])
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// ============================================================
+// PASSWORD RESET TOKEN (One-time, time-limited)
+// ============================================================
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([tokenHash])
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([userId, usedAt])
+  @@map("password_reset_tokens")
+}
+
+// ============================================================
+// STUDENT (Tenant-scoped academic resource)
+// ============================================================
+
+model Student {
+  id             String        @id @default(uuid()) @db.Uuid
+  institutionId  String        @map("institution_id") @db.Uuid
+  userId         String?       @unique @map("user_id") @db.Uuid
+  firstName      String        @map("first_name") @db.VarChar(100)
+  lastName       String        @map("last_name") @db.VarChar(100)
+  documentType   DocumentType  @map("document_type")
+  documentNumber String        @map("document_number") @db.VarChar(50)
+  dateOfBirth    DateTime?     @map("date_of_birth") @db.Date
+  status         StudentStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  institution      Institution       @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  grades           Grade[]
+  enrollments      Enrollment[]
+  guardianStudents GuardianStudent[]
+  taskAssignments  TaskAssignment[]
+  taskSubmissions  TaskSubmission[]
+
+  @@unique([institutionId, documentType, documentNumber])
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@index([userId])
+  @@map("students")
+}
+
+// ============================================================
+// COURSE (Tenant-scoped academic resource)
+// ============================================================
+
+model Course {
+  id            String       @id @default(uuid()) @db.Uuid
+  institutionId String       @map("institution_id") @db.Uuid
+  code          String       @db.VarChar(50)
+  name          String       @db.VarChar(150)
+  description   String?      @db.Text
+  status        CourseStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  institution        Institution         @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  grades             Grade[]
+  schedules          Schedule[]
+  tasks              Task[]
+  enrollments        Enrollment[]
+  teacherAssignments TeacherAssignment[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@map("courses")
+}
+
+// ============================================================
+// SUBJECT (Tenant-scoped academic resource)
+// ============================================================
+
+model Subject {
+  id            String        @id @default(uuid()) @db.Uuid
+  institutionId String        @map("institution_id") @db.Uuid
+  code          String        @db.VarChar(50)
+  name          String        @db.VarChar(150)
+  description   String?       @db.Text
+  status        SubjectStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  institution        Institution         @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  grades             Grade[]
+  schedules          Schedule[]
+  tasks              Task[]
+  teacherAssignments TeacherAssignment[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@map("subjects")
+}
+
+// ============================================================
+// GRADE (Tenant-scoped academic resource)
+// ============================================================
+
+model Grade {
+  id             String      @id @default(uuid()) @db.Uuid
+  institutionId  String      @map("institution_id") @db.Uuid
+  studentId      String      @map("student_id") @db.Uuid
+  courseId       String      @map("course_id") @db.Uuid
+  subjectId      String      @map("subject_id") @db.Uuid
+  value          Decimal     @db.Decimal(5, 2)
+  period         String      @db.VarChar(50)
+  evaluationType String?     @map("evaluation_type") @db.VarChar(50)
+  description    String?     @db.Text
+  status         GradeStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  subject     Subject     @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@index([institutionId])
+  @@index([institutionId, studentId])
+  @@index([institutionId, courseId])
+  @@index([institutionId, subjectId])
+  @@index([institutionId, status])
+  @@map("grades")
+}
+
+// ============================================================
+// SCHEDULE (Tenant-scoped academic resource)
+// ============================================================
+
+model Schedule {
+  id            String         @id @default(uuid()) @db.Uuid
+  institutionId String         @map("institution_id") @db.Uuid
+  courseId      String         @map("course_id") @db.Uuid
+  subjectId     String         @map("subject_id") @db.Uuid
+  dayOfWeek     DayOfWeek      @map("day_of_week")
+  startTime     DateTime       @map("start_time") @db.Time
+  endTime       DateTime       @map("end_time") @db.Time
+  classroom     String?        @db.VarChar(100)
+  status        ScheduleStatus @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  subject     Subject     @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@index([institutionId])
+  @@index([institutionId, courseId])
+  @@index([institutionId, subjectId])
+  @@index([institutionId, dayOfWeek])
+  @@index([institutionId, status])
+  @@map("schedules")
+}
+
+// ============================================================
+// TASK (Tenant-scoped academic resource)
+// ============================================================
+
+model Task {
+  id            String     @id @default(uuid()) @db.Uuid
+  institutionId String     @map("institution_id") @db.Uuid
+  courseId      String     @map("course_id") @db.Uuid
+  subjectId     String     @map("subject_id") @db.Uuid
+  title         String     @db.VarChar(200)
+  description   String?    @db.Text
+  dueDate       DateTime   @map("due_date")
+  status        TaskStatus @default(DRAFT)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  institution     Institution      @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  course          Course           @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  subject         Subject          @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  taskAssignments TaskAssignment[]
+  taskAttachments TaskAttachment[]
+
+  @@index([institutionId])
+  @@index([institutionId, courseId])
+  @@index([institutionId, subjectId])
+  @@index([institutionId, status])
+  @@index([institutionId, dueDate])
+  @@map("tasks")
+}
+
+// ============================================================
+// COMMUNICATION (Tenant-scoped institutional communication)
+// ============================================================
+
+model Communication {
+  id            String                @id @default(uuid()) @db.Uuid
+  institutionId String                @map("institution_id") @db.Uuid
+  title         String                @db.VarChar(200)
+  content       String                @db.Text
+  audience      CommunicationAudience
+  status        CommunicationStatus   @default(DRAFT)
+  publishedAt   DateTime?             @map("published_at")
+  expiresAt     DateTime?             @map("expires_at")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+
+  institution              Institution               @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  recipients               CommunicationRecipient[]
+  communicationAttachments CommunicationAttachment[]
+
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@index([institutionId, audience])
+  @@index([institutionId, publishedAt])
+  @@map("communications")
+}
+
+// ============================================================
+// SIGNATURE REQUEST (Tenant-scoped signature request)
+// ============================================================
+
+model SignatureRequest {
+  id            String                 @id @default(uuid()) @db.Uuid
+  institutionId String                 @map("institution_id") @db.Uuid
+  title         String                 @db.VarChar(200)
+  description   String?                @db.Text
+  status        SignatureRequestStatus @default(DRAFT)
+  dueDate       DateTime?              @map("due_date")
+  createdAt     DateTime               @default(now()) @map("created_at")
+  updatedAt     DateTime               @updatedAt @map("updated_at")
+
+  institution Institution          @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  recipients  SignatureRecipient[]
+
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@index([institutionId, dueDate])
+  @@map("signature_requests")
+}
+
+// ============================================================
+// SIGNATURE RECIPIENT (Links users to signature requests)
+// ============================================================
+
+model SignatureRecipient {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  signatureRequestId String                   @map("signature_request_id") @db.Uuid
+  userId             String                   @map("user_id") @db.Uuid
+  status             SignatureRecipientStatus @default(PENDING)
+  signedAt           DateTime?                @map("signed_at")
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+
+  signatureRequest SignatureRequest @relation(fields: [signatureRequestId], references: [id], onDelete: Restrict)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([signatureRequestId, userId])
+  @@index([signatureRequestId])
+  @@index([userId])
+  @@index([userId, status])
+  @@map("signature_recipients")
+}
+
+// ============================================================
+// NOTIFICATION (Tenant-scoped in-app notification)
+// ============================================================
+
+model Notification {
+  id            String             @id @default(uuid()) @db.Uuid
+  institutionId String             @map("institution_id") @db.Uuid
+  userId        String             @map("user_id") @db.Uuid
+  type          NotificationType
+  title         String             @db.VarChar(200)
+  message       String             @db.Text
+  status        NotificationStatus @default(UNREAD)
+  entityType    String?            @db.VarChar(100)
+  entityId      String?
+  readAt        DateTime?          @map("read_at")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([institutionId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@map("notifications")
+}
+
+// ============================================================
+// SCHOOL GRADE (Tenant-scoped school grade level)
+// ============================================================
+
+model SchoolGrade {
+  id            String            @id @default(uuid()) @db.Uuid
+  institutionId String            @map("institution_id") @db.Uuid
+  name          String            @db.VarChar(100)
+  code          String            @db.VarChar(20)
+  sortOrder     Int               @default(0) @map("sort_order")
+  status        SchoolGradeStatus @default(ACTIVE)
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  institution Institution  @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  enrollments Enrollment[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@map("school_grades")
+}
+
+// ============================================================
+// ACADEMIC PERIOD (Tenant-scoped academic period)
+// ============================================================
+
+model AcademicPeriod {
+  id            String               @id @default(uuid()) @db.Uuid
+  institutionId String               @map("institution_id") @db.Uuid
+  name          String               @db.VarChar(100)
+  code          String               @db.VarChar(20)
+  startDate     DateTime             @map("start_date") @db.Date
+  endDate       DateTime             @map("end_date") @db.Date
+  status        AcademicPeriodStatus @default(ACTIVE)
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+
+  institution        Institution         @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  enrollments        Enrollment[]
+  teacherAssignments TeacherAssignment[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([institutionId, status])
+  @@map("academic_periods")
+}
+
+// ============================================================
+// ENROLLMENT (Tenant-scoped student enrollment)
+// ============================================================
+
+model Enrollment {
+  id               String           @id @default(uuid()) @db.Uuid
+  institutionId    String           @map("institution_id") @db.Uuid
+  studentId        String           @map("student_id") @db.Uuid
+  courseId         String           @map("course_id") @db.Uuid
+  schoolGradeId    String           @map("school_grade_id") @db.Uuid
+  academicPeriodId String           @map("academic_period_id") @db.Uuid
+  status           EnrollmentStatus @default(ACTIVE)
+  enrolledAt       DateTime         @default(now()) @map("enrolled_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  institution     Institution      @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  student         Student          @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  course          Course           @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  schoolGrade     SchoolGrade      @relation(fields: [schoolGradeId], references: [id], onDelete: Restrict)
+  academicPeriod  AcademicPeriod   @relation(fields: [academicPeriodId], references: [id], onDelete: Restrict)
+  taskAssignments TaskAssignment[]
+
+  @@unique([institutionId, studentId, courseId, academicPeriodId])
+  @@index([institutionId])
+  @@index([institutionId, studentId])
+  @@index([institutionId, courseId])
+  @@index([institutionId, schoolGradeId])
+  @@index([institutionId, academicPeriodId])
+  @@index([institutionId, status])
+  @@map("enrollments")
+}
+
+// ============================================================
+// TEACHER ASSIGNMENT (Tenant-scoped teacher-course-subject)
+// ============================================================
+
+model TeacherAssignment {
+  id               String                  @id @default(uuid()) @db.Uuid
+  institutionId    String                  @map("institution_id") @db.Uuid
+  teacherUserId    String                  @map("teacher_user_id") @db.Uuid
+  courseId         String                  @map("course_id") @db.Uuid
+  subjectId        String                  @map("subject_id") @db.Uuid
+  academicPeriodId String                  @map("academic_period_id") @db.Uuid
+  status           TeacherAssignmentStatus @default(ACTIVE)
+  createdAt        DateTime                @default(now()) @map("created_at")
+  updatedAt        DateTime                @updatedAt @map("updated_at")
+
+  institution    Institution    @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  teacherUser    User           @relation(fields: [teacherUserId], references: [id], onDelete: Restrict)
+  course         Course         @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  subject        Subject        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  academicPeriod AcademicPeriod @relation(fields: [academicPeriodId], references: [id], onDelete: Restrict)
+
+  @@unique([institutionId, teacherUserId, courseId, subjectId, academicPeriodId])
+  @@index([institutionId])
+  @@index([institutionId, teacherUserId])
+  @@index([institutionId, courseId])
+  @@index([institutionId, subjectId])
+  @@index([institutionId, academicPeriodId])
+  @@index([institutionId, status])
+  @@map("teacher_assignments")
+}
+
+// ============================================================
+// GUARDIAN STUDENT (Tenant-scoped guardian-student link)
+// ============================================================
+
+model GuardianStudent {
+  id               String                @id @default(uuid()) @db.Uuid
+  institutionId    String                @map("institution_id") @db.Uuid
+  guardianUserId   String                @map("guardian_user_id") @db.Uuid
+  studentId        String                @map("student_id") @db.Uuid
+  relationshipType RelationshipType      @map("relationship_type")
+  isPrimary        Boolean               @default(false) @map("is_primary")
+  status           GuardianStudentStatus @default(ACTIVE)
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  institution  Institution @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  guardianUser User        @relation(fields: [guardianUserId], references: [id], onDelete: Restrict)
+  student      Student     @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  @@unique([institutionId, guardianUserId, studentId])
+  @@index([institutionId])
+  @@index([institutionId, guardianUserId])
+  @@index([institutionId, studentId])
+  @@index([institutionId, status])
+  @@map("guardian_students")
+}
+
+// ============================================================
+// TASK ASSIGNMENT (Links tasks to students via enrollment)
+// ============================================================
+
+model TaskAssignment {
+  id            String               @id @default(uuid()) @db.Uuid
+  institutionId String               @map("institution_id") @db.Uuid
+  taskId        String               @map("task_id") @db.Uuid
+  studentId     String               @map("student_id") @db.Uuid
+  enrollmentId  String?              @map("enrollment_id") @db.Uuid
+  status        TaskAssignmentStatus @default(ASSIGNED)
+  assignedAt    DateTime             @default(now()) @map("assigned_at")
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+
+  institution Institution     @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  task        Task            @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  student     Student         @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  enrollment  Enrollment?     @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  submission  TaskSubmission?
+
+  @@unique([taskId, studentId])
+  @@index([institutionId])
+  @@index([institutionId, taskId])
+  @@index([institutionId, studentId])
+  @@index([taskId])
+  @@map("task_assignments")
+}
+
+// ============================================================
+// TASK SUBMISSION (Student delivery for a task assignment)
+// ============================================================
+
+model TaskSubmission {
+  id               String               @id @default(uuid()) @db.Uuid
+  institutionId    String               @map("institution_id") @db.Uuid
+  taskAssignmentId String               @map("task_assignment_id") @db.Uuid
+  studentId        String               @map("student_id") @db.Uuid
+  status           TaskSubmissionStatus @default(PENDING)
+  content          String?              @db.Text
+  grade            Decimal?             @db.Decimal(5, 2)
+  feedback         String?              @db.Text
+  submittedAt      DateTime?            @map("submitted_at")
+  gradedAt         DateTime?            @map("graded_at")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  institution    Institution    @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  taskAssignment TaskAssignment @relation(fields: [taskAssignmentId], references: [id], onDelete: Restrict)
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  @@unique([taskAssignmentId])
+  @@index([institutionId])
+  @@index([institutionId, taskAssignmentId])
+  @@index([institutionId, studentId])
+  @@map("task_submissions")
+}
+
+// ============================================================
+// COMMUNICATION RECIPIENT (Tracks individual delivery/read state)
+// ============================================================
+
+model CommunicationRecipient {
+  id              String                       @id @default(uuid()) @db.Uuid
+  institutionId   String                       @map("institution_id") @db.Uuid
+  communicationId String                       @map("communication_id") @db.Uuid
+  userId          String                       @map("user_id") @db.Uuid
+  status          CommunicationRecipientStatus @default(DELIVERED)
+  readAt          DateTime?                    @map("read_at")
+  createdAt       DateTime                     @default(now()) @map("created_at")
+  updatedAt       DateTime                     @updatedAt @map("updated_at")
+
+  institution   Institution   @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  communication Communication @relation(fields: [communicationId], references: [id], onDelete: Restrict)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([communicationId, userId])
+  @@index([institutionId])
+  @@index([institutionId, communicationId])
+  @@index([institutionId, userId])
+  @@index([userId, status])
+  @@map("communication_recipients")
+}
+
+// ============================================================
+// FILE ASSET (Tenant-scoped file metadata)
+// ============================================================
+
+model FileAsset {
+  id               String          @id @default(uuid()) @db.Uuid
+  institutionId    String          @map("institution_id") @db.Uuid
+  originalName     String          @map("original_name") @db.VarChar(255)
+  storageKey       String          @map("storage_key") @db.VarChar(500)
+  mimeType         String          @map("mime_type") @db.VarChar(100)
+  sizeBytes        Int             @map("size_bytes")
+  checksum         String          @db.VarChar(64)
+  status           FileAssetStatus @default(ACTIVE)
+  uploadedByUserId String          @map("uploaded_by_user_id") @db.Uuid
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  institution              Institution               @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  uploadedByUser           User                      @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  taskAttachments          TaskAttachment[]
+  communicationAttachments CommunicationAttachment[]
+
+  @@unique([institutionId, storageKey])
+  @@index([institutionId])
+  @@index([institutionId, uploadedByUserId])
+  @@index([institutionId, status])
+  @@index([institutionId, createdAt])
+  @@index([checksum])
+  @@map("file_assets")
+}
+
+// ============================================================
+// TASK ATTACHMENT (Links files to tasks)
+// ============================================================
+
+model TaskAttachment {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @map("institution_id") @db.Uuid
+  taskId        String   @map("task_id") @db.Uuid
+  fileAssetId   String   @map("file_asset_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  task        Task        @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  fileAsset   FileAsset   @relation(fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([taskId, fileAssetId])
+  @@index([institutionId])
+  @@index([institutionId, taskId])
+  @@index([taskId])
+  @@index([fileAssetId])
+  @@map("task_attachments")
+}
+
+// ============================================================
+// COMMUNICATION ATTACHMENT (Links files to communications)
+// ============================================================
+
+model CommunicationAttachment {
+  id              String   @id @default(uuid()) @db.Uuid
+  institutionId   String   @map("institution_id") @db.Uuid
+  communicationId String   @map("communication_id") @db.Uuid
+  fileAssetId     String   @map("file_asset_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  institution   Institution   @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  communication Communication @relation(fields: [communicationId], references: [id], onDelete: Restrict)
+  fileAsset     FileAsset     @relation(fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([communicationId, fileAssetId])
+  @@index([institutionId])
+  @@index([institutionId, communicationId])
+  @@index([communicationId])
+  @@index([fileAssetId])
+  @@map("communication_attachments")
 }

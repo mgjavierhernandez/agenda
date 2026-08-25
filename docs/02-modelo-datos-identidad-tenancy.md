@@ -1,26 +1,26 @@
-# 02 - Modelo de Datos: Identidad y Tenancy
+# 02 - Modelo de Datos: Identidad, Tenancy y RBAC
 
-**Version:** 0.1.0
+**Version:** 0.2.0
 **Fecha:** 20 de agosto de 2026
-**Estado:** Implementado
+**Estado:** Hardened - Cross-tenant protection at DB level
 
-Este documento describe el modelo de datos initial del sistema de identidad, tenancy y RBAC.
+Este documento describe el modelo de datos del sistema de identidad, tenancy y RBAC, con proteccion cross-tenant garantizada a nivel de base de datos.
 
 ---
 
 ## 1. Entidades
 
-| Modelo | Proposito |
-| ------ | --------- |
-| `Institution` | Tenant / colegio. Entidad principal del aislamiento multi-tenant. |
-| `User` | Identidad de plataforma. Email globalmente unico. |
-| `UserInstitution` | Membresia de un User dentro de una Institution. |
-| `Role` | Rol dentro de una Institution (o global si institutionId es null). |
-| `Permission` | Definicion global de un permiso granular (code unico). |
-| `RolePermission` | Relacion Role <-> Permission (N:N). |
-| `UserRole` | Asignacion de un Role a un User dentro de una Institution (via UserInstitution). |
-| `GlobalUserRole` | Asignacion de un Role global a un User (ej: SUPER_ADMIN). |
-| `AuditLog` | Preparado para auditoria futura. No implementado completamente. |
+| Modelo | Scope | Proposito |
+| ------ | ----- | --------- |
+| `Institution` | Tenant | Tenant / colegio. Entidad principal del aislamiento multi-tenant. |
+| `User` | Global | Identidad de plataforma. Email globalmente unico. |
+| `UserInstitution` | Tenant | Membresia de un User dentro de una Institution. |
+| `Role` | Global/Tenant | Rol (global, template o tenant-scoped). |
+| `Permission` | Global | Definicion global de un permiso granular (code unico). |
+| `RolePermission` | Global/Tenant | Relacion Role <-> Permission (N:N). |
+| `UserRole` | Tenant | Asignacion de un Role a un User dentro de una Institution. |
+| `GlobalUserRole` | Global | Asignacion de un Role global a un User (ej: SUPER_ADMIN). |
+| `AuditLog` | Global/Tenant | Registro de auditoria de acciones. |
 
 ---
 
@@ -40,11 +40,15 @@ Institution 1 ──< UserInstitution >── 1 User
 
 ```
 UserInstitution 1 ──< UserRole >── 1 Role
+                    │
+                    └──> 1 Institution (FK compuesta)
 ```
 
 - Un usuario dentro de una institucion puede tener multiples roles.
-- Un rol puede ser asignado a multiples usuarios dentro de una institucion.
-- `UserRole` depende de `UserInstitution` (no directamente de User ni Role).
+- `UserRole` incluye `institutionId` explicitamente para integridad referencial.
+- **FK compuesta**: `UserRole(roleId, institutionId) -> Role(id, institutionId)`
+- **FK compuesta**: `UserRole(userInstitutionId, institutionId) -> UserInstitution(id, institutionId)`
+- Esto garantiza que el rol y la membresia pertenezcan a la misma institucion.
 
 ### 2.3 Role <-> Permission (via RolePermission)
 
@@ -59,21 +63,22 @@ Role 1 ──< RolePermission >── 1 Permission
 ### 2.4 GlobalUserRole (Platform-level)
 
 ```
-User 1 ──< GlobalUserRole >── 1 Role (global)
+User 1 ──< GlobalUserRole >── 1 Role (global, institutionId = NULL)
 ```
 
 - Para roles de plataforma como SUPER_ADMIN.
 - Separado fisicamente de UserRole para evitar escalada de privilegios.
-- Un usuario puede tener multiples roles globales.
+- **Trigger**: `trg_check_global_role_is_global` previene que un GlobalUserRole apunte a un rol tenant-scoped.
 
 ### 2.5 User <-> AuditLog
 
 ```
-User 1 ──< AuditLog
+User 1 ──< AuditLog >── 0..1 Institution
 ```
 
 - Un usuario puede tener multiples registros de auditoria.
 - `userId` es nullable (acciones del sistema).
+- `institutionId` es nullable (acciones globales vs tenant-scoped).
 
 ---
 
@@ -81,23 +86,24 @@ User 1 ──< AuditLog
 
 ### 3.1 Estrategia
 
-Shared Database + `tenant_id` (como recomienda `docs/00-analisis-y-arquitectura.md` seccion 8.1).
+Shared Database + `tenant_id` + Composite Foreign Keys + DB Triggers.
 
 ### 3.2 Aislamiento
 
-El aislamiento se logra via `UserInstitution`:
+El aislamiento se logra via multiples capas:
 
-1. Un User se autentica (identidad global).
-2. Selecciona una Institution ( tenant).
-3. Todas las operaciones se filtran por `institutionId` del contexto activo.
-4. Los roles y permisos se evaluan dentro del contexto de la Institution seleccionada.
+1. **UserInstitution**: Membresia del usuario en una institucion.
+2. **UserRole.institutionId**: Denormalizado para integridad referencial.
+3. **FK compuesta**: Garantiza que `UserRole.institutionId == Role.institutionId`.
+4. **FK compuesta**: Garantiza que `UserRole.institutionId == UserInstitution.institutionId`.
+5. **Trigger**: Previene GlobalUserRole con roles tenant-scoped.
 
 ### 3.3 Tenant Context (Backend)
 
 ```
-Request → JWT contiene userId + institutionId
-        → Middleware extrae institutionId
-        → Todas las queries aplican WHERE institution_id = :currentTenant
+Request -> JWT contiene userId + institutionId
+         -> Middleware extrae institutionId
+         -> Todas las queries aplican WHERE institution_id = :currentTenant
 ```
 
 ### 3.4 Separacion de Alcance
@@ -106,96 +112,80 @@ Request → JWT contiene userId + institutionId
 |----------|---------|---------|
 | User | Global (plataforma) | Email, password, nombre |
 | UserInstitution | Tenant | Membresia en un colegio |
-| Role (institutionId != null) | Tenant | INSTITUTION_ADMIN, TEACHER |
-| Role (institutionId == null) | Global | SUPER_ADMIN |
+| Role (roleType = GLOBAL) | Global | SUPER_ADMIN |
+| Role (roleType = TEMPLATE) | Global (plantilla) | INSTITUTION_ADMIN, TEACHER, PARENT, STUDENT |
+| Role (roleType = TENANT) | Tenant | Copias de templates para instituciones especificas |
 | Permission | Global | Definiciones de permisos |
 | UserRole | Tenant | Asignacion de rol dentro de tenant |
 | GlobalUserRole | Global | Asignacion de rol de plataforma |
+| AuditLog | Global/Tenant | Registro de auditoria |
 
 ---
 
 ## 4. RBAC
 
-### 4.1 Roles
+### 4.1 Role Types
 
-| Rol | Scope | Descripcion |
-|-----|-------|-------------|
-| `SUPER_ADMIN` | Global | Administrador de la plataforma. No pertenece a ningun tenant. |
-| `INSTITUTION_ADMIN` | Tenant | Administrador de una institucion especifica. |
-| `TEACHER` | Tenant | Docente asignado a cursos. |
-| `PARENT` | Tenant | Padre/madre/acudiente. |
-| `STUDENT` | Tenant | Estudiante matriculado. |
+| Tipo | Descripcion | institutionId | Ejemplo |
+|------|-------------|---------------|---------|
+| `GLOBAL` | Rol de plataforma real | NULL | SUPER_ADMIN |
+| `TEMPLATE` | Plantilla para copiar a tenants | NULL | INSTITUTION_ADMIN, TEACHER, PARENT, STUDENT |
+| `TENANT` | Copia de template para un tenant especifico | Institution ID | Demo School / TEACHER |
 
-### 4.2 Permisos (Ejemplos iniciales)
-
-| Codigo | Modulo | Descripcion |
-|--------|--------|-------------|
-| `institution:read` | institution | Leer datos de institucion |
-| `institution:update` | institution | Actualizar configuracion |
-| `users:read` | users | Listar y leer usuarios |
-| `users:create` | users | Crear usuarios |
-| `users:update` | users | Actualizar usuarios |
-| `users:delete` | users | Desactivar/eliminar usuarios |
-| `roles:read` | roles | Listar y leer roles |
-| `roles:manage` | roles | CRUD de roles |
-| `grades:read` | grades | Leer grados |
-| `grades:manage` | grades | CRUD de grados |
-| `courses:read` | courses | Leer cursos |
-| `courses:manage` | courses | CRUD de cursos |
-| `subjects:read` | subjects | Leer asignaturas |
-| `subjects:manage` | subjects | CRUD de asignaturas |
-| `students:read` | students | Leer estudiantes |
-| `students:manage` | students | CRUD de estudiantes |
-| `schedules:read` | schedules | Leer horarios |
-| `schedules:manage` | schedules | CRUD de horarios |
-| `tasks:read` | tasks | Leer tareas |
-| `tasks:create` | tasks | Crear tareas |
-| `tasks:update` | tasks | Actualizar tareas |
-| `tasks:delete` | tasks | Eliminar tareas |
-| `communications:read` | communications | Leer comunicaciones |
-| `communications:create` | communications | Crear comunicaciones |
-| `communications:send_bulk` | communications | Enviar comunicaciones masivas |
-| `signatures:read` | signatures | Leer firmas |
-| `signatures:request` | signatures | Solicitar firmas |
-| `signatures:sign` | signatures | Firmar documentos |
-| `notifications:read` | notifications | Leer notificaciones |
-| `audit:read` | audit | Leer logs de auditoria |
-| `files:upload` | files | Subir archivos |
-| `files:read` | files | Leer/descargar archivos |
-
-### 4.3 Evolucion de Permisos
-
-Los permisos se definen como tablas (no como enum) para permitir:
-- Agregar nuevos permisos sin migraciones de esquema.
-- Asignar permisos a multiples roles.
-- Personalizar permisos por institucion en el futuro.
-
-### 4.4 UserRole (Tenant-scoped)
+### 4.2 Template Role Pattern
 
 ```
-UserRole = UserInstitution + Role
+GLOBAL ROLE (SUPER_ADMIN)
+     │
+     ├── institutionId = NULL
+     ├── roleType = GLOBAL
+     └── Usado via GlobalUserRole
+
+TEMPLATE ROLES (INSTITUTION_ADMIN, TEACHER, PARENT, STUDENT)
+     │
+     ├── institutionId = NULL
+     ├── roleType = TEMPLATE
+     ├── No se asignan directamente a usuarios
+     └── Se copian como TENANT roles cuando se crea una institucion
+
+TENANT ROLES (copias de templates)
+     │
+     ├── institutionId = Institution X
+     ├── roleType = TENANT
+     ├── Se asignan via UserRole
+     └── Heredan permisos del template original
 ```
 
-Ejemplo:
-```
-User A
-  ├── UserInstitution (Institution X)
-  │     ├── UserRole → TEACHER
-  │     └── UserRole → INSTITUTION_ADMIN
-  └── UserInstitution (Institution Y)
-        └── UserRole → PARENT
-```
+### 4.3 Permisos
 
-### 4.5 GlobalUserRole (Platform-level)
+32 permisos globales organizados por modulo:
 
-```
-GlobalUserRole = User + Role (global)
-```
+| Modulo | Permisos |
+|--------|----------|
+| institution | read, update |
+| users | read, create, update, delete |
+| roles | read, manage |
+| grades | read, manage |
+| courses | read, manage |
+| subjects | read, manage |
+| students | read, manage |
+| schedules | read, manage |
+| tasks | read, create, update, delete |
+| communications | read, create, send_bulk |
+| signatures | read, request, sign |
+| notifications | read |
+| audit | read |
+| files | upload, read |
 
-Ejemplo:
-```
-User A → GlobalUserRole → SUPER_ADMIN
-```
+### 4.4 Matriz RBAC
+
+| Rol | Permisos | Cantidad |
+|-----|----------|----------|
+| SUPER_ADMIN | Todos | 32 |
+| INSTITUTION_ADMIN | institution:*, users:*, roles:*, grades:*, courses:*, subjects:*, students:*, schedules:*, tasks:*, communications:*, signatures:*, notifications:read, audit:read, files:* | 32 |
+| TEACHER | courses:*, subjects:*, students:read, grades:read/manage, tasks:*, schedules:read, communications:read/create, signatures:*, notifications:read, files:* | 20 |
+| PARENT | students:read, grades:read, schedules:read, tasks:read, communications:read/create, signatures:read/sign, notifications:read, files:read | 10 |
+| STUDENT | tasks:read/update, grades:read, schedules:read, communications:read, notifications:read, files:read | 7 |
 
 ---
 
@@ -207,16 +197,16 @@ User A → GlobalUserRole → SUPER_ADMIN
 
 ### 5.2 Justificacion
 
-1. **Seguridad fisica**: `GlobalUserRole` es una tabla separada de `UserRole`. Un tenant admin solo puede gestionar `UserRole` dentro de su tenant. No tiene acceso a `GlobalUserRole`.
+1. **Seguridad fisica**: `GlobalUserRole` es una tabla separada de `UserRole`.
 2. **Claridad conceptual**: La frontera entre Platform scope y Tenant scope es evidente en el esquema.
-3. **Prevencion de escalada**: Un usuario no puede convertirse en Super Admin modificando un registro de `UserRole` porque eso no le da permisos globales.
-4. **Flexibilidad**: Permite agregar roles globales adicionales en el futuro (ej: SUPPORT_ADMIN, BILLING_ADMIN).
+3. **Prevencion de escalada**: Un usuario no puede convertirse en Super Admin modificando un registro de `UserRole`.
+4. **Flexibilidad**: Permite agregar roles globales adicionales en el futuro.
 
 ### 5.3 Restricciones
 
 - Solo usuarios con rol `SUPER_ADMIN` pueden gestionar `GlobalUserRole`.
-- El endpoint de asignacion de roles globales debe estar protegido por un Guard especifico.
 - `GlobalUserRole` no tiene `institutionId` - es intrinsecamente global.
+- **Trigger DB**: `trg_check_global_role_is_global` impide que un GlobalUserRole apunte a un rol con `institutionId != NULL`.
 
 ---
 
@@ -226,12 +216,6 @@ User A → GlobalUserRole → SUPER_ADMIN
 
 Todas las entidades usan `UUID` como PK via `@default(uuid())`.
 
-**Justificacion UUID vs. auto-incremento:**
-- Sin colisiones entre tenants.
-- Seguro para expose en URLs/APIs.
-- Generable client-side sin round-trip a la DB.
-- Estandar para sistemas distribuidos.
-
 ### 6.2 Unique Constraints
 
 | Entidad | Constraint | Proposito |
@@ -240,7 +224,9 @@ Todas las entidades usan `UUID` como PK via `@default(uuid())`.
 | `User` | `email` | Email globalmente unico |
 | `Permission` | `code` | Codigo de permiso unico globalmente |
 | `Role` | `(name, institutionId)` | Nombre de rol unico por tenant (o global) |
+| `Role` | `(id, institutionId)` | Para soporte de FK compuesta |
 | `UserInstitution` | `(userId, institutionId)` | Evitar membresia duplicada |
+| `UserInstitution` | `(id, institutionId)` | Para soporte de FK compuesta |
 | `UserRole` | `(userInstitutionId, roleId)` | Evitar asignacion de rol duplicada |
 | `GlobalUserRole` | `(userId, roleId)` | Evitar asignacion de rol global duplicada |
 | `RolePermission` | `(roleId, permissionId)` | Evitar permiso duplicado en rol |
@@ -251,29 +237,41 @@ Todas las entidades usan `UUID` como PK via `@default(uuid())`.
 |--------|-------|-----------|
 | `institutionId` | `UserInstitution` | Buscar membresias por institucion |
 | `institutionId` | `Role` | Buscar roles por institucion |
+| `roleType` | `Role` | Buscar roles por tipo |
 | `module` | `Permission` | Buscar permisos por modulo |
 | `permissionId` | `RolePermission` | Buscar roles que tienen un permiso |
 | `roleId` | `UserRole` | Buscar usuarios con un rol |
+| `institutionId` | `UserRole` | Buscar roles por institucion |
 | `roleId` | `GlobalUserRole` | Buscar usuarios con un rol global |
 | `userId` | `AuditLog` | Buscar auditoria por usuario |
+| `institutionId` | `AuditLog` | Buscar auditoria por institucion |
+| `(institutionId, createdAt)` | `AuditLog` | Buscar auditoria por institucion y fecha |
 | `(entityType, entityId)` | `AuditLog` | Buscar auditoria por entidad |
 
 ### 6.4 Foreign Keys
 
-Todas las FK usan `onDelete: Cascade` o `onDelete: SetNull` segun el caso:
+| Relacion | Tipo | onDelete | Razon |
+|----------|------|----------|-------|
+| UserInstitution -> User | Simple | Cascade | Si se elimina el user, se eliminan sus membresias |
+| UserInstitution -> Institution | Simple | Cascade | Si se elimina la institution, se eliminan membresias |
+| UserRole -> UserInstitution | Simple | Cascade | Si se elimina la membresia, se eliminan roles |
+| UserRole -> Role | Simple | Cascade | Si se elimina el role, se eliminan asignaciones |
+| UserRole -> Institution | Simple | Cascade | Si se elimina la institution, se eliminan roles |
+| **UserRole(roleId, institutionId) -> Role(id, institutionId)** | **Compuesta** | Cascade | **Garantiza que el rol pertenece a la misma institucion** |
+| **UserRole(userInstitutionId, institutionId) -> UserInstitution(id, institutionId)** | **Compuesta** | Cascade | **Garantiza que la membresia pertenece a la misma institucion** |
+| GlobalUserRole -> User | Simple | Cascade | Si se elimina el user, se eliminan roles globales |
+| GlobalUserRole -> Role | Simple | Cascade | Si se elimina el role, se eliminan asignaciones globales |
+| RolePermission -> Role | Simple | Cascade | Si se elimina el role, se eliminan permisos |
+| RolePermission -> Permission | Simple | Cascade | Si se elimina el permiso, se eliminan relaciones |
+| Role -> Institution | Simple | Cascade | Si se elimina la institution, se eliminan roles |
+| AuditLog -> User | Simple | SetNull | Si se elimina el user, se conservan logs |
+| AuditLog -> Institution | Simple | SetNull | Si se elimina la institution, se conservan logs |
 
-| Relacion | onDelete | Razon |
-|----------|----------|-------|
-| UserInstitution -> User | Cascade | Si se elimina el user, se eliminan sus membresias |
-| UserInstitution -> Institution | Cascade | Si se elimina la institution, se eliminan membresias |
-| UserRole -> UserInstitution | Cascade | Si se elimina la membresia, se eliminan roles |
-| UserRole -> Role | Cascade | Si se elimina el role, se eliminan asignaciones |
-| GlobalUserRole -> User | Cascade | Si se elimina el user, se eliminan roles globales |
-| GlobalUserRole -> Role | Cascade | Si se elimina el role, se eliminan asignaciones globales |
-| RolePermission -> Role | Cascade | Si se elimina el role, se eliminan permisos |
-| RolePermission -> Permission | Cascade | Si se elimina el permiso, se eliminan relaciones |
-| Role -> Institution | Cascade | Si se elimina la institution, se eliminan roles |
-| AuditLog -> User | SetNull | Si se elimina el user, se conservan logs |
+### 6.5 Triggers
+
+| Trigger | Tabla | Funcion |
+|---------|-------|---------|
+| `trg_check_global_role_is_global` | `global_user_roles` | Impide que un GlobalUserRole apunte a un rol con institutionId != NULL |
 
 ---
 
@@ -296,36 +294,47 @@ Para las entidades de identidad y tenancy se usa **status enums** en vez de `del
 3. **Flexibilidad**: Permite distinguir entre INACTIVE (desactivado) y SUSPENDED (suspendido).
 4. **Auditoria**: Los cambios de estado son eventos claros para el log de auditoria.
 
-### 7.3 Evolucion
-
-Si se necesita soft delete en el futuro, se puede agregar `deletedAt` a las entidades que lo requieran (especialmente entidades de dominio como Student, Task, etc.).
-
 ---
 
-## 8. Auditoria (Preparacion)
+## 8. Auditoria
 
 ### 8.1 Modelo
 
 ```prisma
 model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String?  @map("user_id") @db.Uuid
-  action     String   @db.VarChar(100)
-  entityType String   @map("entity_type") @db.VarChar(50)
-  entityId   String?  @map("entity_id") @db.Uuid
-  oldValues  Json?    @map("old_values")
-  newValues  Json?    @map("new_values")
-  ipAddress  String?  @map("ip_address") @db.VarChar(45)
-  createdAt  DateTime @default(now()) @map("created_at")
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String?   @map("user_id") @db.Uuid
+  institutionId String?   @map("institution_id") @db.Uuid
+  action        String    @db.VarChar(100)
+  entityType    String    @map("entity_type") @db.VarChar(50)
+  entityId      String?   @map("entity_id") @db.Uuid
+  oldValues     Json?     @map("old_values")
+  newValues     Json?     @map("new_values")
+  ipAddress     String?   @map("ip_address") @db.VarChar(45)
+  createdAt     DateTime  @default(now()) @map("created_at")
 }
 ```
 
-### 8.2 Uso Futuro
+### 8.2 Alcance
 
-- `userId` nullable permite registrar acciones del sistema.
-- `oldValues` / `newValues` permiten comparar cambios.
-- `entityType` + `entityId` permiten rastrear que entidad fue afectada.
-- `ipAddress` para trazabilidad de seguridad.
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `userId` | UUID nullable | Actor (NULL para acciones del sistema) |
+| `institutionId` | UUID nullable | Tenant (NULL para acciones globales de plataforma) |
+| `action` | String | Accion realizada (ej: USER_CREATED, ROLE_ASSIGNED) |
+| `entityType` | String | Tipo de entidad afectada (ej: User, Role) |
+| `entityId` | UUID nullable | ID de la entidad afectada |
+| `oldValues` | JSON nullable | Valores antes del cambio |
+| `newValues` | JSON nullable | Valores despues del cambio |
+| `ipAddress` | String nullable | Direccion IP del actor |
+| `createdAt` | DateTime | Timestamp del evento |
+
+### 8.3 Indices para Consultas
+
+- `institutionId`: Filtrar logs por tenant.
+- `(institutionId, createdAt)`: Filtrar logs por tenant y rango de fechas.
+- `(entityType, entityId)`: Buscar historial de una entidad especifica.
+- `userId`: Buscar acciones de un usuario especifico.
 
 ---
 
@@ -363,5 +372,7 @@ Los permisos actuales son un conjunto minimo para probar la arquitectura RBAC. S
 |---------|-------------|
 | `apps/api/prisma/schema.prisma` | Esquema Prisma con todos los modelos |
 | `apps/api/prisma/seed.ts` | Script de seed con datos demo |
+| `apps/api/prisma/validate-model.ts` | Tests de integridad contra PostgreSQL real |
+| `apps/api/prisma/migrations/` | Migraciones de base de datos |
 | `apps/api/src/common/prisma/prisma.service.ts` | Servicio Prisma para NestJS |
 | `apps/api/src/common/prisma/prisma.module.ts` | Modulo Prisma global |

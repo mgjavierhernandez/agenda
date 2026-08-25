@@ -36,3 +36,12 @@ apps/api/prisma/migrations/dev.db
 
 # Vite
 apps/web/dist/
+
+# File uploads (local storage)
+storage/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
