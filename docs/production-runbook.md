@@ -1,4 +1,4 @@
-# Production Runbook — Agenda Escolar Digital v1.0.0
+# Production Runbook — Agenda Escolar Digital v1.0.1
 
 Operational guide for deploying, monitoring, and maintaining the platform in production.
 

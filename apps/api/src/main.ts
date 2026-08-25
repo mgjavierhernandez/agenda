@@ -70,7 +70,7 @@ async function bootstrap(): Promise<void> {
         '## Request ID\n' +
         'Every response includes an `X-Request-Id` header. You may supply your own via the `X-Request-Id` request header.',
       )
-      .setVersion('1.0.0')
+      .setVersion('1.0.1')
       .addBearerAuth(
         {
           type: 'http',
