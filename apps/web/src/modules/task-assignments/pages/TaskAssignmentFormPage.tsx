@@ -163,7 +163,7 @@ export function TaskAssignmentFormPage() {
                     <span className="text-sm text-gray-900">
                       {student.firstName} {student.lastName}
                     </span>
-                    <span className="text-xs text-gray-400 font-mono ml-auto">
+                    <span className="text-xs text-gray-500 font-mono ml-auto">
                       {student.documentNumber}
                     </span>
                   </label>

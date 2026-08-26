@@ -168,7 +168,7 @@ export function SchoolGradesPage() {
                     <p className="text-sm text-gray-500 font-mono">
                       {grade.code}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Orden: {grade.sortOrder}
                     </p>
                   </div>

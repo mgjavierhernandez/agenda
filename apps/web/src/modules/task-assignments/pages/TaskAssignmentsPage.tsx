@@ -234,7 +234,7 @@ export function TaskAssignmentsPage() {
                     <p className="text-sm text-gray-500">
                       {getStudentName(assignment.studentId)}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       {new Date(assignment.assignedAt).toLocaleDateString('es-CO')}
                     </p>
                   </div>

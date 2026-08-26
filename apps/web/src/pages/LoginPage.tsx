@@ -30,7 +30,7 @@ export function LoginPage() {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Iniciar sesión</h2>
+      <h1 className="text-xl font-semibold text-gray-900 mb-6">Iniciar sesión</h1>
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Input
           label="Correo electrónico"

@@ -199,7 +199,7 @@ export function TasksPage() {
                     <p className="text-sm text-gray-500">
                       Vence: {new Date(task.dueDate).toLocaleDateString('es-CO')}
                     </p>
-                    <p className="text-xs text-gray-400 font-mono">
+                    <p className="text-xs text-gray-500 font-mono">
                       Curso: {task.courseId.slice(0, 8)}…
                     </p>
                   </div>

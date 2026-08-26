@@ -10,7 +10,7 @@ const MOBILE = { width: 390, height: 844 };
 async function login(page: Page, email = EMAIL, password = PASSWORD) {
   await page.goto('/login');
   await page.getByLabel('Correo electrónico').fill(email);
-  await page.getByLabel('Contraseña').fill(password);
+  await page.locator('#password').fill(password);
   await page.getByRole('button', { name: 'Entrar' }).click();
   try {
     await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
@@ -18,7 +18,7 @@ async function login(page: Page, email = EMAIL, password = PASSWORD) {
     const errorAlert = page.getByRole('alert');
     if (await errorAlert.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await page.getByLabel('Correo electrónico').fill(email);
-      await page.getByLabel('Contraseña').fill(password);
+      await page.locator('#password').fill(password);
       await page.getByRole('button', { name: 'Entrar' }).click();
       await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
     } else {
@@ -157,7 +157,7 @@ test.describe('Responsive - Students', () => {
     await login(page);
     await page.goto('/students/new');
     await expect(page.getByRole('heading', { name: /nuevo estudiante/i })).toBeVisible();
-    await expect(page.getByLabelText(/nombre/i)).toBeVisible();
+    await expect(page.getByLabel(/nombre/i)).toBeVisible();
     await assertNoOverflow(page);
   });
 
@@ -166,7 +166,7 @@ test.describe('Responsive - Students', () => {
     await login(page);
     await page.goto('/students/new');
     await expect(page.getByRole('heading', { name: /nuevo estudiante/i })).toBeVisible();
-    await expect(page.getByLabelText(/nombre/i)).toBeVisible();
+    await expect(page.getByLabel(/nombre/i)).toBeVisible();
     await assertNoOverflow(page);
   });
 });

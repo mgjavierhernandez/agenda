@@ -270,7 +270,7 @@ export function NotificationsPage() {
                         <p className="text-sm text-gray-500 truncate max-w-[250px]">
                           {notif.message}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-500">
                           {new Date(notif.createdAt).toLocaleString('es-CO')}
                         </p>
                       </div>

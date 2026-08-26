@@ -51,7 +51,7 @@ function AssignmentRow({
             {TASK_SUBMISSION_STATUS_LABELS[submission.status]}
           </Badge>
         ) : (
-          <span className="text-sm text-gray-400">Sin entrega</span>
+          <span className="text-sm text-gray-500">Sin entrega</span>
         )}
       </td>
       <td className="px-4 py-3 text-sm text-gray-600">
@@ -98,7 +98,7 @@ function AssignmentCard({
             Asignada: {new Date(assignment.assignedAt).toLocaleDateString('es-CO')}
           </p>
           {submission?.submittedAt && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               Entregada: {new Date(submission.submittedAt).toLocaleString('es-CO')}
             </p>
           )}
@@ -114,7 +114,7 @@ function AssignmentCard({
               {TASK_SUBMISSION_STATUS_LABELS[submission.status]}
             </Badge>
           ) : (
-            <span className="text-sm text-gray-400">Sin entrega</span>
+          <span className="text-sm text-gray-500">Sin entrega</span>
           )}
         </div>
       </div>

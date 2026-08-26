@@ -6,7 +6,7 @@ const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.getByLabel('Correo electrónico').fill(EMAIL);
-  await page.getByLabel('Contraseña').fill(PASSWORD);
+  await page.locator('#password').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar' }).click();
   try {
     await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
@@ -14,7 +14,7 @@ async function login(page: import('@playwright/test').Page) {
     const errorAlert = page.getByRole('alert');
     if (await errorAlert.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await page.getByLabel('Correo electrónico').fill(EMAIL);
-      await page.getByLabel('Contraseña').fill(PASSWORD);
+      await page.locator('#password').fill(PASSWORD);
       await page.getByRole('button', { name: 'Entrar' }).click();
       await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
     } else {
@@ -33,7 +33,7 @@ test.describe('Authentication', () => {
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
     await expect(page.getByLabel('Correo electrónico')).toBeVisible();
-    await expect(page.getByLabel('Contraseña')).toBeVisible();
+    await expect(page.locator('#password')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
   });
 
@@ -45,7 +45,7 @@ test.describe('Authentication', () => {
   test('should show error on invalid credentials', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Correo electrónico').fill('wrong@test.com');
-    await page.getByLabel('Contraseña').fill('WrongPassword123!');
+    await page.locator('#password').fill('WrongPassword123!');
     await page.getByRole('button', { name: 'Entrar' }).click();
     await expect(page.getByRole('alert')).toBeVisible({ timeout: 10_000 });
   });

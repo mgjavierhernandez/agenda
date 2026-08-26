@@ -33,7 +33,7 @@ describe('LoginPage', () => {
   it('renders email and password inputs', () => {
     renderLoginPage();
     expect(screen.getByLabelText(/correo electrónico/i)).toBeDefined();
-    expect(screen.getByLabelText(/contraseña/i)).toBeDefined();
+    expect(screen.getByLabelText(/^Contraseña/)).toBeDefined();
   });
 
   it('renders submit button', () => {
@@ -48,7 +48,7 @@ describe('LoginPage', () => {
 
     renderLoginPage();
     await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/contraseña/i), 'password123');
+    await user.type(screen.getByLabelText(/^Contraseña/), 'password123');
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {

@@ -67,7 +67,7 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
                 <span className="text-lg" aria-hidden="true">{item.icon}</span>
                 {item.label}
                 {item.to === '/communication-inbox' && unreadCount > 0 && (
-                  <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                  <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white" aria-label={`${unreadCount} mensajes sin leer`}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}

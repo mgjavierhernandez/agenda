@@ -299,7 +299,7 @@ export function EnrollmentsPage() {
                     <span>Grado: {schoolGradeMap[enrollment.schoolGradeId] ?? '—'}</span>
                     <span>Periodo: {periodMap[enrollment.academicPeriodId] ?? '—'}</span>
                   </div>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     Matriculado: {new Date(enrollment.enrolledAt).toLocaleDateString('es-CO')}
                   </p>
                 </div>

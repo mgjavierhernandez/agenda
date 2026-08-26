@@ -139,7 +139,7 @@ export function GuardiansFormPage() {
                 Acudiente principal
               </label>
             </div>
-            <p className="text-xs text-gray-400 -mt-2 ml-7">
+            <p className="text-xs text-gray-500 -mt-2 ml-7">
               Marca esta casilla si este acudiente es el contacto principal del estudiante.
             </p>
           </div>

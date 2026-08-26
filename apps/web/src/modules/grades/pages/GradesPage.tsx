@@ -206,7 +206,7 @@ export function GradesPage() {
                         Tipo: {grade.evaluationType}
                       </p>
                     )}
-                    <p className="text-xs text-gray-400 font-mono">
+                    <p className="text-xs text-gray-500 font-mono">
                       Estudiante: {grade.studentId.slice(0, 8)}…
                     </p>
                   </div>

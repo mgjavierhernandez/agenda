@@ -157,7 +157,7 @@ export function GuardiansPage() {
                         {link.isPrimary ? (
                           <Badge variant="success">Sí</Badge>
                         ) : (
-                          <span className="text-gray-400">No</span>
+                          <span className="text-gray-500">No</span>
                         )}
                       </td>
                       <td className="px-4 py-3">

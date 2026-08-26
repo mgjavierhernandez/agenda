@@ -168,7 +168,7 @@ export function SchoolGradeFormPage() {
                 className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.sortOrder && <p className="text-sm text-red-600 mt-1">{errors.sortOrder}</p>}
-              <p className="text-xs text-gray-400 mt-1">Determina el orden en que se muestran los grados. Menor número = mayor prioridad.</p>
+              <p className="text-xs text-gray-500 mt-1">Determina el orden en que se muestran los grados. Menor número = mayor prioridad.</p>
             </div>
           </div>
         </Card>

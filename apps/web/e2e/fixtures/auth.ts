@@ -6,7 +6,7 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
 export async function loginAs(page: Page, email: string, password: string) {
   await page.goto('/login');
   await page.getByLabel('Correo electrónico').fill(email);
-  await page.getByLabel('Contraseña').fill(password);
+  await page.locator('#password').fill(password);
   await page.getByRole('button', { name: 'Entrar' }).click();
   await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
 

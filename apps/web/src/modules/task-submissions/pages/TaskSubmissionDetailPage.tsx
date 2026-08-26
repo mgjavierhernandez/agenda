@@ -143,7 +143,7 @@ export function TaskSubmissionDetailPage() {
                     {TASK_SUBMISSION_STATUS_LABELS[submission.status]}
                   </Badge>
                 ) : (
-                  <span className="text-sm text-gray-400">No entregada</span>
+                  <span className="text-sm text-gray-500">No entregada</span>
                 )}
               </dd>
             </div>

@@ -6,7 +6,7 @@ const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.getByLabel('Correo electrónico').fill(EMAIL);
-  await page.getByLabel('Contraseña').fill(PASSWORD);
+  await page.locator('#password').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar' }).click();
   try {
     await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
@@ -14,7 +14,7 @@ async function login(page: import('@playwright/test').Page) {
     const errorAlert = page.getByRole('alert');
     if (await errorAlert.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await page.getByLabel('Correo electrónico').fill(EMAIL);
-      await page.getByLabel('Contraseña').fill(PASSWORD);
+      await page.locator('#password').fill(PASSWORD);
       await page.getByRole('button', { name: 'Entrar' }).click();
       await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
     } else {

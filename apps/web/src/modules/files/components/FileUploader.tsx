@@ -112,7 +112,7 @@ export function FileUploader({ onUploadComplete, disabled = false }: FileUploade
               Arrastra un archivo aquí o{' '}
               <span className="text-blue-600 font-medium">selecciona</span>
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               PDF, imágenes, Word, Excel, PowerPoint, texto (máx. {MAX_SIZE_MB} MB)
             </p>
           </>
