@@ -3,12 +3,6 @@ import { apiClient } from '@/api/client';
 import { useQuery } from '@tanstack/react-query';
 import type { PermissionCode } from './permission.constants';
 
-interface RoleInfo {
-  id: string;
-  name: string;
-  roleType: string;
-}
-
 interface MyPermissionsResponse {
   permissions: string[];
 }

@@ -10,14 +10,26 @@ function useCount(queryKey: string, endpoint: string, enabled: boolean) {
   });
 }
 
-export function useDashboardStats(isReady: boolean) {
-  const students = useCount('dashboard-students', '/students', isReady);
-  const courses = useCount('dashboard-courses', '/courses', isReady);
-  const subjects = useCount('dashboard-subjects', '/subjects', isReady);
-  const tasks = useCount('dashboard-tasks', '/tasks', isReady);
-  const enrollments = useCount('dashboard-enrollments', '/enrollments', isReady);
-  const signatures = useCount('dashboard-signatures', '/signature-requests', isReady);
-  const communications = useCount('dashboard-communications', '/communications', isReady);
+export interface DashboardStatsPermissions {
+  students?: boolean;
+  courses?: boolean;
+  subjects?: boolean;
+  tasks?: boolean;
+  enrollments?: boolean;
+  signatures?: boolean;
+  communications?: boolean;
+}
+
+export function useDashboardStats(isReady: boolean, permissions?: DashboardStatsPermissions) {
+  const show = permissions ?? { students: true, courses: true, subjects: true, tasks: true, enrollments: true, signatures: true, communications: true };
+
+  const students = useCount('dashboard-students', '/students', isReady && !!show.students);
+  const courses = useCount('dashboard-courses', '/courses', isReady && !!show.courses);
+  const subjects = useCount('dashboard-subjects', '/subjects', isReady && !!show.subjects);
+  const tasks = useCount('dashboard-tasks', '/tasks', isReady && !!show.tasks);
+  const enrollments = useCount('dashboard-enrollments', '/enrollments', isReady && !!show.enrollments);
+  const signatures = useCount('dashboard-signatures', '/signature-requests', isReady && !!show.signatures);
+  const communications = useCount('dashboard-communications', '/communications', isReady && !!show.communications);
 
   const isLoading = students.isLoading || courses.isLoading || subjects.isLoading ||
     tasks.isLoading || enrollments.isLoading || signatures.isLoading || communications.isLoading;
@@ -27,13 +39,13 @@ export function useDashboardStats(isReady: boolean) {
 
   return {
     stats: {
-      students: students.data?.meta.total ?? 0,
-      courses: courses.data?.meta.total ?? 0,
-      subjects: subjects.data?.meta.total ?? 0,
-      tasks: tasks.data?.meta.total ?? 0,
-      enrollments: enrollments.data?.meta.total ?? 0,
-      signatures: signatures.data?.meta.total ?? 0,
-      communications: communications.data?.meta.total ?? 0,
+      students: show.students ? (students.data?.meta.total ?? 0) : undefined,
+      courses: show.courses ? (courses.data?.meta.total ?? 0) : undefined,
+      subjects: show.subjects ? (subjects.data?.meta.total ?? 0) : undefined,
+      tasks: show.tasks ? (tasks.data?.meta.total ?? 0) : undefined,
+      enrollments: show.enrollments ? (enrollments.data?.meta.total ?? 0) : undefined,
+      signatures: show.signatures ? (signatures.data?.meta.total ?? 0) : undefined,
+      communications: show.communications ? (communications.data?.meta.total ?? 0) : undefined,
     },
     isLoading,
     hasError,

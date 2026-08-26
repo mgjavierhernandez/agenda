@@ -131,7 +131,17 @@ export function DashboardPage() {
   const { selectedInstitution, isTenantReady } = useTenant();
   const { hasPermission } = usePermissions();
 
-  const { stats, isLoading: statsLoading } = useDashboardStats(isTenantReady);
+  const statsPermissions = {
+    students: hasPermission(PERMISSIONS.STUDENTS_READ),
+    courses: hasPermission(PERMISSIONS.COURSES_READ),
+    subjects: hasPermission(PERMISSIONS.SUBJECTS_READ),
+    tasks: hasPermission(PERMISSIONS.TASKS_READ),
+    enrollments: hasPermission(PERMISSIONS.ENROLLMENTS_READ),
+    signatures: hasPermission(PERMISSIONS.SIGNATURES_READ),
+    communications: hasPermission(PERMISSIONS.COMMUNICATIONS_READ),
+  };
+
+  const { stats, isLoading: statsLoading } = useDashboardStats(isTenantReady, statsPermissions);
   const { data: tasksData, isLoading: tasksLoading } = useRecentTasks(isTenantReady);
   const { data: notifData, isLoading: notifsLoading } = useRecentNotifications(isTenantReady);
   const { data: sigData, isLoading: sigsLoading } = usePendingSignatures(isTenantReady);
@@ -157,58 +167,74 @@ export function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Estudiantes"
-            value={stats.students}
-            icon={<span className="text-2xl">👨‍🎓</span>}
-            description="Estudiantes registrados"
-          />
-          <StatCard
-            title="Cursos"
-            value={stats.courses}
-            icon={<span className="text-2xl">📚</span>}
-            description="Cursos activos"
-          />
-          <StatCard
-            title="Asignaturas"
-            value={stats.subjects}
-            icon={<span className="text-2xl">📝</span>}
-            description="Asignaturas registradas"
-          />
-          <StatCard
-            title="Tareas"
-            value={stats.tasks}
-            icon={<span className="text-2xl">✅</span>}
-            description="Tareas creadas"
-          />
+          {statsPermissions.students && (
+            <StatCard
+              title="Estudiantes"
+              value={stats.students ?? 0}
+              icon={<span className="text-2xl">👨‍🎓</span>}
+              description="Estudiantes registrados"
+            />
+          )}
+          {statsPermissions.courses && (
+            <StatCard
+              title="Cursos"
+              value={stats.courses ?? 0}
+              icon={<span className="text-2xl">📚</span>}
+              description="Cursos activos"
+            />
+          )}
+          {statsPermissions.subjects && (
+            <StatCard
+              title="Asignaturas"
+              value={stats.subjects ?? 0}
+              icon={<span className="text-2xl">📝</span>}
+              description="Asignaturas registradas"
+            />
+          )}
+          {statsPermissions.tasks && (
+            <StatCard
+              title="Tareas"
+              value={stats.tasks ?? 0}
+              icon={<span className="text-2xl">✅</span>}
+              description="Tareas creadas"
+            />
+          )}
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Matrículas"
-          value={stats.enrollments}
-          icon={<span className="text-2xl">📋</span>}
-          description="Matrículas activas"
-        />
-        <StatCard
-          title="Comunicaciones"
-          value={stats.communications}
-          icon={<span className="text-2xl">📢</span>}
-          description="Comunicaciones publicadas"
-        />
-        <StatCard
-          title="Firmas"
-          value={stats.signatures}
-          icon={<span className="text-2xl">✍️</span>}
-          description="Solicitudes de firma"
-        />
-        <StatCard
-          title="Notificaciones sin leer"
-          value={unreadComms}
-          icon={<span className="text-2xl">🔔</span>}
-          description="Notificaciones pendientes"
-        />
+        {statsPermissions.enrollments && (
+          <StatCard
+            title="Matrículas"
+            value={stats.enrollments ?? 0}
+            icon={<span className="text-2xl">📋</span>}
+            description="Matrículas activas"
+          />
+        )}
+        {statsPermissions.communications && (
+          <StatCard
+            title="Comunicaciones"
+            value={stats.communications ?? 0}
+            icon={<span className="text-2xl">📢</span>}
+            description="Comunicaciones publicadas"
+          />
+        )}
+        {statsPermissions.signatures && (
+          <StatCard
+            title="Firmas"
+            value={stats.signatures ?? 0}
+            icon={<span className="text-2xl">✍️</span>}
+            description="Solicitudes de firma"
+          />
+        )}
+        {statsPermissions.communications && (
+          <StatCard
+            title="Notificaciones sin leer"
+            value={unreadComms}
+            icon={<span className="text-2xl">🔔</span>}
+            description="Notificaciones pendientes"
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

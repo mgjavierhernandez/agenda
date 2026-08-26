@@ -297,6 +297,56 @@ describe('DashboardPage', () => {
     });
   });
 
+  it('hides stat cards when user lacks permission', async () => {
+    mockHasPermission.mockImplementation((code: string) => {
+      if (code === 'students:read' || code === 'courses:read' || code === 'subjects:read') return false;
+      return true;
+    });
+    mockStatsEndpoints({
+      students: 3,
+      courses: 3,
+      subjects: 3,
+      tasks: 8,
+      enrollments: 200,
+      signatures: 5,
+      communications: 30,
+      unreadComms: 7,
+    });
+
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.queryByText('Estudiantes')).not.toBeInTheDocument();
+      expect(screen.queryByText('Cursos')).not.toBeInTheDocument();
+      expect(screen.queryByText('Asignaturas')).not.toBeInTheDocument();
+      expect(screen.getByText('8')).toBeInTheDocument();
+    });
+  });
+
+  it('shows stat cards when user has permission', async () => {
+    mockHasPermission.mockReturnValue(true);
+    mockStatsEndpoints({
+      students: 150,
+      courses: 12,
+      subjects: 25,
+      tasks: 8,
+      enrollments: 200,
+      signatures: 5,
+      communications: 30,
+      unreadComms: 7,
+    });
+
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getByText('150')).toBeInTheDocument();
+      expect(screen.getByText('12')).toBeInTheDocument();
+      expect(screen.getByText('25')).toBeInTheDocument();
+      expect(screen.getByText('8')).toBeInTheDocument();
+      expect(screen.getByText('200')).toBeInTheDocument();
+      expect(screen.getByText('30')).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
+    });
+  });
+
   it('renders task status badges', async () => {
     mockDefaultEndpoints();
     render(<DashboardPage />, { wrapper: createWrapper() });
