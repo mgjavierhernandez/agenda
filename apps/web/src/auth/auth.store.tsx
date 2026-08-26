@@ -89,14 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchInstitutions = useCallback(async () => {
-    try {
-      const res = await apiClient.get<{ institutions: Institution[] }>('/auth/institutions');
-      setInstitutions(res.institutions);
-      return res.institutions;
-    } catch {
-      setInstitutions([]);
-      return [];
-    }
+    const res = await apiClient.get<{ institutions: Institution[] }>('/auth/institutions');
+    setInstitutions(res.institutions);
+    return res.institutions;
   }, []);
 
   const selectInstitution = useCallback(async (institutionId: string) => {

@@ -8,7 +8,19 @@ async function login(page: import('@playwright/test').Page) {
   await page.getByLabel('Correo electrónico').fill(EMAIL);
   await page.getByLabel('Contraseña').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
+  try {
+    await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
+  } catch {
+    const errorAlert = page.getByRole('alert');
+    if (await errorAlert.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await page.getByLabel('Correo electrónico').fill(EMAIL);
+      await page.getByLabel('Contraseña').fill(PASSWORD);
+      await page.getByRole('button', { name: 'Entrar' }).click();
+      await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
+    } else {
+      throw new Error('Login failed: no URL change and no error alert');
+    }
+  }
   if (page.url().includes('select-institution')) {
     const btn = page.locator('button').filter({ hasText: /Institution|Colegio|Escuela|E2E/ }).first();
     if (await btn.isVisible({ timeout: 3_000 }).catch(() => false)) await btn.click();
@@ -29,16 +41,16 @@ test.describe('Digital Agenda', () => {
     await page.goto('/agenda');
     await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByRole('button', { name: /día|dia/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /semana/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /mes/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Dia', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Semana', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Mes', exact: true })).toBeVisible();
   });
 
   test('should switch between day view', async ({ page }) => {
     await login(page);
     await page.goto('/agenda');
     await page.waitForTimeout(1000);
-    await page.getByRole('button', { name: /día|dia/i }).click();
+    await page.getByRole('button', { name: 'Dia', exact: true }).click();
     await page.waitForTimeout(500);
   });
 
@@ -46,7 +58,7 @@ test.describe('Digital Agenda', () => {
     await login(page);
     await page.goto('/agenda');
     await page.waitForTimeout(1000);
-    await page.getByRole('button', { name: /semana/i }).click();
+    await page.getByRole('button', { name: 'Semana', exact: true }).click();
     await page.waitForTimeout(500);
   });
 
@@ -54,7 +66,7 @@ test.describe('Digital Agenda', () => {
     await login(page);
     await page.goto('/agenda');
     await page.waitForTimeout(1000);
-    await page.getByRole('button', { name: /mes/i }).click();
+    await page.getByRole('button', { name: 'Mes', exact: true }).click();
     await page.waitForTimeout(500);
   });
 

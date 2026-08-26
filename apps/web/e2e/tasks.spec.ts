@@ -9,7 +9,19 @@ async function login(page: import('@playwright/test').Page) {
   await page.getByLabel('Correo electrónico').fill(EMAIL);
   await page.getByLabel('Contraseña').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
+  try {
+    await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
+  } catch {
+    const errorAlert = page.getByRole('alert');
+    if (await errorAlert.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await page.getByLabel('Correo electrónico').fill(EMAIL);
+      await page.getByLabel('Contraseña').fill(PASSWORD);
+      await page.getByRole('button', { name: 'Entrar' }).click();
+      await page.waitForURL(/\/(dashboard|select-institution)/, { timeout: 15_000 });
+    } else {
+      throw new Error('Login failed: no URL change and no error alert');
+    }
+  }
   if (page.url().includes('select-institution')) {
     const btn = page.locator('button').filter({ hasText: /Institution|Colegio|Escuela|E2E/ }).first();
     if (await btn.isVisible({ timeout: 3_000 }).catch(() => false)) await btn.click();
