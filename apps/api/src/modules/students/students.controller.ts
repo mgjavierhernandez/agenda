@@ -58,6 +58,7 @@ export class StudentsController {
     return this.studentsService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
   }
 
@@ -74,6 +75,7 @@ export class StudentsController {
     return this.studentsService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 

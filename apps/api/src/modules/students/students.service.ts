@@ -69,23 +69,43 @@ export class StudentsService {
   async findAll(
     institutionId: string,
     query: ListStudentsQueryDto,
+    userId?: string,
   ): Promise<{ data: Student[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.StudentWhereInput = {
-      institutionId,
-      ...(query.search
-        ? {
-            OR: [
-              { firstName: { contains: query.search, mode: 'insensitive' } },
-              { lastName: { contains: query.search, mode: 'insensitive' } },
-              { documentNumber: { contains: query.search, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-    };
+    const searchFilter: Prisma.StudentWhereInput = query.search
+      ? {
+          OR: [
+            { firstName: { contains: query.search, mode: 'insensitive' } },
+            { lastName: { contains: query.search, mode: 'insensitive' } },
+            { documentNumber: { contains: query.search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+
+    let where: Prisma.StudentWhereInput;
+
+    if (userId) {
+      const isParent = await this.prisma.guardianStudent.findFirst({
+        where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
+        select: { id: true },
+      });
+
+      if (isParent) {
+        const linkedStudentIds = await this.prisma.guardianStudent.findMany({
+          where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
+          select: { studentId: true },
+        });
+        const studentIds = linkedStudentIds.map((gs) => gs.studentId);
+        where = { institutionId, id: { in: studentIds }, ...searchFilter };
+      } else {
+        where = { institutionId, ...searchFilter };
+      }
+    } else {
+      where = { institutionId, ...searchFilter };
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.student.findMany({
@@ -108,7 +128,25 @@ export class StudentsService {
     };
   }
 
-  async findOne(institutionId: string, studentId: string): Promise<Student> {
+  async findOne(institutionId: string, studentId: string, userId?: string): Promise<Student> {
+    if (userId) {
+      const isParent = await this.prisma.guardianStudent.findFirst({
+        where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
+        select: { id: true },
+      });
+
+      if (isParent) {
+        const linked = await this.prisma.guardianStudent.findFirst({
+          where: { guardianUserId: userId, institutionId, studentId, status: 'ACTIVE' },
+          select: { id: true },
+        });
+
+        if (!linked) {
+          throw new NotFoundException('Student not found');
+        }
+      }
+    }
+
     const student = await this.prisma.student.findFirst({
       where: {
         id: studentId,

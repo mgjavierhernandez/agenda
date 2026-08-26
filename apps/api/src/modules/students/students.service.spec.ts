@@ -13,6 +13,10 @@ describe('StudentsService', () => {
       create: jest.Mock;
       update: jest.Mock;
     };
+    guardianStudent: {
+      findFirst: jest.Mock;
+      findMany: jest.Mock;
+    };
   };
   let auditServiceMock: { log: jest.Mock };
 
@@ -28,6 +32,10 @@ describe('StudentsService', () => {
         count: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+      },
+      guardianStudent: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
       },
     };
 
@@ -153,6 +161,42 @@ describe('StudentsService', () => {
         service.findOne(institutionId, 'student-from-other-tenant'),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should allow parent to access linked student', async () => {
+      prismaMock.guardianStudent.findFirst
+        .mockResolvedValueOnce({ id: 'gs-1' })
+        .mockResolvedValueOnce({ id: 'gs-1' });
+      prismaMock.student.findFirst.mockResolvedValue({
+        id: 'student-linked',
+        institutionId,
+      });
+
+      const result = await service.findOne(institutionId, 'student-linked', 'parent-user-1');
+
+      expect(result.id).toBe('student-linked');
+    });
+
+    it('should deny parent access to unlinked student', async () => {
+      prismaMock.guardianStudent.findFirst
+        .mockResolvedValueOnce({ id: 'gs-1' })
+        .mockResolvedValueOnce(null);
+
+      await expect(
+        service.findOne(institutionId, 'student-unlinked', 'parent-user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should allow non-parent user to access any student', async () => {
+      prismaMock.guardianStudent.findFirst.mockResolvedValue(null);
+      prismaMock.student.findFirst.mockResolvedValue({
+        id: 'student-1',
+        institutionId,
+      });
+
+      const result = await service.findOne(institutionId, 'student-1', 'teacher-user-1');
+
+      expect(result.id).toBe('student-1');
+    });
   });
 
   describe('findAll', () => {
@@ -200,6 +244,61 @@ describe('StudentsService', () => {
           }),
         }),
       );
+    });
+
+    it('should return only linked students for parent user', async () => {
+      prismaMock.guardianStudent.findFirst.mockResolvedValue({ id: 'gs-1' });
+      prismaMock.guardianStudent.findMany.mockResolvedValue([
+        { studentId: 'student-linked-1' },
+        { studentId: 'student-linked-2' },
+      ]);
+      prismaMock.student.findMany.mockResolvedValue([
+        { id: 'student-linked-1', institutionId },
+        { id: 'student-linked-2', institutionId },
+      ]);
+      prismaMock.student.count.mockResolvedValue(2);
+
+      const result = await service.findAll(institutionId, {}, 'parent-user-1');
+
+      expect(result.data).toHaveLength(2);
+      expect(prismaMock.student.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: { in: ['student-linked-1', 'student-linked-2'] },
+          }),
+        }),
+      );
+    });
+
+    it('should return all students for non-parent user', async () => {
+      prismaMock.guardianStudent.findFirst.mockResolvedValue(null);
+      prismaMock.student.findMany.mockResolvedValue([
+        { id: 's1', institutionId },
+        { id: 's2', institutionId },
+        { id: 's3', institutionId },
+      ]);
+      prismaMock.student.count.mockResolvedValue(3);
+
+      const result = await service.findAll(institutionId, {}, 'teacher-user-1');
+
+      expect(result.data).toHaveLength(3);
+      expect(prismaMock.student.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ institutionId }),
+        }),
+      );
+    });
+
+    it('should return all students when no userId provided', async () => {
+      prismaMock.student.findMany.mockResolvedValue([
+        { id: 's1', institutionId },
+      ]);
+      prismaMock.student.count.mockResolvedValue(1);
+
+      const result = await service.findAll(institutionId, {});
+
+      expect(result.data).toHaveLength(1);
+      expect(prismaMock.guardianStudent.findFirst).not.toHaveBeenCalled();
     });
   });
 

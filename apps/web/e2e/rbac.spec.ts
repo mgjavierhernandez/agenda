@@ -59,6 +59,7 @@ test.describe('RBAC', () => {
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav).toBeVisible();
 
+    await expect(nav.getByRole('link', { name: 'Estudiantes' })).toBeVisible({ timeout: 15_000 });
     const items = nav.locator('li a');
     const count = await items.count();
     expect(count).toBeGreaterThan(5);
