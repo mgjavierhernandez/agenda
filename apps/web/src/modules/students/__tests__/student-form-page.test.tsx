@@ -9,6 +9,7 @@ import { queryClient } from '@/api/query-client';
 const mockNavigate = vi.fn();
 const mockUseCreateStudent = vi.fn();
 const mockUseStudent = vi.fn();
+const mockHasPermission = vi.fn();
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -39,10 +40,14 @@ vi.mock('@/auth/auth.store', () => ({
 
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
-    hasPermission: () => true,
-    hasAnyPermission: () => true,
-    hasAllPermissions: () => true,
-    permissionCodes: ['students:read', 'students:manage'],
+    hasPermission: (code: string) => mockHasPermission(code),
+    hasAnyPermission: (...codes: string[]) => codes.some((c) => mockHasPermission(c)),
+    hasAllPermissions: (...codes: string[]) => codes.every((c) => mockHasPermission(c)),
+    permissionCodes: mockHasPermission.mock.calls.length > 0
+      ? ['students:read', 'students:manage'].filter((c) => mockHasPermission(c))
+      : [],
+    isLoading: false,
+    isError: false,
   }),
 }));
 
@@ -59,6 +64,7 @@ function renderCreateForm() {
 describe('StudentFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockHasPermission.mockReturnValue(true);
     mockUseStudent.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -70,14 +76,24 @@ describe('StudentFormPage', () => {
     });
   });
 
-  it('renders create form', () => {
+  it('renders create form when user has students:manage', () => {
+    mockHasPermission.mockImplementation((code: string) => code === 'students:manage');
     renderCreateForm();
     expect(screen.getByText('Nuevo estudiante')).toBeDefined();
     expect(screen.getByLabelText(/nombre/i)).toBeDefined();
     expect(screen.getByLabelText(/apellido/i)).toBeDefined();
   });
 
+  it('shows authorization fallback when user lacks students:manage', () => {
+    mockHasPermission.mockReturnValue(false);
+    renderCreateForm();
+    expect(screen.getByText('Acceso no autorizado')).toBeDefined();
+    expect(screen.getByText(/No tienes permisos para crear o editar estudiantes/i)).toBeDefined();
+    expect(screen.queryByLabelText(/nombre/i)).toBeNull();
+  });
+
   it('shows validation errors on empty submit', async () => {
+    mockHasPermission.mockImplementation((code: string) => code === 'students:manage');
     const user = userEvent.setup();
     renderCreateForm();
 
@@ -90,6 +106,7 @@ describe('StudentFormPage', () => {
   });
 
   it('creates student on valid submit', async () => {
+    mockHasPermission.mockImplementation((code: string) => code === 'students:manage');
     const user = userEvent.setup();
     const mockMutateAsync = vi.fn().mockResolvedValue({
       id: 'new-id',
@@ -117,5 +134,13 @@ describe('StudentFormPage', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/students/new-id');
     });
+  });
+
+  it('does not render form controls when permission is denied', () => {
+    mockHasPermission.mockReturnValue(false);
+    renderCreateForm();
+    expect(screen.queryByRole('form')).toBeNull();
+    expect(screen.queryByLabelText(/nombre/i)).toBeNull();
+    expect(screen.queryByRole('button', { name: /crear estudiante/i })).toBeNull();
   });
 });

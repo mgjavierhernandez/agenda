@@ -1,6 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStudent, useCreateStudent, useUpdateStudent } from '../hooks';
+import { PermissionGate } from '@/permissions/PermissionGate';
+import { PERMISSIONS } from '@/permissions/permission.constants';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { Button } from '@/components/ui/Button';
@@ -103,89 +105,112 @@ export function StudentFormPage() {
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <PageHeader
-        title={isEditing ? 'Editar estudiante' : 'Nuevo estudiante'}
-        description={isEditing ? 'Actualizar información del estudiante' : 'Registrar un nuevo estudiante'}
-      />
-
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {apiError && (
-            <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-              {apiError}
+    <PermissionGate
+      permission={PERMISSIONS.STUDENTS_MANAGE}
+      fallback={
+        <div className="space-y-6 max-w-2xl">
+          <PageHeader
+            title="Acceso no autorizado"
+            description="No tienes permisos para gestionar estudiantes"
+          />
+          <Card>
+            <div className="text-center py-8">
+              <span className="text-4xl mb-4 block">🔒</span>
+              <p className="text-gray-600 mb-4">
+                No tienes permisos para crear o editar estudiantes.
+              </p>
+              <Button variant="secondary" onClick={() => navigate('/students')}>
+                Volver a estudiantes
+              </Button>
             </div>
-          )}
+          </Card>
+        </div>
+      }
+    >
+      <div className="space-y-6 max-w-2xl">
+        <PageHeader
+          title={isEditing ? 'Editar estudiante' : 'Nuevo estudiante'}
+          description={isEditing ? 'Actualizar información del estudiante' : 'Registrar un nuevo estudiante'}
+        />
 
-          <Input
-            label="Nombre *"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            error={errors.firstName}
-            disabled={isSubmitting}
-            maxLength={100}
-          />
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {apiError && (
+              <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                {apiError}
+              </div>
+            )}
 
-          <Input
-            label="Apellido *"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            error={errors.lastName}
-            disabled={isSubmitting}
-            maxLength={100}
-          />
-
-          <div>
-            <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo de documento *
-            </label>
-            <select
-              id="documentType"
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value as DocumentType)}
+            <Input
+              label="Nombre *"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              error={errors.firstName}
               disabled={isSubmitting}
-              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {DOCUMENT_TYPES.map((dt) => (
-                <option key={dt.value} value={dt.value}>
-                  {dt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              maxLength={100}
+            />
 
-          <Input
-            label="Número de documento *"
-            value={documentNumber}
-            onChange={(e) => setDocumentNumber(e.target.value)}
-            error={errors.documentNumber}
-            disabled={isSubmitting}
-            maxLength={50}
-          />
-
-          <Input
-            label="Fecha de nacimiento"
-            type="date"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            disabled={isSubmitting}
-          />
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate(isEditing ? `/students/${id}` : '/students')}
+            <Input
+              label="Apellido *"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              error={errors.lastName}
               disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" isLoading={isSubmitting}>
-              {isEditing ? 'Guardar cambios' : 'Crear estudiante'}
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+              maxLength={100}
+            />
+
+            <div>
+              <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo de documento *
+              </label>
+              <select
+                id="documentType"
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value as DocumentType)}
+                disabled={isSubmitting}
+                className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {DOCUMENT_TYPES.map((dt) => (
+                  <option key={dt.value} value={dt.value}>
+                    {dt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Número de documento *"
+              value={documentNumber}
+              onChange={(e) => setDocumentNumber(e.target.value)}
+              error={errors.documentNumber}
+              disabled={isSubmitting}
+              maxLength={50}
+            />
+
+            <Input
+              label="Fecha de nacimiento"
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
+              disabled={isSubmitting}
+            />
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => navigate(isEditing ? `/students/${id}` : '/students')}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" isLoading={isSubmitting}>
+                {isEditing ? 'Guardar cambios' : 'Crear estudiante'}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
+    </PermissionGate>
   );
 }
