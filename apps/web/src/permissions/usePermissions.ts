@@ -9,54 +9,49 @@ interface RoleInfo {
   roleType: string;
 }
 
+interface MyPermissionsResponse {
+  permissions: string[];
+}
+
 export function usePermissions() {
   const { selectedInstitutionId } = useAuth();
 
-  const { data: roles = [] } = useQuery<RoleInfo[]>({
-    queryKey: ['user-roles', selectedInstitutionId],
-    queryFn: () => apiClient.get<RoleInfo[]>('/auth/authorization-check').then(() => []),
-    enabled: !!selectedInstitutionId,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const { data: permissionCodes = [] } = useQuery<string[]>({
+  const {
+    data: permissionCodes = [],
+    isLoading,
+    isError,
+  } = useQuery<string[]>({
     queryKey: ['user-permissions', selectedInstitutionId],
     queryFn: async () => {
-      // The backend doesn't have a direct "list my permissions" endpoint.
-      // We derive permissions from the authorization-check endpoint.
-      // For now, we store them client-side after login when available.
-      // The PermissionGuard on each endpoint enforces server-side.
-      return [];
+      const res = await apiClient.get<MyPermissionsResponse>('/auth/my-permissions');
+      return res.permissions ?? [];
     },
     enabled: !!selectedInstitutionId,
     staleTime: 10 * 60 * 1000,
+    retry: 1,
   });
 
   const hasPermission = (code: PermissionCode): boolean => {
-    if (permissionCodes.length === 0) return true; // If no permissions loaded, allow (backend enforces)
+    if (isLoading) return false;
     return permissionCodes.includes(code);
   };
 
   const hasAnyPermission = (...codes: PermissionCode[]): boolean => {
-    if (permissionCodes.length === 0) return true;
+    if (isLoading) return false;
     return codes.some((c) => permissionCodes.includes(c));
   };
 
   const hasAllPermissions = (...codes: PermissionCode[]): boolean => {
-    if (permissionCodes.length === 0) return true;
+    if (isLoading) return false;
     return codes.every((c) => permissionCodes.includes(c));
   };
 
-  const hasRole = (roleName: string): boolean => {
-    return roles.some((r) => r.name === roleName);
-  };
-
   return {
-    roles,
     permissionCodes,
+    isLoading,
+    isError,
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
-    hasRole,
   };
 }

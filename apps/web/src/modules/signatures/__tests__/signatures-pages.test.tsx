@@ -21,12 +21,12 @@ const mockHasPermission = vi.fn().mockReturnValue(true);
 
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
-    roles: [],
     permissionCodes: [],
+    isLoading: false,
+    isError: false,
     hasPermission: mockHasPermission,
     hasAnyPermission: () => false,
     hasAllPermissions: () => false,
-    hasRole: () => false,
   }),
 }));
 

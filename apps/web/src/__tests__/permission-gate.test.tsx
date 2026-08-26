@@ -14,8 +14,9 @@ vi.mock('@/permissions/usePermissions', () => ({
     hasPermission: (code: string) => code === 'students:read',
     hasAnyPermission: (...codes: string[]) => codes.includes('students:read'),
     hasAllPermissions: (...codes: string[]) => codes.every((c) => c === 'students:read'),
-    roles: [],
     permissionCodes: ['students:read'],
+    isLoading: false,
+    isError: false,
   }),
 }));
 

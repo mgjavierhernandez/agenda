@@ -33,7 +33,6 @@ vi.mock('@/permissions/usePermissions', () => ({
     hasPermission: (code: string) => code === 'grades:read' || code === 'grades:manage',
     hasAnyPermission: (...codes: string[]) => codes.some((c) => c === 'grades:read' || c === 'grades:manage'),
     hasAllPermissions: () => true,
-    roles: [],
     permissionCodes: ['grades:read', 'grades:manage'],
   }),
 }));

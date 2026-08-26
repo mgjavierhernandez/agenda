@@ -20,12 +20,12 @@ vi.mock('@/api/client', () => ({
 
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
-    roles: [],
     permissionCodes: [],
+    isLoading: false,
+    isError: false,
     hasPermission: vi.fn().mockReturnValue(true),
     hasAnyPermission: () => false,
     hasAllPermissions: () => false,
-    hasRole: () => false,
   }),
 }));
 

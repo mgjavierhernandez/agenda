@@ -7,6 +7,16 @@ import * as agendaHook from '../hooks/useAgenda';
 import type { AgendaResponse } from '@/api/types';
 
 vi.mock('../hooks/useAgenda');
+vi.mock('@/permissions/usePermissions', () => ({
+  usePermissions: () => ({
+    hasPermission: () => true,
+    hasAnyPermission: () => true,
+    hasAllPermissions: () => true,
+    permissionCodes: ['agenda:read'],
+    isLoading: false,
+    isError: false,
+  }),
+}));
 vi.mock('@/auth/auth.store', () => ({
   useAuth: () => ({
     user: { id: 'user-1', email: 'test@test.com', status: 'ACTIVE' },

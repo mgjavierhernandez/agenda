@@ -120,12 +120,41 @@ else
   fail "Invalid token → 401 (HTTP $HTTP_CODE)"
 fi
 
+# --- 4b. Resolve institution from membership ---
+INSTITUTION_ID=""
+if [ -n "$TOKEN" ]; then
+  # Try profile with membership context
+  PROFILE_RESPONSE=$(curl -sf "${API_URL}/auth/profile" \
+    -H "Authorization: Bearer ${TOKEN}" 2>/dev/null || echo "{}")
+  INSTITUTION_ID=$(echo "$PROFILE_RESPONSE" | jq -r '.institutionId // empty' 2>/dev/null || echo "")
+  
+  # If not in profile, try memberships endpoint
+  if [ -z "$INSTITUTION_ID" ]; then
+    MEMBERSHIPS_RESPONSE=$(curl -sf "${API_URL}/memberships" \
+      -H "Authorization: Bearer ${TOKEN}" 2>/dev/null || echo "{}")
+    INSTITUTION_ID=$(echo "$MEMBERSHIPS_RESPONSE" | jq -r '.[0].institutionId // .data[0].institutionId // empty' 2>/dev/null || echo "")
+  fi
+  
+  # Fallback to known demo institution
+  if [ -z "$INSTITUTION_ID" ]; then
+    INSTITUTION_ID="5d5ee192-e916-4086-84a6-7a04812b9441"
+  fi
+  echo "  Using institution: ${INSTITUTION_ID}"
+fi
+
 # --- 5. Core Endpoints ---
 echo "=== CORE ENDPOINTS ==="
+AUTH_HEADER=""
 if [ -n "$TOKEN" ]; then
+  AUTH_HEADER="-H \"Authorization: Bearer ${TOKEN}\""
+  INST_HEADER=""
+  if [ -n "$INSTITUTION_ID" ]; then
+    INST_HEADER="-H \"X-Institution-Id: ${INSTITUTION_ID}\""
+  fi
   for EP in students courses subjects grades schedules tasks communications notifications signature-requests school-grades academic-periods enrollments teacher-assignments guardians/students users communication-recipients task-assignments; do
     HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${API_URL}/${EP}" \
-      -H "Authorization: Bearer ${TOKEN}" 2>/dev/null || echo "000")
+      -H "Authorization: Bearer ${TOKEN}" \
+      -H "X-Institution-Id: ${INSTITUTION_ID}" 2>/dev/null || echo "000")
     if [ "$HTTP_CODE" = "200" ]; then
       pass "$EP"
     else
@@ -138,7 +167,8 @@ fi
 echo "=== AGENDA ==="
 if [ -n "$TOKEN" ]; then
   RESPONSE=$(curl -sf "${API_URL}/agenda?start=2026-08-24&end=2026-08-30" \
-    -H "Authorization: Bearer ${TOKEN}" 2>/dev/null || echo "{}")
+    -H "Authorization: Bearer ${TOKEN}" \
+    -H "X-Institution-Id: ${INSTITUTION_ID}" 2>/dev/null || echo "{}")
   TOTAL_EVENTS=$(echo "$RESPONSE" | jq -r '.total // 0' 2>/dev/null || echo "0")
   if [ "$TOTAL_EVENTS" -gt 0 ] 2>/dev/null; then
     pass "Agenda week (events: $TOTAL_EVENTS)"

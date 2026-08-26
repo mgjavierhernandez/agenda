@@ -17,6 +17,7 @@ import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-recovery.dto
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from './tenant/tenant-context.guard';
 import { TenantContextService } from './tenant/tenant-context.service';
+import { AuthorizationService } from './authorization/authorization.service';
 import { RequirePermission } from './authorization/require-permission.decorator';
 import { PermissionGuard } from './authorization/permission.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -27,6 +28,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly tenantContextService: TenantContextService,
+    private readonly authorizationService: AuthorizationService,
   ) {}
 
   @ApiOperation({ summary: 'Login with email and password' })
@@ -131,6 +133,26 @@ export class AuthController {
       req.user.userId,
       req.tenant.institutionId,
     );
+  }
+
+  @ApiOperation({ summary: 'Get current user effective permissions for tenant' })
+  @ApiBearerAuth('bearer')
+  @ApiResponse({ status: 200, description: 'User permissions for current tenant context' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(AccessTokenGuard, TenantContextGuard)
+  @Get('my-permissions')
+  async getMyPermissions(@Request() req: AuthenticatedRequest) {
+    const userId = req.user.userId;
+    const institutionId = req.tenant?.institutionId;
+
+    let permissions: string[];
+    if (institutionId) {
+      permissions = await this.authorizationService.getUserPermissionCodes(userId, institutionId);
+    } else {
+      permissions = await this.authorizationService.getGlobalPermissionCodes(userId);
+    }
+
+    return { permissions };
   }
 
   @ApiOperation({ summary: 'Verify current user authorization for tenant' })

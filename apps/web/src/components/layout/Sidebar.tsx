@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PERMISSIONS } from '@/permissions/permission.constants';
-import { useAuth } from '@/auth/auth.store';
 import { useUnreadCommunicationsCount } from '@/modules/communication-recipients/hooks';
 
 interface NavItem {
@@ -9,7 +8,6 @@ interface NavItem {
   label: string;
   icon: string;
   permission?: string;
-  roles?: string[];
 }
 
 const navItems: NavItem[] = [
@@ -41,15 +39,11 @@ interface SidebarProps {
 
 export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
   const { hasPermission } = usePermissions();
-  const { user } = useAuth();
   const { data: unreadData } = useUnreadCommunicationsCount();
   const unreadCount = unreadData?.count ?? 0;
 
   const filteredItems = navItems.filter((item) => {
     if (item.permission && !hasPermission(item.permission as never)) return false;
-    if (item.roles && user) {
-      // roles filter can be added here when role data is available
-    }
     return true;
   });
 

@@ -17,7 +17,11 @@ export function PermissionGate({
   fallback = null,
   children,
 }: PermissionGateProps) {
-  const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+  const { hasPermission, hasAnyPermission, hasAllPermissions, isLoading } = usePermissions();
+
+  if (isLoading) {
+    return <>{fallback}</>;
+  }
 
   let allowed = true;
   if (permission) {

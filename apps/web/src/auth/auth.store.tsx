@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { apiClient } from '@/api/client';
+import { queryClient } from '@/api/query-client';
 import type { AuthUser, LoginResponse, RefreshResponse, Institution } from '@/api/types';
 
 interface AuthState {
@@ -84,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     apiClient.setAccessToken(null);
     apiClient.setInstitutionId(null);
     clearStoredTokens();
+    queryClient.removeQueries({ queryKey: ['user-permissions'] });
   }, []);
 
   const fetchInstitutions = useCallback(async () => {
