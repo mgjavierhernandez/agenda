@@ -98,6 +98,7 @@ export class AgendaService {
     role: 'student' | 'parent' | 'teacher' | 'admin';
     studentIds: string[];
     courseIds: string[];
+    studentNames?: Record<string, string>;
   }> {
     const globalAdmin = await this.prisma.globalUserRole.findFirst({
       where: { userId, role: { name: 'SUPER_ADMIN' } },
@@ -165,7 +166,17 @@ export class AgendaService {
         select: { courseId: true },
       });
       const courseIds = [...new Set(enrollments.map((e) => e.courseId))];
-      return { role: 'parent', studentIds, courseIds };
+
+      const students = await this.prisma.student.findMany({
+        where: { id: { in: studentIds }, institutionId },
+        select: { id: true, firstName: true, lastName: true },
+      });
+      const studentNames: Record<string, string> = {};
+      for (const s of students) {
+        studentNames[s.id] = `${s.firstName} ${s.lastName}`;
+      }
+
+      return { role: 'parent', studentIds, courseIds, studentNames };
     }
 
     return { role: 'admin', studentIds: [], courseIds: [] };
@@ -173,7 +184,7 @@ export class AgendaService {
 
   private async getScheduleEvents(
     institutionId: string,
-    userContext: { role: string; studentIds: string[]; courseIds: string[] },
+    userContext: { role: string; studentIds: string[]; courseIds: string[]; studentNames?: Record<string, string> },
     startDate: Date,
     endDate: Date,
   ): Promise<AgendaEventDto[]> {
@@ -247,6 +258,9 @@ export class AgendaService {
             subjectId: schedule.subjectId,
             classroom: schedule.classroom,
             dayOfWeek: schedule.dayOfWeek,
+            ...(userContext.role === 'parent' && userContext.studentNames
+              ? { studentName: this.findStudentNameForCourse(schedule.courseId, userContext.studentIds, userContext.studentNames) }
+              : {}),
           },
         });
       }
@@ -257,7 +271,7 @@ export class AgendaService {
 
   private async getTaskEvents(
     institutionId: string,
-    userContext: { role: string; studentIds: string[]; courseIds: string[] },
+    userContext: { role: string; studentIds: string[]; courseIds: string[]; studentNames?: Record<string, string> },
     startDate: Date,
     endDate: Date,
   ): Promise<AgendaEventDto[]> {
@@ -294,27 +308,40 @@ export class AgendaService {
       include: {
         course: { select: { id: true, name: true } },
         subject: { select: { id: true, name: true } },
+        ...(userContext.role === 'parent' && userContext.studentIds.length > 0
+          ? { taskAssignments: { where: { studentId: { in: userContext.studentIds } }, select: { studentId: true } } }
+          : {}),
       },
     });
 
-    return tasks.map((task) => ({
-      id: `task-${task.id}`,
-      type: AgendaEventType.TASK,
-      title: task.title,
-      description: task.description ?? undefined,
-      start: task.dueDate.toISOString(),
-      allDay: false,
-      status: task.status,
-      sourceId: task.id,
-      sourceType: 'Task',
-      route: `/tasks/${task.id}`,
-      metadata: {
-        courseId: task.courseId,
-        courseName: task.course.name,
-        subjectId: task.subjectId,
-        subjectName: task.subject.name,
-      },
-    }));
+    return tasks.map((task) => {
+      let studentName: string | undefined;
+      if (userContext.role === 'parent' && userContext.studentNames && 'taskAssignments' in task) {
+        const assignments = task.taskAssignments as { studentId: string }[] | undefined;
+        if (assignments && assignments.length > 0) {
+          studentName = userContext.studentNames[assignments[0].studentId];
+        }
+      }
+      return {
+        id: `task-${task.id}`,
+        type: AgendaEventType.TASK,
+        title: task.title,
+        description: task.description ?? undefined,
+        start: task.dueDate.toISOString(),
+        allDay: false,
+        status: task.status,
+        sourceId: task.id,
+        sourceType: 'Task',
+        route: `/tasks/${task.id}`,
+        metadata: {
+          courseId: task.courseId,
+          courseName: task.course.name,
+          subjectId: task.subjectId,
+          subjectName: task.subject.name,
+          ...(studentName ? { studentName } : {}),
+        },
+      };
+    });
   }
 
   private async getCommunicationEvents(
@@ -519,5 +546,16 @@ export class AgendaService {
     }
 
     return { hours, minutes };
+  }
+
+  private findStudentNameForCourse(
+    courseId: string,
+    studentIds: string[],
+    studentNames: Record<string, string>,
+  ): string | undefined {
+    for (const sid of studentIds) {
+      if (studentNames[sid]) return studentNames[sid];
+    }
+    return undefined;
   }
 }

@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { resolveParentContext, findGuardianUserIds } from '../../common/auth/parent-context';
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 import { ListGradesQueryDto } from './dto/list-grades-query.dto';
@@ -83,12 +84,33 @@ export class GradesService {
       ipAddress,
     });
 
+    const guardianIds = await findGuardianUserIds(this.prisma, institutionId, [grade.studentId]);
+    for (const guardianId of guardianIds) {
+      const membership = await this.prisma.userInstitution.findFirst({
+        where: { userId: guardianId, institutionId, status: 'ACTIVE' },
+      });
+      if (membership) {
+        await this.prisma.notification.create({
+          data: {
+            institutionId,
+            userId: guardianId,
+            type: 'GENERAL',
+            title: 'Nueva calificacion registrada',
+            message: `Se ha registrado una calificacion de ${grade.value} en el periodo ${grade.period}`,
+            entityType: 'Grade',
+            entityId: grade.id,
+          },
+        });
+      }
+    }
+
     return grade;
   }
 
   async findAll(
     institutionId: string,
     query: ListGradesQueryDto,
+    userId?: string,
   ): Promise<{ data: Grade[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -111,6 +133,13 @@ export class GradesService {
           }
         : {}),
     };
+
+    if (userId && !query.studentId) {
+      const parentCtx = await resolveParentContext(this.prisma, institutionId, userId);
+      if (parentCtx.isParent && parentCtx.studentIds.length > 0) {
+        where.studentId = { in: parentCtx.studentIds };
+      }
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.grade.findMany({

@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 
-function useCount(queryKey: string, endpoint: string, enabled: boolean) {
+function useCount(queryKey: string, endpoint: string, enabled: boolean, studentId?: string | null) {
   return useQuery<{ data: unknown[]; meta: { total: number } }>({
-    queryKey: [queryKey, 'count'],
-    queryFn: () => apiClient.get(`${endpoint}?limit=1`),
+    queryKey: [queryKey, 'count', studentId],
+    queryFn: () => {
+      const params = new URLSearchParams({ limit: '1' });
+      if (studentId) params.set('studentId', studentId);
+      return apiClient.get(`${endpoint}?${params.toString()}`);
+    },
     enabled,
     select: (data) => ({ data: [], meta: data.meta }),
   });
@@ -20,14 +24,14 @@ export interface DashboardStatsPermissions {
   communications?: boolean;
 }
 
-export function useDashboardStats(isReady: boolean, permissions?: DashboardStatsPermissions) {
+export function useDashboardStats(isReady: boolean, permissions?: DashboardStatsPermissions, studentId?: string | null) {
   const show = permissions ?? { students: true, courses: true, subjects: true, tasks: true, enrollments: true, signatures: true, communications: true };
 
-  const students = useCount('dashboard-students', '/students', isReady && !!show.students);
+  const students = useCount('dashboard-students', '/students', isReady && !!show.students, studentId);
   const courses = useCount('dashboard-courses', '/courses', isReady && !!show.courses);
   const subjects = useCount('dashboard-subjects', '/subjects', isReady && !!show.subjects);
-  const tasks = useCount('dashboard-tasks', '/tasks', isReady && !!show.tasks);
-  const enrollments = useCount('dashboard-enrollments', '/enrollments', isReady && !!show.enrollments);
+  const tasks = useCount('dashboard-tasks', '/tasks', isReady && !!show.tasks, studentId);
+  const enrollments = useCount('dashboard-enrollments', '/enrollments', isReady && !!show.enrollments, studentId);
   const signatures = useCount('dashboard-signatures', '/signature-requests', isReady && !!show.signatures);
   const communications = useCount('dashboard-communications', '/communications', isReady && !!show.communications);
 

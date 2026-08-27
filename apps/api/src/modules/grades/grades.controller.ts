@@ -71,6 +71,7 @@ export class GradesController {
     return this.gradesService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
   }
 

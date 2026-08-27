@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { findGuardianUserIds } from '../../common/auth/parent-context';
 import { CreateTaskAssignmentDto, UpdateTaskAssignmentDto, ListTaskAssignmentsQueryDto } from './dto/task-assignment.dto';
 import { TaskAssignment, Prisma, TaskAssignmentStatus } from '@prisma/client';
 
@@ -82,6 +83,27 @@ export class TaskAssignmentsService {
         newValues: { count: results.length, studentIds },
         ipAddress,
       });
+
+      const assignedStudentIds = results.map((r) => r.studentId);
+      const guardianIds = await findGuardianUserIds(this.prisma, institutionId, assignedStudentIds);
+      for (const guardianId of guardianIds) {
+        const membership = await this.prisma.userInstitution.findFirst({
+          where: { userId: guardianId, institutionId, status: 'ACTIVE' },
+        });
+        if (membership) {
+          await this.prisma.notification.create({
+            data: {
+              institutionId,
+              userId: guardianId,
+              type: 'TASK_UPDATE',
+              title: 'Nueva tarea asignada',
+              message: `Se ha asignado una nueva tarea: ${task.title}`,
+              entityType: 'Task',
+              entityId: task.id,
+            },
+          });
+        }
+      }
     }
 
     return results;

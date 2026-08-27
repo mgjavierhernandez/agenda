@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/auth.store';
 import { useTenant } from '@/tenant/tenant.store';
 import { useNotifications } from '@/modules/notifications';
+import { ChildSelector } from '@/modules/children';
 import { Avatar } from '@/components/ui/Avatar';
 
 interface TopbarProps {
@@ -81,6 +82,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
             </div>
           )}
         </div>
+        <ChildSelector />
       </div>
       <div className="flex items-center gap-3">
         <button

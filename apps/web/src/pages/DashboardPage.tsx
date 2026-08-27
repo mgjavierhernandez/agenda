@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/feedback/PageHeader';
 import { useDashboardStats, useRecentTasks, useRecentNotifications, usePendingSignatures } from '@/modules/dashboard/hooks';
 import { useUnreadCommunicationsCount } from '@/modules/communication-recipients/hooks';
 import { usePermissions } from '@/permissions/usePermissions';
+import { useChildContext } from '@/modules/children';
 import { PERMISSIONS } from '@/permissions/permission.constants';
 import {
   TASK_STATUS_LABELS,
@@ -130,6 +131,7 @@ export function DashboardPage() {
   const { user } = useAuth();
   const { selectedInstitution, isTenantReady } = useTenant();
   const { hasPermission } = usePermissions();
+  const { selectedChildId } = useChildContext();
 
   const statsPermissions = {
     students: hasPermission(PERMISSIONS.STUDENTS_READ),
@@ -141,8 +143,8 @@ export function DashboardPage() {
     communications: hasPermission(PERMISSIONS.COMMUNICATIONS_READ),
   };
 
-  const { stats, isLoading: statsLoading } = useDashboardStats(isTenantReady, statsPermissions);
-  const { data: tasksData, isLoading: tasksLoading } = useRecentTasks(isTenantReady);
+  const { stats, isLoading: statsLoading } = useDashboardStats(isTenantReady, statsPermissions, selectedChildId);
+  const { data: tasksData, isLoading: tasksLoading } = useRecentTasks(isTenantReady, selectedChildId);
   const { data: notifData, isLoading: notifsLoading } = useRecentNotifications(isTenantReady);
   const { data: sigData, isLoading: sigsLoading } = usePendingSignatures(isTenantReady);
   const { data: unreadData } = useUnreadCommunicationsCount();

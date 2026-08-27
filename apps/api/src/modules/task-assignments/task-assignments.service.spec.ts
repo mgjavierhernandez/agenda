@@ -17,6 +17,9 @@ describe('TaskAssignmentsService', () => {
       create: jest.Mock;
       update: jest.Mock;
     };
+    guardianStudent: { findMany: jest.Mock };
+    userInstitution: { findFirst: jest.Mock };
+    notification: { create: jest.Mock };
     $transaction: jest.Mock;
   };
   let auditServiceMock: { log: jest.Mock };
@@ -41,6 +44,9 @@ describe('TaskAssignmentsService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      guardianStudent: { findMany: jest.fn().mockResolvedValue([]) },
+      userInstitution: { findFirst: jest.fn().mockResolvedValue(null) },
+      notification: { create: jest.fn() },
       $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(prismaMock)),
     };
 

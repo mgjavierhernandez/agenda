@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { resolveParentContext } from '../../common/auth/parent-context';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
@@ -115,6 +116,7 @@ export class TasksService {
   async findAll(
     institutionId: string,
     query: ListTasksQueryDto,
+    userId?: string,
   ): Promise<{ data: Task[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -142,6 +144,25 @@ export class TasksService {
           }
         : {}),
     };
+
+    if (userId) {
+      const parentCtx = await resolveParentContext(this.prisma, institutionId, userId);
+      if (parentCtx.isParent && parentCtx.studentIds.length > 0) {
+        const taskAssignments = await this.prisma.taskAssignment.findMany({
+          where: {
+            institutionId,
+            studentId: { in: parentCtx.studentIds },
+            status: { not: 'CANCELLED' },
+          },
+          select: { taskId: true },
+        });
+        const taskIds = [...new Set(taskAssignments.map((ta) => ta.taskId))];
+        if (taskIds.length === 0) {
+          return { data: [], meta: { page, limit, total: 0, totalPages: 0 } };
+        }
+        where.id = { in: taskIds };
+      }
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.task.findMany({

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
+import { ChildProvider } from '@/modules/children';
 
 export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,6 +21,7 @@ export function AppLayout() {
   }, [mobileMenuOpen, handleEscape]);
 
   return (
+    <ChildProvider>
     <div className="min-h-screen bg-gray-50 flex">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
         Saltar al contenido principal
@@ -69,5 +71,6 @@ export function AppLayout() {
         </main>
       </div>
     </div>
+    </ChildProvider>
   );
 }

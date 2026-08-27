@@ -78,6 +78,7 @@ export class TasksController {
     return this.tasksService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
   }
 

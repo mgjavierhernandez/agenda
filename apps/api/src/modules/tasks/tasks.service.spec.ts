@@ -1,6 +1,13 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TaskStatus } from '@prisma/client';
+import { resolveParentContext } from '../../common/auth/parent-context';
+
+jest.mock('../../common/auth/parent-context', () => ({
+  resolveParentContext: jest.fn(),
+}));
+
+const mockedResolveParentContext = jest.mocked(resolveParentContext);
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -14,6 +21,13 @@ describe('TasksService', () => {
       create: jest.Mock;
       update: jest.Mock;
     };
+    taskAssignment: { findMany: jest.Mock };
+    guardianStudent: { findMany: jest.Mock };
+    userInstitution: { findFirst: jest.Mock };
+    notification: { create: jest.Mock };
+    user: { findUnique: jest.Mock };
+    userRole: { findFirst: jest.Mock };
+    teacherAssignment: { findFirst: jest.Mock };
   };
   let auditServiceMock: { log: jest.Mock };
 
@@ -34,6 +48,13 @@ describe('TasksService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      taskAssignment: { findMany: jest.fn() },
+      guardianStudent: { findMany: jest.fn() },
+      userInstitution: { findFirst: jest.fn() },
+      notification: { create: jest.fn() },
+      user: { findUnique: jest.fn() },
+      userRole: { findFirst: jest.fn() },
+      teacherAssignment: { findFirst: jest.fn() },
     };
 
     auditServiceMock = { log: jest.fn() };
@@ -45,6 +66,9 @@ describe('TasksService', () => {
 
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
     prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId });
+
+    mockedResolveParentContext.mockReset();
+    mockedResolveParentContext.mockResolvedValue({ isParent: false, studentIds: [] });
   });
 
   describe('create', () => {
@@ -414,6 +438,80 @@ describe('TasksService', () => {
       await expect(
         service.deactivate(institutionId, 'other-tenant-task', userId),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findAll - parent filtering', () => {
+    it('should filter tasks to only those assigned to parent student IDs', async () => {
+      mockedResolveParentContext.mockResolvedValue({ isParent: true, studentIds: ['stu-1', 'stu-2'] });
+      prismaMock.taskAssignment.findMany.mockResolvedValue([
+        { taskId: 'task-1' },
+        { taskId: 'task-2' },
+      ]);
+      prismaMock.task.findMany.mockResolvedValue([
+        { id: 'task-1', institutionId },
+        { id: 'task-2', institutionId },
+      ]);
+      prismaMock.task.count.mockResolvedValue(2);
+
+      const result = await service.findAll(institutionId, {}, 'parent-user-1');
+
+      expect(result.data).toHaveLength(2);
+      expect(prismaMock.taskAssignment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            studentId: { in: ['stu-1', 'stu-2'] },
+            status: { not: 'CANCELLED' },
+          }),
+        }),
+      );
+      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ id: { in: ['task-1', 'task-2'] } }),
+        }),
+      );
+    });
+
+    it('should return empty when parent has no assigned tasks', async () => {
+      mockedResolveParentContext.mockResolvedValue({ isParent: true, studentIds: ['stu-1'] });
+      prismaMock.taskAssignment.findMany.mockResolvedValue([]);
+
+      const result = await service.findAll(institutionId, {}, 'parent-user-1');
+
+      expect(result.data).toHaveLength(0);
+      expect(result.meta.total).toBe(0);
+      expect(prismaMock.task.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should not filter when userId is not a parent', async () => {
+      mockedResolveParentContext.mockResolvedValue({ isParent: false, studentIds: [] });
+      prismaMock.task.findMany.mockResolvedValue([
+        { id: 'task-1', institutionId },
+        { id: 'task-2', institutionId },
+        { id: 'task-3', institutionId },
+      ]);
+      prismaMock.task.count.mockResolvedValue(3);
+
+      const result = await service.findAll(institutionId, {}, 'non-parent-user-1');
+
+      expect(result.data).toHaveLength(3);
+      expect(prismaMock.taskAssignment.findMany).not.toHaveBeenCalled();
+      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({ id: expect.anything() }),
+        }),
+      );
+    });
+
+    it('should not filter when userId is not provided', async () => {
+      prismaMock.task.findMany.mockResolvedValue([{ id: 'task-1', institutionId }]);
+      prismaMock.task.count.mockResolvedValue(1);
+
+      const result = await service.findAll(institutionId, {});
+
+      expect(result.data).toHaveLength(1);
+      expect(mockedResolveParentContext).not.toHaveBeenCalled();
+      expect(prismaMock.taskAssignment.findMany).not.toHaveBeenCalled();
     });
   });
 });

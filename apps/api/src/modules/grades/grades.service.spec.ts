@@ -1,6 +1,15 @@
 import { NotFoundException } from '@nestjs/common';
 import { GradesService } from './grades.service';
 import { GradeStatus } from '@prisma/client';
+import { resolveParentContext, findGuardianUserIds } from '../../common/auth/parent-context';
+
+jest.mock('../../common/auth/parent-context', () => ({
+  resolveParentContext: jest.fn(),
+  findGuardianUserIds: jest.fn(),
+}));
+
+const mockedResolveParentContext = jest.mocked(resolveParentContext);
+const mockedFindGuardianUserIds = jest.mocked(findGuardianUserIds);
 
 describe('GradesService', () => {
   let service: GradesService;
@@ -15,6 +24,9 @@ describe('GradesService', () => {
       create: jest.Mock;
       update: jest.Mock;
     };
+    guardianStudent: { findMany: jest.Mock };
+    userInstitution: { findFirst: jest.Mock };
+    notification: { create: jest.Mock };
   };
   let auditServiceMock: { log: jest.Mock };
 
@@ -36,6 +48,9 @@ describe('GradesService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      guardianStudent: { findMany: jest.fn().mockResolvedValue([]) },
+      userInstitution: { findFirst: jest.fn().mockResolvedValue(null) },
+      notification: { create: jest.fn() },
     };
 
     auditServiceMock = { log: jest.fn() };
@@ -48,6 +63,11 @@ describe('GradesService', () => {
     prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
     prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId });
+
+    mockedResolveParentContext.mockReset();
+    mockedResolveParentContext.mockResolvedValue({ isParent: false, studentIds: [] });
+    mockedFindGuardianUserIds.mockReset();
+    mockedFindGuardianUserIds.mockResolvedValue([]);
   });
 
   describe('create', () => {
@@ -381,6 +401,137 @@ describe('GradesService', () => {
       await expect(
         service.deactivate(institutionId, 'other-tenant-grade', userId),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findAll - parent filtering', () => {
+    it('should filter grades to only parent student IDs', async () => {
+      mockedResolveParentContext.mockResolvedValue({ isParent: true, studentIds: ['stu-1', 'stu-2'] });
+      prismaMock.grade.findMany.mockResolvedValue([
+        { id: 'g1', institutionId, studentId: 'stu-1' },
+        { id: 'g2', institutionId, studentId: 'stu-2' },
+      ]);
+      prismaMock.grade.count.mockResolvedValue(2);
+
+      const result = await service.findAll(institutionId, {}, 'parent-user-1');
+
+      expect(result.data).toHaveLength(2);
+      expect(prismaMock.grade.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ studentId: { in: ['stu-1', 'stu-2'] } }),
+        }),
+      );
+    });
+
+    it('should not filter when userId is not a parent', async () => {
+      mockedResolveParentContext.mockResolvedValue({ isParent: false, studentIds: [] });
+      prismaMock.grade.findMany.mockResolvedValue([
+        { id: 'g1', institutionId },
+        { id: 'g2', institutionId },
+        { id: 'g3', institutionId },
+      ]);
+      prismaMock.grade.count.mockResolvedValue(3);
+
+      const result = await service.findAll(institutionId, {}, 'non-parent-user-1');
+
+      expect(result.data).toHaveLength(3);
+      expect(prismaMock.grade.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ institutionId }),
+        }),
+      );
+    });
+
+    it('should not filter when userId is not provided', async () => {
+      prismaMock.grade.findMany.mockResolvedValue([{ id: 'g1', institutionId }]);
+      prismaMock.grade.count.mockResolvedValue(1);
+
+      await service.findAll(institutionId, {});
+
+      expect(mockedResolveParentContext).not.toHaveBeenCalled();
+    });
+
+    it('should not override explicit studentId query filter', async () => {
+      prismaMock.grade.findMany.mockResolvedValue([]);
+      prismaMock.grade.count.mockResolvedValue(0);
+
+      await service.findAll(institutionId, { studentId: 'explicit-student' }, 'parent-user-1');
+
+      expect(mockedResolveParentContext).not.toHaveBeenCalled();
+      expect(prismaMock.grade.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ studentId: 'explicit-student' }),
+        }),
+      );
+    });
+  });
+
+  describe('create - guardian notification', () => {
+    it('should notify guardians when a grade is created', async () => {
+      prismaMock.grade.create.mockResolvedValue({
+        id: 'grade-1',
+        institutionId,
+        studentId,
+        courseId,
+        subjectId,
+        value: 4.50,
+        period: 'Q1-2026',
+        evaluationType: 'Parcial',
+        description: null,
+        status: GradeStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      mockedFindGuardianUserIds.mockResolvedValue(['guardian-1', 'guardian-2']);
+      prismaMock.userInstitution.findFirst.mockResolvedValue({ id: 'ui-1' });
+      prismaMock.notification.create.mockResolvedValue({});
+
+      await service.create(
+        institutionId,
+        { studentId, courseId, subjectId, value: 4.50, period: 'Q1-2026', evaluationType: 'Parcial' },
+        userId,
+      );
+
+      expect(mockedFindGuardianUserIds).toHaveBeenCalledWith(
+        prismaMock as never,
+        institutionId,
+        [studentId],
+      );
+      expect(prismaMock.notification.create).toHaveBeenCalledTimes(2);
+      expect(prismaMock.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: 'guardian-1',
+            title: 'Nueva calificacion registrada',
+          }),
+        }),
+      );
+    });
+
+    it('should not create notifications when student has no guardians', async () => {
+      prismaMock.grade.create.mockResolvedValue({
+        id: 'grade-1',
+        institutionId,
+        studentId,
+        courseId,
+        subjectId,
+        value: 4.50,
+        period: 'Q1-2026',
+        evaluationType: 'Parcial',
+        description: null,
+        status: GradeStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      mockedFindGuardianUserIds.mockResolvedValue([]);
+
+      await service.create(
+        institutionId,
+        { studentId, courseId, subjectId, value: 4.50, period: 'Q1-2026', evaluationType: 'Parcial' },
+        userId,
+      );
+
+      expect(prismaMock.notification.create).not.toHaveBeenCalled();
     });
   });
 });
