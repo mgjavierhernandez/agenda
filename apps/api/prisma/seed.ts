@@ -34,6 +34,10 @@ const ALL_PERMISSIONS = [
   'enrollments:read', 'enrollments:manage',
   'teacher-assignments:read', 'teacher-assignments:manage',
   'agenda:read',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
+  'student-follow-ups:stats', 'student-follow-ups:categories',
 ];
 
 const INSTITUTION_ADMIN_PERMISSIONS = [
@@ -56,6 +60,10 @@ const INSTITUTION_ADMIN_PERMISSIONS = [
   'enrollments:read', 'enrollments:manage',
   'teacher-assignments:read', 'teacher-assignments:manage',
   'agenda:read',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
+  'student-follow-ups:stats', 'student-follow-ups:categories',
 ];
 
 const TEACHER_PERMISSIONS = [
@@ -73,6 +81,9 @@ const TEACHER_PERMISSIONS = [
   'academic-periods:read',
   'teacher-assignments:read',
   'agenda:read',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach',
 ];
 
 const PARENT_PERMISSIONS = [
@@ -89,6 +100,7 @@ const PARENT_PERMISSIONS = [
   'guardians:read',
   'enrollments:read',
   'agenda:read',
+  'student-follow-ups:read',
 ];
 
 const STUDENT_PERMISSIONS = [
@@ -102,6 +114,7 @@ const STUDENT_PERMISSIONS = [
   'academic-periods:read',
   'enrollments:read',
   'agenda:read',
+  'student-follow-ups:read',
 ];
 
 async function assignPermissions(roleId: string, codes: string[]): Promise<void> {
@@ -201,6 +214,17 @@ async function main(): Promise<void> {
     { code: 'teacher-assignments:read', module: 'teacher-assignments', description: 'List and read teacher assignments' },
     { code: 'teacher-assignments:manage', module: 'teacher-assignments', description: 'CRUD teacher assignments' },
     { code: 'agenda:read', module: 'agenda', description: 'Read agenda/calendar view' },
+    { code: 'student-follow-ups:read', module: 'student-follow-ups', description: 'Read student follow-up records' },
+    { code: 'student-follow-ups:create', module: 'student-follow-ups', description: 'Create student follow-up records' },
+    { code: 'student-follow-ups:update', module: 'student-follow-ups', description: 'Update student follow-up records' },
+    { code: 'student-follow-ups:close', module: 'student-follow-ups', description: 'Close student follow-up records' },
+    { code: 'student-follow-ups:escalate', module: 'student-follow-ups', description: 'Escalate student follow-up records' },
+    { code: 'student-follow-ups:follow_up', module: 'student-follow-ups', description: 'Add follow-up entries to records' },
+    { code: 'student-follow-ups:commit', module: 'student-follow-ups', description: 'Create commitments in follow-up records' },
+    { code: 'student-follow-ups:attach', module: 'student-follow-ups', description: 'Attach files to follow-up records' },
+    { code: 'student-follow-ups:manage', module: 'student-follow-ups', description: 'Full management of student follow-up module' },
+    { code: 'student-follow-ups:stats', module: 'student-follow-ups', description: 'View student follow-up statistics' },
+    { code: 'student-follow-ups:categories', module: 'student-follow-ups', description: 'Manage follow-up categories' },
   ];
 
   for (const p of permissionData) {

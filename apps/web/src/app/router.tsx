@@ -24,6 +24,7 @@ import { SchoolGradesPage, SchoolGradeDetailPage, SchoolGradeFormPage } from '@/
 import { GuardiansPage, GuardiansFormPage } from '@/modules/guardians';
 import { EnrollmentsPage, EnrollmentDetailPage, EnrollmentFormPage } from '@/modules/enrollments';
 import { TeacherAssignmentsPage, TeacherAssignmentDetailPage, TeacherAssignmentFormPage } from '@/modules/teacher-assignments';
+import { StudentFollowUpsPage, StudentFollowUpDetailPage, StudentFollowUpFormPage, FollowUpCategoriesPage } from '@/modules/student-follow-ups';
 import { AgendaPage } from '@/modules/agenda';
 
 export const router = createBrowserRouter([
@@ -101,6 +102,11 @@ export const router = createBrowserRouter([
           { path: '/teacher-assignments', element: <TeacherAssignmentsPage /> },
           { path: '/teacher-assignments/new', element: <TeacherAssignmentFormPage /> },
           { path: '/teacher-assignments/:id', element: <TeacherAssignmentDetailPage /> },
+          { path: '/student-follow-ups', element: <StudentFollowUpsPage /> },
+          { path: '/student-follow-ups/new', element: <StudentFollowUpFormPage /> },
+          { path: '/student-follow-ups/:id', element: <StudentFollowUpDetailPage /> },
+          { path: '/student-follow-ups/:id/edit', element: <StudentFollowUpFormPage /> },
+          { path: '/student-follow-ups/categories', element: <FollowUpCategoriesPage /> },
         ],
       },
     ],

@@ -28,6 +28,7 @@ import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { UsersModule } from './modules/users/users.module';
 import { MembershipsModule } from './modules/memberships/memberships.module';
 import { AgendaModule } from './modules/agenda/agenda.module';
+import { StudentFollowUpsModule } from './modules/student-follow-ups/student-follow-ups.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { AgendaModule } from './modules/agenda/agenda.module';
     CommunicationRecipientsModule,
     FilesModule,
     AgendaModule,
+    StudentFollowUpsModule,
   ],
   providers: [
     {

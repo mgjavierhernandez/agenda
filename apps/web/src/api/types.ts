@@ -604,7 +604,9 @@ export type NotificationType =
   | 'SIGNATURE_DECLINED'
   | 'COMMUNICATION'
   | 'TASK_UPDATE'
-  | 'GENERAL';
+  | 'GENERAL'
+  | 'STUDENT_FOLLOW_UP'
+  | 'COMMITMENT_UPDATE';
 
 export type NotificationStatus = 'UNREAD' | 'READ';
 
@@ -907,4 +909,222 @@ export interface ListAgendaParams {
   eventTypes?: AgendaEventType[];
   page?: number;
   limit?: number;
+}
+
+// ============================================================
+// Student Follow-Ups
+// ============================================================
+
+export type FollowUpType = 'ACADEMICO' | 'CONVIVENCIA' | 'FORMATIVO';
+export type FollowUpSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type FollowUpStatus = 'OPEN' | 'IN_PROGRESS' | 'ESCALATED' | 'PENDING_FOLLOW_UP' | 'RESOLVED' | 'CLOSED';
+export type FollowUpConfidentiality = 'PUBLIC' | 'INTERNAL' | 'CONFIDENTIAL' | 'SENSITIVE';
+export type FollowUpEntryType = 'NOTE' | 'MEETING' | 'OBSERVATION' | 'ACTION' | 'FOLLOW_UP';
+export type CommitmentStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'OVERDUE';
+export type CommitmentResponsibleRole = 'ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT';
+
+export const FOLLOW_UP_TYPE_LABELS: Record<FollowUpType, string> = {
+  ACADEMICO: 'Académico',
+  CONVIVENCIA: 'Convivencia',
+  FORMATIVO: 'Formativo',
+};
+
+export const FOLLOW_UP_SEVERITY_LABELS: Record<FollowUpSeverity, string> = {
+  LOW: 'Baja',
+  MEDIUM: 'Media',
+  HIGH: 'Alta',
+  CRITICAL: 'Crítica',
+};
+
+export const FOLLOW_UP_STATUS_LABELS: Record<FollowUpStatus, string> = {
+  OPEN: 'Abierto',
+  IN_PROGRESS: 'En progreso',
+  ESCALATED: 'Escalado',
+  PENDING_FOLLOW_UP: 'Pendiente seguimiento',
+  RESOLVED: 'Resuelto',
+  CLOSED: 'Cerrado',
+};
+
+export const FOLLOW_UP_CONFIDENTIALITY_LABELS: Record<FollowUpConfidentiality, string> = {
+  PUBLIC: 'Público',
+  INTERNAL: 'Interno',
+  CONFIDENTIAL: 'Confidencial',
+  SENSITIVE: 'Sensible',
+};
+
+export const FOLLOW_UP_ENTRY_TYPE_LABELS: Record<FollowUpEntryType, string> = {
+  NOTE: 'Nota',
+  MEETING: 'Reunión',
+  OBSERVATION: 'Observación',
+  ACTION: 'Acción',
+  FOLLOW_UP: 'Seguimiento',
+};
+
+export const COMMITMENT_STATUS_LABELS: Record<CommitmentStatus, string> = {
+  PENDING: 'Pendiente',
+  IN_PROGRESS: 'En progreso',
+  COMPLETED: 'Completado',
+  CANCELLED: 'Cancelado',
+  OVERDUE: 'Vencido',
+};
+
+export const COMMITMENT_ROLE_LABELS: Record<CommitmentResponsibleRole, string> = {
+  ADMIN: 'Administrador',
+  TEACHER: 'Docente',
+  PARENT: 'Acudiente',
+  STUDENT: 'Estudiante',
+};
+
+export interface StudentFollowUpStudent {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface StudentFollowUpUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface StudentFollowUpCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFollowUpCategoryInput {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateFollowUpCategoryInput {
+  name?: string;
+  description?: string | null;
+  active?: boolean;
+}
+
+export interface StudentFollowUp {
+  id: string;
+  institutionId: string;
+  studentId: string;
+  categoryId: string | null;
+  createdById: string;
+  type: FollowUpType;
+  severity: FollowUpSeverity;
+  status: FollowUpStatus;
+  confidentiality: FollowUpConfidentiality;
+  title: string;
+  summary: string | null;
+  description: string | null;
+  closedAt: string | null;
+  closedById: string | null;
+  createdAt: string;
+  updatedAt: string;
+  student: StudentFollowUpStudent;
+  createdBy: StudentFollowUpUser;
+  closedBy?: StudentFollowUpUser | null;
+  category?: StudentFollowUpCategory | null;
+}
+
+export interface CreateStudentFollowUpInput {
+  studentId: string;
+  type: FollowUpType;
+  severity?: FollowUpSeverity;
+  confidentiality?: FollowUpConfidentiality;
+  categoryId?: string;
+  title: string;
+  summary?: string;
+  description?: string;
+}
+
+export interface UpdateStudentFollowUpInput {
+  type?: FollowUpType;
+  severity?: FollowUpSeverity;
+  confidentiality?: FollowUpConfidentiality;
+  categoryId?: string | null;
+  title?: string;
+  summary?: string;
+  description?: string;
+}
+
+export interface ListStudentFollowUpsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  studentId?: string;
+  type?: FollowUpType;
+  severity?: FollowUpSeverity;
+  status?: FollowUpStatus;
+  confidentiality?: FollowUpConfidentiality;
+  categoryId?: string;
+  createdById?: string;
+  createdFrom?: string;
+  createdTo?: string;
+}
+
+export interface FollowUpEntry {
+  id: string;
+  followUpId: string;
+  createdById: string;
+  entryType: FollowUpEntryType;
+  content: string;
+  createdAt: string;
+  createdBy?: StudentFollowUpUser;
+}
+
+export interface CreateFollowUpEntryInput {
+  entryType: FollowUpEntryType;
+  content: string;
+}
+
+export interface UpdateFollowUpEntryInput {
+  entryType?: FollowUpEntryType;
+  content?: string;
+}
+
+export interface Commitment {
+  id: string;
+  followUpId: string;
+  responsibleUserId: string;
+  responsibleRole: CommitmentResponsibleRole;
+  description: string;
+  status: CommitmentStatus;
+  effectiveStatus?: CommitmentStatus;
+  dueDate: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  responsibleUser?: StudentFollowUpUser;
+}
+
+export interface CreateCommitmentInput {
+  responsibleUserId: string;
+  responsibleRole: CommitmentResponsibleRole;
+  description: string;
+  dueDate?: string;
+}
+
+export interface UpdateCommitmentInput {
+  responsibleUserId?: string;
+  responsibleRole?: CommitmentResponsibleRole;
+  description?: string;
+  dueDate?: string | null;
+  status?: CommitmentStatus;
+}
+
+export interface FollowUpAttachment {
+  id: string;
+  institutionId: string;
+  followUpId: string;
+  fileAssetId: string;
+  createdAt: string;
+  fileAsset: FileAsset;
+}
+
+export interface CreateFollowUpAttachmentInput {
+  fileAssetId: string;
 }

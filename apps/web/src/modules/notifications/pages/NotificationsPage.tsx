@@ -33,6 +33,8 @@ const TYPE_ICONS: Record<NotificationType, string> = {
   COMMUNICATION: '📢',
   TASK_UPDATE: '📋',
   GENERAL: '🔔',
+  STUDENT_FOLLOW_UP: '📋',
+  COMMITMENT_UPDATE: '📌',
 };
 
 export function NotificationsPage() {
@@ -162,6 +164,8 @@ export function NotificationsPage() {
             <option value="COMMUNICATION">Comunicación</option>
             <option value="TASK_UPDATE">Actualización de tarea</option>
             <option value="GENERAL">General</option>
+            <option value="STUDENT_FOLLOW_UP">Seguimiento del alumno</option>
+            <option value="COMMITMENT_UPDATE">Compromiso</option>
           </select>
         </div>
         {(debouncedSearch || statusFilter || typeFilter) && (

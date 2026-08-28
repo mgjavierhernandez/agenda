@@ -20,6 +20,8 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   COMMUNICATION: 'Comunicación',
   TASK_UPDATE: 'Actualización de tarea',
   GENERAL: 'General',
+  STUDENT_FOLLOW_UP: 'Seguimiento del alumno',
+  COMMITMENT_UPDATE: 'Compromiso',
 };
 
 const STATUS_BADGE_VARIANT: Record<NotificationStatus, 'warning' | 'default'> = {
@@ -34,6 +36,8 @@ const TYPE_ICONS: Record<NotificationType, string> = {
   COMMUNICATION: '📢',
   TASK_UPDATE: '📋',
   GENERAL: '🔔',
+  STUDENT_FOLLOW_UP: '📋',
+  COMMITMENT_UPDATE: '📌',
 };
 
 export function NotificationDetailPage() {

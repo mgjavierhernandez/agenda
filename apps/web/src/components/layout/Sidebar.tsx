@@ -30,6 +30,8 @@ const navItems: NavItem[] = [
   { to: '/guardians', label: 'Acudientes', icon: '👨‍👩‍👧', permission: PERMISSIONS.GUARDIANS_READ },
   { to: '/enrollments', label: 'Matrículas', icon: '📋', permission: PERMISSIONS.ENROLLMENTS_READ },
   { to: '/teacher-assignments', label: 'Asignaciones docentes', icon: '👨‍🏫', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
+  { to: '/student-follow-ups', label: 'Observador', icon: '📋', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_READ },
+  { to: '/student-follow-ups/categories', label: 'Categorías', icon: '🏷️', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_CATEGORIES },
 ];
 
 interface SidebarProps {

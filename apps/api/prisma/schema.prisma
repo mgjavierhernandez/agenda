@@ -118,6 +118,8 @@ enum NotificationType {
   COMMUNICATION
   TASK_UPDATE
   GENERAL
+  STUDENT_FOLLOW_UP
+  COMMITMENT_UPDATE
 }
 
 enum NotificationStatus {
@@ -182,6 +184,148 @@ enum FileAssetStatus {
   DELETED
 }
 
+enum FollowUpType {
+  ACADEMICO
+  CONVIVENCIA
+  FORMATIVO
+}
+
+enum FollowUpSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FollowUpStatus {
+  OPEN
+  IN_PROGRESS
+  ESCALATED
+  PENDING_FOLLOW_UP
+  RESOLVED
+  CLOSED
+}
+
+enum FollowUpConfidentiality {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  SENSITIVE
+}
+
+enum FollowUpEntryType {
+  NOTE
+  MEETING
+  OBSERVATION
+  ACTION
+  FOLLOW_UP
+}
+
+enum CommitmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  OVERDUE
+}
+
+enum CommitmentResponsibleRole {
+  ADMIN
+  TEACHER
+  PARENT
+  STUDENT
+}
+
+// ============================================================
+// STUDENT FOLLOW-UP (Observador del Alumno)
+// ============================================================
+
+model StudentFollowUp {
+  id              String                  @id @default(uuid()) @db.Uuid
+  institutionId   String                  @map("institution_id") @db.Uuid
+  studentId       String                  @map("student_id") @db.Uuid
+  categoryId      String?                 @map("category_id") @db.Uuid
+  createdById     String                  @map("created_by_id") @db.Uuid
+  type            FollowUpType
+  severity        FollowUpSeverity        @default(MEDIUM)
+  status          FollowUpStatus          @default(OPEN)
+  confidentiality FollowUpConfidentiality @default(INTERNAL)
+  title           String                  @db.VarChar(200)
+  summary         String?                 @db.Text
+  description     String?                 @db.Text
+  closedAt        DateTime?               @map("closed_at")
+  closedById      String?                 @map("closed_by_id") @db.Uuid
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+
+  institution Institution          @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  student     Student              @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  category    FollowUpCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy   User                 @relation("FollowUpCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  closedBy    User?                @relation("FollowUpClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  entries     FollowUpEntry[]
+  commitments Commitment[]
+  attachments FollowUpAttachment[]
+
+  @@index([institutionId])
+  @@index([institutionId, studentId])
+  @@index([institutionId, status])
+  @@index([institutionId, type])
+  @@index([institutionId, confidentiality])
+  @@index([institutionId, categoryId])
+  @@index([institutionId, createdById])
+  @@index([institutionId, createdAt])
+  @@index([studentId])
+  @@map("student_follow_ups")
+}
+
+// ============================================================
+// FOLLOW-UP ENTRY (Timeline entry for a follow-up)
+// ============================================================
+
+model FollowUpEntry {
+  id          String            @id @default(uuid()) @db.Uuid
+  followUpId  String            @map("follow_up_id") @db.Uuid
+  createdById String            @map("created_by_id") @db.Uuid
+  entryType   FollowUpEntryType @map("entry_type")
+  content     String            @db.Text
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  followUp  StudentFollowUp @relation(fields: [followUpId], references: [id], onDelete: Restrict)
+  createdBy User            @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([followUpId])
+  @@index([followUpId, createdAt])
+  @@index([createdById])
+  @@map("follow_up_entries")
+}
+
+// ============================================================
+// COMMITMENT (Agreement derived from a follow-up)
+// ============================================================
+
+model Commitment {
+  id                String                    @id @default(uuid()) @db.Uuid
+  followUpId        String                    @map("follow_up_id") @db.Uuid
+  responsibleUserId String                    @map("responsible_user_id") @db.Uuid
+  responsibleRole   CommitmentResponsibleRole @map("responsible_role")
+  description       String                    @db.Text
+  status            CommitmentStatus          @default(PENDING)
+  dueDate           DateTime?                 @map("due_date")
+  completedAt       DateTime?                 @map("completed_at")
+  createdAt         DateTime                  @default(now()) @map("created_at")
+  updatedAt         DateTime                  @updatedAt @map("updated_at")
+
+  followUp        StudentFollowUp @relation(fields: [followUpId], references: [id], onDelete: Restrict)
+  responsibleUser User            @relation(fields: [responsibleUserId], references: [id], onDelete: Restrict)
+
+  @@index([followUpId])
+  @@index([responsibleUserId])
+  @@index([followUpId, status])
+  @@index([followUpId, dueDate])
+  @@map("commitments")
+}
+
 // ============================================================
 // INSTITUTION (Tenant)
 // ============================================================
@@ -218,6 +362,9 @@ model Institution {
   fileAssets               FileAsset[]
   taskAttachments          TaskAttachment[]
   communicationAttachments CommunicationAttachment[]
+  studentFollowUps         StudentFollowUp[]
+  followUpCategories       FollowUpCategory[]
+  followUpAttachments      FollowUpAttachment[]
 
   @@map("institutions")
 }
@@ -248,6 +395,10 @@ model User {
   communicationRecipients CommunicationRecipient[]
   uploadedFiles           FileAsset[]
   student                 Student?
+  createdFollowUps        StudentFollowUp[]        @relation("FollowUpCreatedBy")
+  closedFollowUps         StudentFollowUp[]        @relation("FollowUpClosedBy")
+  followUpEntries         FollowUpEntry[]
+  commitments             Commitment[]
 
   @@map("users")
 }
@@ -463,6 +614,7 @@ model Student {
   guardianStudents GuardianStudent[]
   taskAssignments  TaskAssignment[]
   taskSubmissions  TaskSubmission[]
+  studentFollowUps StudentFollowUp[]
 
   @@unique([institutionId, documentType, documentNumber])
   @@index([institutionId])
@@ -960,6 +1112,7 @@ model FileAsset {
   uploadedByUser           User                      @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
   taskAttachments          TaskAttachment[]
   communicationAttachments CommunicationAttachment[]
+  followUpAttachments      FollowUpAttachment[]
 
   @@unique([institutionId, storageKey])
   @@index([institutionId])
@@ -968,6 +1121,51 @@ model FileAsset {
   @@index([institutionId, createdAt])
   @@index([checksum])
   @@map("file_assets")
+}
+
+// ============================================================
+// FOLLOW-UP ATTACHMENT (Links files to follow-ups)
+// ============================================================
+
+model FollowUpAttachment {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @map("institution_id") @db.Uuid
+  followUpId    String   @map("follow_up_id") @db.Uuid
+  fileAssetId   String   @map("file_asset_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution     @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  followUp    StudentFollowUp @relation(fields: [followUpId], references: [id], onDelete: Restrict)
+  fileAsset   FileAsset       @relation(fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([followUpId, fileAssetId])
+  @@index([institutionId])
+  @@index([institutionId, followUpId])
+  @@index([followUpId])
+  @@index([fileAssetId])
+  @@map("follow_up_attachments")
+}
+
+// ============================================================
+// FOLLOW-UP CATEGORY (Institution-scoped categories)
+// ============================================================
+
+model FollowUpCategory {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @map("institution_id") @db.Uuid
+  name          String   @db.VarChar(100)
+  description   String?  @db.Text
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution       @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  followUps   StudentFollowUp[]
+
+  @@unique([institutionId, name])
+  @@index([institutionId])
+  @@index([institutionId, active])
+  @@map("follow_up_categories")
 }
 
 // ============================================================

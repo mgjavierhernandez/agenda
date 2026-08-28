@@ -51,6 +51,17 @@ export const PERMISSIONS = {
   TEACHER_ASSIGNMENTS_READ: 'teacher-assignments:read',
   TEACHER_ASSIGNMENTS_MANAGE: 'teacher-assignments:manage',
   AGENDA_READ: 'agenda:read',
+  STUDENT_FOLLOW_UPS_READ: 'student-follow-ups:read',
+  STUDENT_FOLLOW_UPS_CREATE: 'student-follow-ups:create',
+  STUDENT_FOLLOW_UPS_UPDATE: 'student-follow-ups:update',
+  STUDENT_FOLLOW_UPS_CLOSE: 'student-follow-ups:close',
+  STUDENT_FOLLOW_UPS_ESCALATE: 'student-follow-ups:escalate',
+  STUDENT_FOLLOW_UPS_FOLLOW_UP: 'student-follow-ups:follow_up',
+  STUDENT_FOLLOW_UPS_COMMIT: 'student-follow-ups:commit',
+  STUDENT_FOLLOW_UPS_ATTACH: 'student-follow-ups:attach',
+  STUDENT_FOLLOW_UPS_MANAGE: 'student-follow-ups:manage',
+  STUDENT_FOLLOW_UPS_STATS: 'student-follow-ups:stats',
+  STUDENT_FOLLOW_UPS_CATEGORIES: 'student-follow-ups:categories',
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
