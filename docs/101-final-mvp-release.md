@@ -118,7 +118,7 @@ Dashboard por rol (`resolveRole` ADMIN>TEACHER>PARENT>STUDENT) con acceso adapta
 
 - **Branch:** `main`
 - **Commit anterior:** `e7dca4a` (RC `v1.0.2-rc.1`)
-- **Commit nuevo:** `[codificado en FASE 19]`
+- **Commit nuevo:** `000fe79` (`release: close Agenda Escolar Digital MVP`)
 - **Tag nuevo:** `v1.0.2` (apuntando al commit definitivo)
 - **Tag RC preservado:** `v1.0.2-rc.1` (no modificado)
 - **Working tree:** limpio tras el commit de cierre.
