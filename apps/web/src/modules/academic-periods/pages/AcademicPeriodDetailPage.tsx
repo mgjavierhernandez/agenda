@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAcademicPeriod, useDeactivateAcademicPeriod } from '../hooks';
+import { useAcademicPeriod, useDeactivateAcademicPeriod, useCloseAcademicPeriod } from '../hooks';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -12,9 +12,10 @@ import { PERMISSIONS } from '@/permissions/permission.constants';
 import type { AcademicPeriodStatus } from '@/api/types';
 import { ACADEMIC_PERIOD_STATUS_LABELS } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<AcademicPeriodStatus, 'success' | 'default'> = {
+const STATUS_BADGE_VARIANT: Record<AcademicPeriodStatus, 'success' | 'default' | 'danger'> = {
   ACTIVE: 'success',
   INACTIVE: 'default',
+  CLOSED: 'danger',
 };
 
 export function AcademicPeriodDetailPage() {
@@ -22,11 +23,14 @@ export function AcademicPeriodDetailPage() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const canManage = hasPermission(PERMISSIONS.ACADEMIC_PERIODS_MANAGE);
+  const canClose = hasPermission(PERMISSIONS.ACADEMIC_PERIODS_CLOSE);
 
   const { data: period, isLoading, error } = useAcademicPeriod(id ?? '');
   const deactivateMutation = useDeactivateAcademicPeriod();
+  const closeMutation = useCloseAcademicPeriod();
 
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   const handleDeactivate = async () => {
     if (!id) return;
@@ -35,6 +39,16 @@ export function AcademicPeriodDetailPage() {
       setConfirmDeactivate(false);
     } catch {
       setConfirmDeactivate(false);
+    }
+  };
+
+  const handleClose = async () => {
+    if (!id) return;
+    try {
+      await closeMutation.mutateAsync(id);
+      setConfirmClose(false);
+    } catch {
+      setConfirmClose(false);
     }
   };
 
@@ -54,8 +68,10 @@ export function AcademicPeriodDetailPage() {
     return <ErrorState error={{ statusCode: 404, message: 'Periodo no encontrado', timestamp: '', path: '' }} />;
   }
 
-  const canEdit = canManage;
+  const isClosed = period.status === 'CLOSED';
+  const canEdit = canManage && !isClosed;
   const canDeactivate = canManage && period.status === 'ACTIVE';
+  const canCloseNow = canClose && period.status === 'ACTIVE';
 
   return (
     <div className="space-y-6">
@@ -72,6 +88,11 @@ export function AcademicPeriodDetailPage() {
             {canDeactivate && (
               <Button variant="danger" onClick={() => setConfirmDeactivate(true)}>
                 Desactivar
+              </Button>
+            )}
+            {canCloseNow && (
+              <Button variant="danger" onClick={() => setConfirmClose(true)}>
+                Cerrar periodo
               </Button>
             )}
           </div>
@@ -161,6 +182,32 @@ export function AcademicPeriodDetailPage() {
                 onClick={handleDeactivate}
               >
                 Desactivar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {confirmClose && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirmar cierre del periodo
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Al cerrar el periodo "{period.name}" no se podrá modificar, eliminar ni crear
+              calificaciones asociadas a este periodo. Esta acción es irreversible.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setConfirmClose(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="danger"
+                isLoading={closeMutation.isPending}
+                onClick={handleClose}
+              >
+                Cerrar periodo
               </Button>
             </div>
           </Card>

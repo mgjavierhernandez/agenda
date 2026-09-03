@@ -25,7 +25,15 @@ import { GuardiansPage, GuardiansFormPage } from '@/modules/guardians';
 import { EnrollmentsPage, EnrollmentDetailPage, EnrollmentFormPage } from '@/modules/enrollments';
 import { TeacherAssignmentsPage, TeacherAssignmentDetailPage, TeacherAssignmentFormPage } from '@/modules/teacher-assignments';
 import { StudentFollowUpsPage, StudentFollowUpDetailPage, StudentFollowUpFormPage, FollowUpCategoriesPage } from '@/modules/student-follow-ups';
-import { AgendaPage } from '@/modules/agenda';
+import { AgendaPage, AgendaEventDetailPage, AgendaEventFormPage } from '@/modules/agenda';
+import { AttendanceListPage, AttendanceRegisterPage } from '@/modules/attendance';
+import { ReportsPage, CourseReportPage } from '@/modules/reports';
+import {
+  InstitutionProfilePage,
+  InstitutionUsersPage,
+  CreateUserPage,
+  UserDetailPage,
+} from '@/modules/administration';
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +53,9 @@ export const router = createBrowserRouter([
           { path: '/select-institution', element: <InstitutionSelectPage /> },
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/agenda', element: <AgendaPage /> },
+          { path: '/agenda/events/new', element: <AgendaEventFormPage /> },
+          { path: '/agenda/events/:id', element: <AgendaEventDetailPage /> },
+          { path: '/agenda/events/:id/edit', element: <AgendaEventFormPage /> },
           { path: '/students', element: <StudentsPage /> },
           { path: '/students/new', element: <StudentFormPage /> },
           { path: '/students/:id', element: <StudentDetailPage /> },
@@ -107,6 +118,14 @@ export const router = createBrowserRouter([
           { path: '/student-follow-ups/:id', element: <StudentFollowUpDetailPage /> },
           { path: '/student-follow-ups/:id/edit', element: <StudentFollowUpFormPage /> },
           { path: '/student-follow-ups/categories', element: <FollowUpCategoriesPage /> },
+          { path: '/attendance', element: <AttendanceListPage /> },
+          { path: '/attendance/register', element: <AttendanceRegisterPage /> },
+          { path: '/reports', element: <ReportsPage /> },
+          { path: '/reports/course', element: <CourseReportPage /> },
+          { path: '/institution', element: <InstitutionProfilePage /> },
+          { path: '/admin/users', element: <InstitutionUsersPage /> },
+          { path: '/admin/users/new', element: <CreateUserPage /> },
+          { path: '/admin/users/:membershipId', element: <UserDetailPage /> },
         ],
       },
     ],

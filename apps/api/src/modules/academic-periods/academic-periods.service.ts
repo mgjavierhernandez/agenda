@@ -42,6 +42,7 @@ export class AcademicPeriodsService {
     const academicPeriod = await this.prisma.academicPeriod.create({
       data: {
         institutionId,
+        createdById: userId,
         name: dto.name,
         code: dto.code,
         startDate: new Date(dto.startDate),
@@ -141,6 +142,14 @@ export class AcademicPeriodsService {
       throw new NotFoundException('Academic period not found');
     }
 
+    if (existing.status === AcademicPeriodStatus.CLOSED) {
+      throw new BadRequestException('Closed academic periods cannot be modified');
+    }
+
+    if (dto.status === AcademicPeriodStatus.CLOSED) {
+      throw new BadRequestException('Use the close endpoint to close an academic period');
+    }
+
     if (dto.startDate && dto.endDate) {
       if (new Date(dto.startDate) >= new Date(dto.endDate)) {
         throw new BadRequestException('Start date must be before end date');
@@ -222,5 +231,63 @@ export class AcademicPeriodsService {
       userId,
       ipAddress,
     );
+  }
+
+  async close(
+    institutionId: string,
+    academicPeriodId: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<AcademicPeriod> {
+    return this.prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<
+        Array<{ id: string; status: string }>
+      >`
+        SELECT id, status FROM academic_periods
+        WHERE id = ${academicPeriodId}::uuid
+          AND institution_id = ${institutionId}::uuid
+        FOR UPDATE
+      `;
+
+      if (rows.length === 0) {
+        throw new NotFoundException('Academic period not found');
+      }
+
+      if (rows[0].status === AcademicPeriodStatus.CLOSED) {
+        throw new BadRequestException('Academic period is already closed');
+      }
+
+      const academicPeriod = await tx.academicPeriod.update({
+        where: { id: academicPeriodId },
+        data: {
+          status: AcademicPeriodStatus.CLOSED,
+          closedById: userId,
+          closedAt: new Date(),
+        },
+      });
+
+      await this.auditService.log({
+        userId,
+        institutionId,
+        action: 'ACADEMIC_PERIOD_CLOSED',
+        entityType: 'AcademicPeriod',
+        entityId: academicPeriod.id,
+        oldValues: {
+          name: academicPeriod.name,
+          code: academicPeriod.code,
+          status: rows[0].status,
+        },
+        newValues: {
+          name: academicPeriod.name,
+          code: academicPeriod.code,
+          status: academicPeriod.status,
+          closedAt: academicPeriod.closedAt,
+          closedById: academicPeriod.closedById,
+        },
+        ipAddress,
+      });
+
+      return academicPeriod;
+    });
   }
 }

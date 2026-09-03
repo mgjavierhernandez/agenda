@@ -2,7 +2,7 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ListAgendaQueryDto, AgendaEventType } from './dto/list-agenda-query.dto';
 import { AgendaEventDto } from './dto/agenda-response.dto';
-import { DayOfWeek, Prisma } from '@prisma/client';
+import { DayOfWeek, Prisma, CommunicationAudience } from '@prisma/client';
 
 const DAY_OF_WEEK_MAP: Record<DayOfWeek, number> = {
   MONDAY: 0,
@@ -48,6 +48,7 @@ export class AgendaService {
       AgendaEventType.TASK,
       AgendaEventType.COMMUNICATION,
       AgendaEventType.SIGNATURE,
+      AgendaEventType.EVENT,
     ];
 
     const queries: Promise<AgendaEventDto[]>[] = [];
@@ -76,9 +77,24 @@ export class AgendaService {
       queries.push(Promise.resolve([]));
     }
 
-    const [scheduleEvents, taskEvents, commEvents, sigEvents] = await Promise.all(queries);
+    if (eventTypes.includes(AgendaEventType.EVENT)) {
+      queries.push(
+        this.getAgendaEventItems(institutionId, userContext, startDate, endDate, userId),
+      );
+    } else {
+      queries.push(Promise.resolve([]));
+    }
 
-    const allEvents = [...scheduleEvents, ...taskEvents, ...commEvents, ...sigEvents];
+    const [scheduleEvents, taskEvents, commEvents, sigEvents, agendaEventItems] =
+      await Promise.all(queries);
+
+    const allEvents = [
+      ...scheduleEvents,
+      ...taskEvents,
+      ...commEvents,
+      ...sigEvents,
+      ...agendaEventItems,
+    ];
     allEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
     const paginated = allEvents.slice(0, query.limit ?? 200);
@@ -474,6 +490,65 @@ export class AgendaService {
         route: `/signatures/${sig.id}`,
         metadata: {},
       }));
+  }
+
+  private async getAgendaEventItems(
+    institutionId: string,
+    userContext: { role: string; studentIds: string[]; courseIds: string[]; studentNames?: Record<string, string> },
+    startDate: Date,
+    endDate: Date,
+    userId: string,
+  ): Promise<AgendaEventDto[]> {
+    const where: Prisma.AgendaEventWhereInput = {
+      institutionId,
+      status: 'ACTIVE',
+      startAt: { lte: endDate },
+      endAt: { gte: startDate },
+    };
+
+    if (userContext.role === 'teacher') {
+      where.OR = [
+        { audience: { in: [CommunicationAudience.ALL, CommunicationAudience.TEACHERS] } },
+        { createdById: userId },
+      ];
+    } else if (userContext.role === 'parent') {
+      where.audience = { in: [CommunicationAudience.ALL, CommunicationAudience.PARENTS] };
+    } else if (userContext.role === 'student') {
+      where.audience = { in: [CommunicationAudience.ALL, CommunicationAudience.STUDENTS] };
+    }
+
+    const events = await this.prisma.agendaEvent.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        startAt: true,
+        endAt: true,
+        location: true,
+        audience: true,
+        status: true,
+      },
+      orderBy: { startAt: 'asc' },
+    });
+
+    return events.map((event) => ({
+      id: `event-${event.id}`,
+      type: AgendaEventType.EVENT,
+      title: event.title,
+      description: event.description ?? undefined,
+      start: event.startAt.toISOString(),
+      end: event.endAt.toISOString(),
+      allDay: false,
+      status: event.status,
+      sourceId: event.id,
+      sourceType: 'AgendaEvent',
+      route: `/agenda/events/${event.id}`,
+      metadata: {
+        audience: event.audience,
+        location: event.location ?? undefined,
+      },
+    }));
   }
 
   private async getTeacherUserIds(

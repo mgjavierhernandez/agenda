@@ -17,6 +17,7 @@ const EVENT_TYPE_CONFIG: Record<AgendaEventType, { label: string; variant: 'defa
   TASK: { label: 'Tarea', variant: 'warning' },
   COMMUNICATION: { label: 'Comunicacion', variant: 'success' },
   SIGNATURE: { label: 'Firma', variant: 'danger' },
+  EVENT: { label: 'Evento', variant: 'default' },
 };
 
 function getDateRange(view: AgendaView, currentDate: Date): { start: string; end: string } {
@@ -132,7 +133,14 @@ export function AgendaPage() {
   return (
     <PermissionGate permission={PERMISSIONS.AGENDA_READ}>
       <div className="space-y-6">
-        <PageHeader title="Agenda" />
+        <PageHeader
+          title="Agenda"
+          actions={
+            <PermissionGate permission={PERMISSIONS.AGENDA_CREATE}>
+              <Button onClick={() => navigate('/agenda/events/new')}>Nuevo evento</Button>
+            </PermissionGate>
+          }
+        />
 
         <Card className="p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-agenda}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agenda_prod_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in production}
       POSTGRES_DB: ${POSTGRES_DB:-agenda_prod}
     ports:
       - '5433:5432'
@@ -41,8 +41,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-agenda}:${POSTGRES_PASSWORD:-agenda_prod_password}@postgres:5432/${POSTGRES_DB:-agenda_prod}?schema=public
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-in-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-agenda}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in production}@postgres:5432/${POSTGRES_DB:-agenda_prod}?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET is required in production}
       JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       CORS_ORIGIN: http://localhost:80,http://localhost

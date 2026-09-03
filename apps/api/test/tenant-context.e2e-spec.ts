@@ -4,6 +4,8 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
+const TS = Date.now();
+
 describe('TenantContext (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaClient;
@@ -51,7 +53,7 @@ describe('TenantContext (e2e)', () => {
     const secondInstitution = await prisma.institution.create({
       data: {
         name: 'Second School',
-        slug: 'second-school',
+        slug: `second-school-${TS}`,
         status: 'ACTIVE',
       },
     });
@@ -143,7 +145,7 @@ describe('TenantContext (e2e)', () => {
       const thirdInstitution = await prisma.institution.create({
         data: {
           name: 'Third School',
-          slug: 'third-school',
+          slug: `third-school-${TS}`,
           status: 'ACTIVE',
         },
       });
@@ -224,7 +226,7 @@ describe('TenantContext (e2e)', () => {
       const noAccessInstitution = await prisma.institution.create({
         data: {
           name: 'No Access School',
-          slug: 'no-access-school',
+          slug: `no-access-school-${TS}`,
           status: 'ACTIVE',
         },
       });
@@ -245,7 +247,7 @@ describe('TenantContext (e2e)', () => {
       const inactiveInst = await prisma.institution.create({
         data: {
           name: 'Inactive Membership School',
-          slug: 'inactive-membership-school',
+          slug: `inactive-membership-school-${TS}`,
           status: 'ACTIVE',
         },
       });
@@ -283,7 +285,7 @@ describe('TenantContext (e2e)', () => {
       const inactiveInst = await prisma.institution.create({
         data: {
           name: 'Inactive Institution',
-          slug: 'inactive-institution',
+          slug: `inactive-institution-${TS}`,
           status: 'INACTIVE',
         },
       });
@@ -358,7 +360,7 @@ describe('TenantContext (e2e)', () => {
         .set('X-Institution-Id', secondInstitutionId)
         .expect(200);
 
-      expect(response2.body.institution.slug).toBe('second-school');
+      expect(response2.body.institution.slug).toBe(`second-school-${TS}`);
     });
   });
 });

@@ -12,6 +12,8 @@ COPY packages/shared/package.json ./packages/shared/
 RUN npm ci
 
 # Copy source and generate Prisma client, then build
+# tsconfig.base.json is required by apps/api/tsconfig.json ("extends": "../../tsconfig.base.json")
+COPY tsconfig.base.json ./
 COPY apps/api/ ./apps/api/
 COPY packages/shared/ ./packages/shared/
 RUN npx prisma generate --schema=./apps/api/prisma/schema.prisma

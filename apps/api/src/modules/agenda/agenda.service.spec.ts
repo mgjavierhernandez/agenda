@@ -18,6 +18,7 @@ describe('AgendaService', () => {
     communicationRecipient: { findMany: jest.Mock };
     signatureRequest: { findMany: jest.Mock };
     signatureRecipient: { findMany: jest.Mock };
+    agendaEvent: { findMany: jest.Mock };
   };
 
   const institutionId = 'inst-1';
@@ -38,6 +39,7 @@ describe('AgendaService', () => {
       communicationRecipient: { findMany: jest.fn() },
       signatureRequest: { findMany: jest.fn() },
       signatureRecipient: { findMany: jest.fn() },
+      agendaEvent: { findMany: jest.fn() },
     };
 
     service = new AgendaService(prismaMock as never);
@@ -60,6 +62,7 @@ describe('AgendaService', () => {
     prismaMock.taskAssignment.findMany.mockResolvedValue([]);
     prismaMock.communication.findMany.mockResolvedValue([]);
     prismaMock.signatureRequest.findMany.mockResolvedValue([]);
+    prismaMock.agendaEvent.findMany.mockResolvedValue([]);
   });
 
   describe('getAgenda', () => {
@@ -494,6 +497,60 @@ describe('AgendaService', () => {
           new Date(result.data[1].start).getTime(),
         );
       }
+    });
+
+    it('should include custom agenda events (EVENT) for admin role', async () => {
+      prismaMock.userInstitution.findUnique.mockResolvedValue({
+        id: 'mem-1',
+        userId,
+        institutionId,
+        status: 'ACTIVE',
+        roles: [{ role: { name: 'INSTITUTION_ADMIN' } }],
+      });
+      prismaMock.agendaEvent.findMany.mockResolvedValue([
+        {
+          id: 'event-1',
+          title: 'Reunion de padres',
+          description: null,
+          startAt: new Date('2026-08-25T14:00:00Z'),
+          endAt: new Date('2026-08-25T16:00:00Z'),
+          location: 'Salon de actos',
+          audience: 'ALL',
+          status: 'ACTIVE',
+        },
+      ]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.EVENT],
+      });
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].type).toBe(AgendaEventType.EVENT);
+      expect(result.data[0].sourceType).toBe('AgendaEvent');
+      expect(result.data[0].route).toContain('/agenda/events/');
+    });
+
+    it('should filter custom events by audience for a student', async () => {
+      prismaMock.agendaEvent.findMany.mockResolvedValue([]);
+
+      const result = await service.getAgenda(institutionId, userId, {
+        start: '2026-08-24',
+        end: '2026-08-30',
+        eventTypes: [AgendaEventType.EVENT],
+      });
+
+      expect(result.data).toHaveLength(0);
+      expect(prismaMock.agendaEvent.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            institutionId,
+            status: 'ACTIVE',
+            audience: { in: ['ALL', 'STUDENTS'] },
+          }),
+        }),
+      );
     });
   });
 });

@@ -3,9 +3,13 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Inject,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EMAIL_PROVIDER, EmailProvider, EmailTemplates } from '../auth/services/email';
 import { CreateSignatureRequestDto } from './dto/create-signature-request.dto';
 import { UpdateSignatureRequestDto } from './dto/update-signature-request.dto';
 import { ListSignatureRequestsQueryDto } from './dto/list-signature-requests-query.dto';
@@ -14,14 +18,21 @@ import {
   SignatureRecipient,
   SignatureRequestStatus,
   SignatureRecipientStatus,
+  NotificationType,
   Prisma,
 } from '@prisma/client';
+import { sendFollowUpSignatureNotification } from '../student-follow-ups/follow-up-notification.helper';
 
 @Injectable()
 export class SignaturesService {
+  private readonly logger = new Logger(SignaturesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly notificationsService: NotificationsService,
+    @Inject(EMAIL_PROVIDER) private readonly emailProvider: EmailProvider,
+    private readonly emailTemplates: EmailTemplates,
   ) {}
 
   private async validateRecipients(
@@ -113,6 +124,27 @@ export class SignaturesService {
   ): Promise<SignatureRequest & { recipients: SignatureRecipient[] }> {
     await this.validateRecipients(institutionId, dto.recipientUserIds);
 
+    if (dto.followUpId) {
+      const followUp = await this.prisma.studentFollowUp.findFirst({
+        where: { id: dto.followUpId, institutionId },
+      });
+      if (!followUp) {
+        throw new BadRequestException('Follow-up not found');
+      }
+    }
+
+    if (dto.followUpEntryId) {
+      const entry = await this.prisma.followUpEntry.findFirst({
+        where: {
+          id: dto.followUpEntryId,
+          followUp: { id: dto.followUpId || undefined, institutionId },
+        },
+      });
+      if (!entry) {
+        throw new BadRequestException('Follow-up entry not found');
+      }
+    }
+
     const result = await this.prisma.$transaction(async (tx) => {
       const request = await tx.signatureRequest.create({
         data: {
@@ -120,6 +152,9 @@ export class SignaturesService {
           title: dto.title,
           description: dto.description,
           dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+          followUpId: dto.followUpId || null,
+          followUpEntryId: dto.followUpEntryId || null,
+          createdById: userId,
         },
       });
 
@@ -188,6 +223,7 @@ export class SignaturesService {
               },
             }
           : {}),
+        ...(query.followUpId ? { followUpId: query.followUpId } : {}),
       };
     } else {
       where = {
@@ -213,6 +249,7 @@ export class SignaturesService {
               },
             }
           : {}),
+        ...(query.followUpId ? { followUpId: query.followUpId } : {}),
       };
     }
 
@@ -222,7 +259,11 @@ export class SignaturesService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { recipients: true },
+        include: {
+          recipients: true,
+          followUp: { select: { id: true, title: true } },
+          createdBy: { select: { id: true, firstName: true, lastName: true } },
+        },
       }),
       this.prisma.signatureRequest.count({ where }),
     ]);
@@ -250,7 +291,11 @@ export class SignaturesService {
   ): Promise<SignatureRequest & { recipients: SignatureRecipient[] }> {
     const request = await this.prisma.signatureRequest.findFirst({
       where: { id: requestId, institutionId },
-      include: { recipients: true },
+      include: {
+        recipients: true,
+        followUp: { select: { id: true, title: true, studentId: true, confidentiality: true } },
+        createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
     });
 
     if (!request) {
@@ -272,6 +317,27 @@ export class SignaturesService {
     }
 
     const checked = await this.checkExpiration(institutionId, request);
+    return checked;
+  }
+
+  async findByFollowUp(
+    institutionId: string,
+    followUpId: string,
+  ): Promise<(SignatureRequest & { recipients: SignatureRecipient[] })[]> {
+    const requests = await this.prisma.signatureRequest.findMany({
+      where: { institutionId, followUpId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        recipients: true,
+        followUp: { select: { id: true, title: true } },
+        createdBy: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const checked: (SignatureRequest & { recipients: SignatureRecipient[] })[] = [];
+    for (const request of requests) {
+      checked.push(await this.checkExpiration(institutionId, request));
+    }
     return checked;
   }
 
@@ -402,6 +468,10 @@ export class SignaturesService {
       ipAddress,
     });
 
+    // Best-effort, asynchronous notifications + emails to each signer. Never
+    // blocks nor rolls back the publish if these fail; errors are sanitized.
+    void this.notifySigners(institutionId, result.request);
+
     return result.request;
   }
 
@@ -497,6 +567,26 @@ export class SignaturesService {
       ipAddress,
     });
 
+    if (result.request.followUpId) {
+      const followUp = await this.prisma.studentFollowUp.findFirst({
+        where: { id: result.request.followUpId, institutionId },
+        select: { id: true, studentId: true, confidentiality: true },
+      });
+      if (followUp) {
+        void sendFollowUpSignatureNotification(
+          this.prisma,
+          {
+            institutionId,
+            followUpId: followUp.id,
+            studentId: followUp.studentId,
+            confidentiality: followUp.confidentiality,
+            actorUserId: currentUserId,
+          },
+          'SIGNATURE_COMPLETED_FROM_FOLLOW_UP',
+        ).catch(() => {});
+      }
+    }
+
     return { ...result.request, recipients: result.recipients };
   }
 
@@ -548,6 +638,26 @@ export class SignaturesService {
       newValues: { status: SignatureRecipientStatus.DECLINED },
       ipAddress,
     });
+
+    if (request.followUpId) {
+      const followUp = await this.prisma.studentFollowUp.findFirst({
+        where: { id: request.followUpId, institutionId },
+        select: { id: true, studentId: true, confidentiality: true },
+      });
+      if (followUp) {
+        void sendFollowUpSignatureNotification(
+          this.prisma,
+          {
+            institutionId,
+            followUpId: followUp.id,
+            studentId: followUp.studentId,
+            confidentiality: followUp.confidentiality,
+            actorUserId: currentUserId,
+          },
+          'SIGNATURE_DECLINED_FROM_FOLLOW_UP',
+        ).catch(() => {});
+      }
+    }
 
     const updatedRequest = await this.prisma.signatureRequest.findFirst({
       where: { id: requestId, institutionId },
@@ -601,5 +711,75 @@ export class SignaturesService {
     });
 
     return { ...result.request, recipients: result.recipients };
+  }
+
+  private async notifySigners(
+    institutionId: string,
+    request: SignatureRequest & { recipients: SignatureRecipient[] },
+  ): Promise<void> {
+    try {
+      if (request.recipients.length === 0) return;
+
+      const recipientIds = request.recipients
+        .map((r) => r.userId)
+        .filter((id: string | null): id is string => !!id);
+
+      const [users, institution] = await Promise.all([
+        this.prisma.user.findMany({
+          where: { id: { in: recipientIds } },
+          select: { id: true, email: true, firstName: true, lastName: true },
+        }),
+        this.prisma.institution.findUnique({
+          where: { id: institutionId },
+          select: { name: true },
+        }),
+      ]);
+
+      const userById = new Map(users.map((u) => [u.id, u]));
+      const institutionName = institution?.name ?? '';
+      const title = `Solicitud de firma: ${request.title}`;
+      const message = `Debes revisar y firmar la solicitud "${request.title}".`;
+
+      for (const recipient of request.recipients) {
+        if (!recipient.userId) continue;
+        const user = userById.get(recipient.userId);
+        if (!user) continue;
+
+        // In-app notification (reuse existing notification system).
+        this.notificationsService
+          .create(institutionId, {
+            type: NotificationType.SIGNATURE_REQUEST,
+            title,
+            message,
+            userId: recipient.userId,
+            entityType: 'SignatureRequest',
+            entityId: request.id,
+          }, 'system')
+          .catch((err: unknown) => {
+            const em = err instanceof Error ? err.message : String(err);
+            this.logger.warn(`[signature ${request.id}] notification to ${recipient.userId} failed: ${em}`);
+          });
+
+        // Email (fire-and-forget).
+        if (user.email) {
+          this.emailProvider
+            .sendSignatureRequest({
+              to: user.email,
+              recipientName: `${user.firstName} ${user.lastName}`.trim(),
+              institutionName,
+              title: request.title,
+              description: request.description,
+              dueDate: request.dueDate,
+            })
+            .catch((err: unknown) => {
+              const em = err instanceof Error ? err.message : String(err);
+              this.logger.warn(`[signature ${request.id}] email to ${user.email} failed: ${em}`);
+            });
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`[signature ${request.id}] notification/email dispatch skipped: ${message}`);
+    }
   }
 }

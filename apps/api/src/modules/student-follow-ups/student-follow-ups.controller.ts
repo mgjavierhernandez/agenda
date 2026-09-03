@@ -40,6 +40,12 @@ import { UpdateCommitmentDto } from './dto/update-commitment.dto';
 import { CreateFollowUpAttachmentDto } from './dto/create-follow-up-attachment.dto';
 import { CreateFollowUpCategoryDto } from './dto/create-follow-up-category.dto';
 import { UpdateFollowUpCategoryDto } from './dto/update-follow-up-category.dto';
+import { FollowUpCitationsService } from './follow-up-citations.service';
+import { CreateFollowUpCitationDto } from './dto/create-follow-up-citation.dto';
+import { UpdateFollowUpCitationDto } from './dto/update-follow-up-citation.dto';
+import { ListFollowUpCitationsQueryDto } from './dto/list-follow-up-citations-query.dto';
+import { StudentFollowUpSignatureService } from './student-follow-up-signature.service';
+import { RequestFollowUpSignatureDto } from './dto/request-follow-up-signature.dto';
 
 @ApiTags('Student Follow-Ups')
 @ApiBearerAuth('bearer')
@@ -49,6 +55,8 @@ export class StudentFollowUpsController {
   constructor(
     private readonly service: StudentFollowUpsService,
     private readonly categoriesService: FollowUpCategoriesService,
+    private readonly citationsService: FollowUpCitationsService,
+    private readonly signatureService: StudentFollowUpSignatureService,
   ) {}
 
   // ============================================================
@@ -580,6 +588,156 @@ export class StudentFollowUpsController {
       attachmentId,
       req.user.userId,
       req.ip,
+    );
+  }
+
+  // ============================================================
+  // CITATIONS
+  // ============================================================
+  @Post(':followUpId/citations')
+  @RequirePermission('student-follow-ups:follow_up')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a citation for a follow-up' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiResponse({ status: 201, description: 'Citation created successfully' })
+  @ApiResponse({ status: 404, description: 'Follow-up not found' })
+  @ApiResponse({ status: 400, description: 'Follow-up is closed or invalid date' })
+  async createCitation(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+    @Body() dto: CreateFollowUpCitationDto,
+  ) {
+    return this.citationsService.create(
+      req.tenant!.institutionId,
+      followUpId,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @Get(':followUpId/citations')
+  @RequirePermission('student-follow-ups:read')
+  @ApiOperation({ summary: 'List citations for a follow-up' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Citations retrieved successfully' })
+  async findCitations(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+    @Query() query: ListFollowUpCitationsQueryDto,
+  ) {
+    return this.citationsService.findAll(
+      req.tenant!.institutionId,
+      followUpId,
+      query,
+      req.user.userId,
+    );
+  }
+
+  @Get(':followUpId/citations/:citationId')
+  @RequirePermission('student-follow-ups:read')
+  @ApiOperation({ summary: 'Get a citation by ID' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiParam({ name: 'citationId', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Citation found' })
+  @ApiResponse({ status: 404, description: 'Citation not found' })
+  async findOneCitation(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+    @Param('citationId', ParseUUIDPipe) citationId: string,
+  ) {
+    return this.citationsService.findOne(
+      req.tenant!.institutionId,
+      followUpId,
+      citationId,
+      req.user.userId,
+    );
+  }
+
+  @Patch(':followUpId/citations/:citationId')
+  @RequirePermission('student-follow-ups:follow_up')
+  @ApiOperation({ summary: 'Update a citation' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiParam({ name: 'citationId', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Citation updated successfully' })
+  @ApiResponse({ status: 404, description: 'Citation not found' })
+  @ApiResponse({ status: 400, description: 'Follow-up is closed' })
+  async updateCitation(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+    @Param('citationId', ParseUUIDPipe) citationId: string,
+    @Body() dto: UpdateFollowUpCitationDto,
+  ) {
+    return this.citationsService.update(
+      req.tenant!.institutionId,
+      followUpId,
+      citationId,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @Delete(':followUpId/citations/:citationId')
+  @RequirePermission('student-follow-ups:follow_up')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a citation' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiParam({ name: 'citationId', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Citation deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Citation not found' })
+  async removeCitation(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+    @Param('citationId', ParseUUIDPipe) citationId: string,
+  ) {
+    return this.citationsService.remove(
+      req.tenant!.institutionId,
+      followUpId,
+      citationId,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  // ============================================================
+  // SIGNATURES (integration with the Signatures module)
+  // ============================================================
+
+  @Post(':followUpId/signatures')
+  @RequirePermission('student-follow-ups:commit')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Request a signature/acknowledgement from a follow-up' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiResponse({ status: 201, description: 'Signature request created successfully' })
+  @ApiResponse({ status: 404, description: 'Follow-up not found' })
+  async requestSignature(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+    @Body() dto: RequestFollowUpSignatureDto,
+  ) {
+    return this.signatureService.requestSignature(
+      req.tenant!.institutionId,
+      followUpId,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @Get(':followUpId/signatures')
+  @RequirePermission('student-follow-ups:read')
+  @ApiOperation({ summary: 'List signature requests linked to a follow-up' })
+  @ApiParam({ name: 'followUpId', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Signature requests retrieved successfully' })
+  async findSignaturesForFollowUp(
+    @Request() req: AuthenticatedRequest,
+    @Param('followUpId', ParseUUIDPipe) followUpId: string,
+  ) {
+    return this.signatureService.findByFollowUp(
+      req.tenant!.institutionId,
+      followUpId,
+      req.user.userId,
     );
   }
 }

@@ -72,6 +72,19 @@ export function AcademicPeriodFormPage() {
     return <ErrorState error={{ statusCode: 404, message: 'Periodo no encontrado', timestamp: '', path: '' }} />;
   }
 
+  if (isEditMode && existingPeriod && existingPeriod.status === 'CLOSED') {
+    return (
+      <Card>
+        <p className="text-gray-600 mb-3">
+          Este periodo académico está <strong>cerrado</strong> y no puede editarse.
+        </p>
+        <Button variant="secondary" onClick={() => navigate(`/academic-periods/${id}`)}>
+          Volver al periodo
+        </Button>
+      </Card>
+    );
+  }
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
 

@@ -31,6 +31,16 @@ export class CreateSignatureRequestDto {
   @IsDateString()
   dueDate?: string;
 
+  @ApiPropertyOptional({ format: 'uuid', description: 'Link to a StudentFollowUp' })
+  @IsOptional()
+  @IsUUID('4')
+  followUpId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Link to a FollowUpEntry' })
+  @IsOptional()
+  @IsUUID('4')
+  followUpEntryId?: string;
+
   @ApiProperty({ type: [String], format: 'uuid', minItems: 1, maxItems: 100 })
   @IsArray()
   @ArrayMinSize(1)

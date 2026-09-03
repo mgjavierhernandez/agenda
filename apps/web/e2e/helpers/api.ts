@@ -16,7 +16,7 @@ export async function getAuthToken(): Promise<string> {
 
   if (!res.ok) throw new Error(`E2E auth failed: ${res.status}`);
   const data = await res.json();
-  cachedToken = data.accessToken;
+  cachedToken = data.accessToken as string;
 
   const instRes = await fetch(`${API_URL}/auth/institutions`, {
     headers: { Authorization: `Bearer ${cachedToken}` },
@@ -26,7 +26,7 @@ export async function getAuthToken(): Promise<string> {
     cachedInstitutionId = instData.institutions[0].id;
   }
 
-  return cachedToken;
+  return cachedToken as string;
 }
 
 export async function getInstitutionId(): Promise<string> {
@@ -111,4 +111,11 @@ export async function cleanupE2EEntity(resource: string, id: string) {
   } catch {
     // ignore cleanup errors
   }
+}
+
+export async function listE2ENotifications() {
+  return apiRequest<{ data?: Array<{ id: string; title?: string; message?: string; type?: string; read?: boolean }> }>(
+    'GET',
+    '/notifications?page=1&limit=50',
+  );
 }

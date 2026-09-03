@@ -13,6 +13,7 @@ export enum AgendaEventType {
   TASK = 'TASK',
   COMMUNICATION = 'COMMUNICATION',
   SIGNATURE = 'SIGNATURE',
+  EVENT = 'EVENT',
 }
 
 export class ListAgendaQueryDto {

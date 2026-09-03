@@ -118,7 +118,17 @@ describe('SignaturesService', () => {
     };
     auditServiceMock = { log: jest.fn() };
 
-    service = new SignaturesService(prismaMock as never, auditServiceMock as never);
+    service = new SignaturesService(
+      prismaMock as never,
+      auditServiceMock as never,
+      { create: jest.fn() } as never,
+      {
+        sendSignatureRequest: jest.fn(),
+        sendPasswordReset: jest.fn(),
+        sendCommunication: jest.fn(),
+      } as never,
+      {} as never,
+    );
   });
 
   describe('create', () => {

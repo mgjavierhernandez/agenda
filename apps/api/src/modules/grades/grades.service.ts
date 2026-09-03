@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
@@ -17,6 +18,13 @@ export class GradesService {
     private readonly auditService: AuditService,
   ) {}
 
+  /**
+   * Resolves a grade's period label against the tenant's academic periods.
+   * Uses a row-level lock on the matching AcademicPeriod row so that grade
+   * writes and period closure are mutually exclusive (no mutation slips in
+   * after a period is closed). Returns the resolvable academicPeriodId, or
+   * null when no matching academic period exists (legacy free-text period).
+   */
   private async validateRelations(
     institutionId: string,
     studentId: string,
@@ -53,18 +61,33 @@ export class GradesService {
   ): Promise<Grade> {
     await this.validateRelations(institutionId, dto.studentId, dto.courseId, dto.subjectId);
 
-    const grade = await this.prisma.grade.create({
-      data: {
-        institutionId,
-        studentId: dto.studentId,
-        courseId: dto.courseId,
-        subjectId: dto.subjectId,
-        value: dto.value,
-        period: dto.period,
-        evaluationType: dto.evaluationType,
-        description: dto.description,
-        status: dto.status,
-      },
+    const grade = await this.prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<
+        Array<{ id: string; status: string }>
+      >`
+        SELECT id, status FROM academic_periods
+        WHERE institution_id = ${institutionId}::uuid
+          AND lower(code) = lower(${dto.period})
+        LIMIT 1
+        FOR UPDATE
+      `;
+      if (rows.length > 0 && rows[0].status === 'CLOSED') {
+        throw new BadRequestException('Cannot create a grade in a closed academic period');
+      }
+      return tx.grade.create({
+        data: {
+          institutionId,
+          studentId: dto.studentId,
+          courseId: dto.courseId,
+          subjectId: dto.subjectId,
+          academicPeriodId: rows.length > 0 ? rows[0].id : null,
+          value: dto.value,
+          period: dto.period,
+          evaluationType: dto.evaluationType,
+          description: dto.description,
+          status: dto.status,
+        },
+      });
     });
 
     await this.auditService.log({
@@ -202,19 +225,40 @@ export class GradesService {
       await this.validateRelations(institutionId, studentId, courseId, subjectId);
     }
 
-    const updateData: Prisma.GradeUpdateInput = {};
-    if (dto.studentId !== undefined) updateData.student = { connect: { id: dto.studentId } };
-    if (dto.courseId !== undefined) updateData.course = { connect: { id: dto.courseId } };
-    if (dto.subjectId !== undefined) updateData.subject = { connect: { id: dto.subjectId } };
-    if (dto.value !== undefined) updateData.value = dto.value;
-    if (dto.period !== undefined) updateData.period = dto.period;
-    if (dto.evaluationType !== undefined) updateData.evaluationType = dto.evaluationType;
-    if (dto.description !== undefined) updateData.description = dto.description;
-    if (dto.status !== undefined) updateData.status = dto.status;
+    const grade = await this.prisma.$transaction(async (tx) => {
+      const targetPeriodLabel = dto.period ?? existing.period;
+      const rows = await tx.$queryRaw<
+        Array<{ id: string; status: string }>
+      >`
+        SELECT id, status FROM academic_periods
+        WHERE institution_id = ${institutionId}::uuid
+          AND lower(code) = lower(${targetPeriodLabel})
+        LIMIT 1
+        FOR UPDATE
+      `;
+      if (rows.length > 0 && rows[0].status === 'CLOSED') {
+        throw new BadRequestException('Cannot modify a grade in a closed academic period');
+      }
 
-    const grade = await this.prisma.grade.update({
-      where: { id: gradeId },
-      data: updateData,
+      const updateData: Prisma.GradeUpdateInput = {};
+      if (dto.studentId !== undefined) updateData.student = { connect: { id: dto.studentId } };
+      if (dto.courseId !== undefined) updateData.course = { connect: { id: dto.courseId } };
+      if (dto.subjectId !== undefined) updateData.subject = { connect: { id: dto.subjectId } };
+      if (dto.value !== undefined) updateData.value = dto.value;
+      if (dto.period !== undefined) {
+        updateData.period = dto.period;
+        updateData.academicPeriod = rows.length > 0
+          ? { connect: { id: rows[0].id } }
+          : { disconnect: true };
+      }
+      if (dto.evaluationType !== undefined) updateData.evaluationType = dto.evaluationType;
+      if (dto.description !== undefined) updateData.description = dto.description;
+      if (dto.status !== undefined) updateData.status = dto.status;
+
+      return tx.grade.update({
+        where: { id: gradeId },
+        data: updateData,
+      });
     });
 
     await this.auditService.log({

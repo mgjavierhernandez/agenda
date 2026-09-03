@@ -29,15 +29,18 @@ const ALL_PERMISSIONS = [
   'signatures:read', 'signatures:request', 'signatures:sign', 'signatures:manage',
   'notifications:read', 'notifications:manage', 'audit:read', 'files:upload', 'files:read', 'files:manage',
   'school-grades:read', 'school-grades:manage',
-  'academic-periods:read', 'academic-periods:manage',
+  'academic-periods:read', 'academic-periods:manage', 'academic-periods:close',
   'guardians:read', 'guardians:manage',
   'enrollments:read', 'enrollments:manage',
   'teacher-assignments:read', 'teacher-assignments:manage',
-  'agenda:read',
+  'agenda:read', 'agenda:create', 'agenda:update', 'agenda:delete',
   'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
   'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
   'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
   'student-follow-ups:stats', 'student-follow-ups:categories',
+  'attendance:read', 'attendance:create', 'attendance:update', 'attendance:delete',
+  'attendance:manage', 'attendance:stats',
+  'reports:read', 'reports:export',
 ];
 
 const INSTITUTION_ADMIN_PERMISSIONS = [
@@ -55,15 +58,18 @@ const INSTITUTION_ADMIN_PERMISSIONS = [
   'signatures:read', 'signatures:request', 'signatures:sign', 'signatures:manage',
   'notifications:read', 'notifications:manage', 'audit:read', 'files:upload', 'files:read', 'files:manage',
   'school-grades:read', 'school-grades:manage',
-  'academic-periods:read', 'academic-periods:manage',
+  'academic-periods:read', 'academic-periods:manage', 'academic-periods:close',
   'guardians:read', 'guardians:manage',
   'enrollments:read', 'enrollments:manage',
   'teacher-assignments:read', 'teacher-assignments:manage',
-  'agenda:read',
+  'agenda:read', 'agenda:create', 'agenda:update', 'agenda:delete',
   'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
   'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
   'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
   'student-follow-ups:stats', 'student-follow-ups:categories',
+  'attendance:read', 'attendance:create', 'attendance:update', 'attendance:delete',
+  'attendance:manage', 'attendance:stats',
+  'reports:read', 'reports:export',
 ];
 
 const TEACHER_PERMISSIONS = [
@@ -80,10 +86,12 @@ const TEACHER_PERMISSIONS = [
   'school-grades:read',
   'academic-periods:read',
   'teacher-assignments:read',
-  'agenda:read',
+  'agenda:read', 'agenda:create', 'agenda:update',
   'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
   'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
   'student-follow-ups:commit', 'student-follow-ups:attach',
+  'attendance:read', 'attendance:create', 'attendance:update',
+  'reports:read', 'reports:export',
 ];
 
 const PARENT_PERMISSIONS = [
@@ -101,6 +109,8 @@ const PARENT_PERMISSIONS = [
   'enrollments:read',
   'agenda:read',
   'student-follow-ups:read',
+  'attendance:read',
+  'reports:read',
 ];
 
 const STUDENT_PERMISSIONS = [
@@ -115,6 +125,8 @@ const STUDENT_PERMISSIONS = [
   'enrollments:read',
   'agenda:read',
   'student-follow-ups:read',
+  'attendance:read',
+  'reports:read',
 ];
 
 async function assignPermissions(roleId: string, codes: string[]): Promise<void> {
@@ -207,6 +219,7 @@ async function main(): Promise<void> {
     { code: 'school-grades:manage', module: 'school-grades', description: 'CRUD school grades' },
     { code: 'academic-periods:read', module: 'academic-periods', description: 'List and read academic periods' },
     { code: 'academic-periods:manage', module: 'academic-periods', description: 'CRUD academic periods' },
+    { code: 'academic-periods:close', module: 'academic-periods', description: 'Close academic periods' },
     { code: 'guardians:read', module: 'guardians', description: 'Read guardian-student links' },
     { code: 'guardians:manage', module: 'guardians', description: 'Link/unlink guardians to students' },
     { code: 'enrollments:read', module: 'enrollments', description: 'List and read enrollments' },
@@ -214,6 +227,9 @@ async function main(): Promise<void> {
     { code: 'teacher-assignments:read', module: 'teacher-assignments', description: 'List and read teacher assignments' },
     { code: 'teacher-assignments:manage', module: 'teacher-assignments', description: 'CRUD teacher assignments' },
     { code: 'agenda:read', module: 'agenda', description: 'Read agenda/calendar view' },
+    { code: 'agenda:create', module: 'agenda', description: 'Create agenda events' },
+    { code: 'agenda:update', module: 'agenda', description: 'Update agenda events' },
+    { code: 'agenda:delete', module: 'agenda', description: 'Cancel/delete agenda events' },
     { code: 'student-follow-ups:read', module: 'student-follow-ups', description: 'Read student follow-up records' },
     { code: 'student-follow-ups:create', module: 'student-follow-ups', description: 'Create student follow-up records' },
     { code: 'student-follow-ups:update', module: 'student-follow-ups', description: 'Update student follow-up records' },
@@ -225,6 +241,14 @@ async function main(): Promise<void> {
     { code: 'student-follow-ups:manage', module: 'student-follow-ups', description: 'Full management of student follow-up module' },
     { code: 'student-follow-ups:stats', module: 'student-follow-ups', description: 'View student follow-up statistics' },
     { code: 'student-follow-ups:categories', module: 'student-follow-ups', description: 'Manage follow-up categories' },
+    { code: 'attendance:read', module: 'attendance', description: 'Read attendance records' },
+    { code: 'attendance:create', module: 'attendance', description: 'Register attendance records' },
+    { code: 'attendance:update', module: 'attendance', description: 'Update attendance records' },
+    { code: 'attendance:delete', module: 'attendance', description: 'Delete attendance records' },
+    { code: 'attendance:manage', module: 'attendance', description: 'Full management of attendance module' },
+    { code: 'attendance:stats', module: 'attendance', description: 'View attendance statistics' },
+    { code: 'reports:read', module: 'reports', description: 'View academic reports and bulletins' },
+    { code: 'reports:export', module: 'reports', description: 'Export academic reports (PDF/CSV)' },
   ];
 
   for (const p of permissionData) {
@@ -510,7 +534,7 @@ async function main(): Promise<void> {
   });
 
   if (gradeStudents.length > 0 && gradeCourses.length > 0 && gradeSubjectRecords.length > 0) {
-    const periods = ['Q1-2026', 'Q2-2026'];
+    const periods = ['2026-P1', '2026-P2'];
     const evalTypes = ['Parcial', 'Final'];
     let gradeCount = 0;
 
@@ -834,8 +858,9 @@ async function main(): Promise<void> {
 
   // 18. DEMO ACADEMIC PERIODS
   const academicPeriodsData = [
-    { name: '2026 - Periodo 1', code: '2026-P1', startDate: '2026-01-15', endDate: '2026-06-30' },
-    { name: '2026 - Periodo 2', code: '2026-P2', startDate: '2026-07-15', endDate: '2026-12-15' },
+    { name: '2026 - Periodo 1', code: '2026-P1', startDate: '2026-01-15', endDate: '2026-06-30', status: 'ACTIVE' as const },
+    { name: '2026 - Periodo 2', code: '2026-P2', startDate: '2026-07-15', endDate: '2026-12-15', status: 'ACTIVE' as const },
+    { name: '2026 - Periodo 3', code: '2026-P3', startDate: '2027-01-15', endDate: '2027-06-30', status: 'CLOSED' as const },
   ];
 
   const academicPeriodRecords: Record<string, any> = {};
@@ -847,10 +872,15 @@ async function main(): Promise<void> {
       academicPeriodRecords[ap.code] = await prisma.academicPeriod.create({
         data: {
           institutionId: demoInstitution.id,
+          createdById: adminUser.id,
           name: ap.name,
           code: ap.code,
           startDate: new Date(ap.startDate),
           endDate: new Date(ap.endDate),
+          status: ap.status,
+          ...(ap.status === 'CLOSED'
+            ? { closedById: adminUser.id, closedAt: new Date() }
+            : {}),
         },
       });
     } else {
@@ -858,6 +888,16 @@ async function main(): Promise<void> {
     }
   }
   console.log(`  Created ${academicPeriodsData.length} demo academic periods for ${demoInstitution.name}`);
+
+  // Link demo grades to their academic period by code (keeps in sync after reruns).
+  await prisma.$executeRaw`
+    UPDATE "grades" g
+    SET "academic_period_id" = ap."id"
+    FROM "academic_periods" ap
+    WHERE ap."institution_id" = g."institution_id"
+      AND lower(ap."code") = lower(g."period")
+      AND g."institution_id" = ${demoInstitution.id}::uuid
+  `;
 
   // 19. DEMO GUARDIAN-STUDENT LINKS
   const guardianStudents = await prisma.student.findMany({
@@ -952,6 +992,46 @@ async function main(): Promise<void> {
       }
     }
     console.log(`  Created ${taCount} demo teacher assignments for ${demoInstitution.name}`);
+  }
+
+  // 21b. DEMO ATTENDANCE
+  if (
+    adminUser &&
+    enrollStudents.length > 0 &&
+    enrollCourses.length > 0 &&
+    academicPeriodRecords['2026-P1']
+  ) {
+    const attendDate = new Date('2026-03-10T00:00:00.000Z');
+    const statuses = ['PRESENT', 'PRESENT', 'ABSENT', 'LATE', 'EXCUSED'] as const;
+    let attCount = 0;
+    for (const student of enrollStudents.slice(0, 3)) {
+      const existing = await prisma.attendance.findUnique({
+        where: {
+          institutionId_studentId_courseId_date: {
+            institutionId: demoInstitution.id,
+            studentId: student.id,
+            courseId: enrollCourses[0].id,
+            date: attendDate,
+          },
+        },
+      });
+      if (!existing) {
+        await prisma.attendance.create({
+          data: {
+            institutionId: demoInstitution.id,
+            studentId: student.id,
+            courseId: enrollCourses[0].id,
+            academicPeriodId: academicPeriodRecords['2026-P1'].id,
+            date: attendDate,
+            status: statuses[attCount % statuses.length],
+            notes: null,
+            recordedById: adminUser.id,
+          },
+        });
+        attCount++;
+      }
+    }
+    console.log(`  Created ${attCount} demo attendance records for ${demoInstitution.name}`);
   }
 
   // 22. DEMO TASK ASSIGNMENTS

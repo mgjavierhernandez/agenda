@@ -87,4 +87,51 @@ export const apiClient = {
     formData.append('file', file);
     return this.request<T>(path, { method: 'POST', body: formData });
   },
+  async download(path: string, fallbackFilename: string): Promise<void> {
+    const requestId = crypto.randomUUID();
+    const headers: Record<string, string> = { 'X-Request-Id': requestId };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    if (institutionId) {
+      headers['X-Institution-Id'] = institutionId;
+    }
+
+    const response = await fetch(`${API_URL}${path}`, { method: 'GET', headers });
+
+    if (response.status === 401) {
+      onUnauthorized?.();
+      throw { statusCode: 401, message: 'Unauthorized', timestamp: new Date().toISOString(), path } as ApiError;
+    }
+
+    if (!response.ok) {
+      let errorBody: ApiError;
+      try {
+        errorBody = await response.json();
+      } catch {
+        errorBody = {
+          statusCode: response.status,
+          message: response.statusText || 'Request failed',
+          timestamp: new Date().toISOString(),
+          path,
+          requestId,
+        };
+      }
+      throw errorBody;
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get('Content-Disposition') ?? '';
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    const filename = match ? decodeURIComponent(match[1].trim()) : fallbackFilename;
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
 };

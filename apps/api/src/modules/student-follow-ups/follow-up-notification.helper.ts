@@ -71,6 +71,26 @@ function buildNotificationTitle(
       return 'Compromiso actualizado';
     case 'ATTACHMENT_ADDED':
       return 'Archivo adjunto en seguimiento';
+    case 'CITATION_CREATED':
+      return 'Nueva citación programada';
+    case 'CITATION_COMPLETED':
+      return 'Citación completada';
+    case 'CITATION_CANCELLED':
+      return 'Citación cancelada';
+    case 'CITATION_NO_SHOW':
+      return 'Citación: no asistió';
+    case 'CITATION_SCHEDULED':
+      return 'Citación reprogramada';
+    case 'CITATION_UPDATED':
+      return 'Citación actualizada';
+    case 'SIGNATURE_REQUEST_CREATED':
+      return 'Solicitud de firma/recibido';
+    case 'SIGNATURE_COMPLETED_FROM_FOLLOW_UP':
+      return 'Firma/recibido completado';
+    case 'SIGNATURE_DECLINED_FROM_FOLLOW_UP':
+      return 'Firma/recibido rechazado';
+    case 'SIGNATURE_EXPIRED_FROM_FOLLOW_UP':
+      return 'Firma/recibido vencido';
     default:
       return 'Actualización en seguimiento del alumno';
   }
@@ -110,6 +130,26 @@ function buildNotificationMessage(
       return 'Un compromiso en el seguimiento ha sido actualizado.';
     case 'ATTACHMENT_ADDED':
       return 'Se ha adjuntado un archivo al seguimiento.';
+    case 'CITATION_CREATED':
+      return 'Se ha programado una citación en el seguimiento.';
+    case 'CITATION_COMPLETED':
+      return 'Una citación en el seguimiento ha sido completada.';
+    case 'CITATION_CANCELLED':
+      return 'Una citación en el seguimiento ha sido cancelada.';
+    case 'CITATION_NO_SHOW':
+      return 'Se ha registrado que no se asistió a una citación.';
+    case 'CITATION_SCHEDULED':
+      return 'Una citación en el seguimiento ha sido reprogramada.';
+    case 'CITATION_UPDATED':
+      return 'Una citación en el seguimiento ha sido actualizada.';
+    case 'SIGNATURE_REQUEST_CREATED':
+      return 'Se ha generado una solicitud de firma/recibido para el seguimiento.';
+    case 'SIGNATURE_COMPLETED_FROM_FOLLOW_UP':
+      return 'Se ha firmado/recibido una solicitud del seguimiento.';
+    case 'SIGNATURE_DECLINED_FROM_FOLLOW_UP':
+      return 'Se ha rechazado una solicitud de firma del seguimiento.';
+    case 'SIGNATURE_EXPIRED_FROM_FOLLOW_UP':
+      return 'Una solicitud de firma del seguimiento ha vencido.';
     default:
       return 'Se ha realizado una actualización en un seguimiento del alumno.';
   }
@@ -256,6 +296,37 @@ export async function sendCommitmentNotification(
     title,
     message,
     entityType: 'Commitment',
+    entityId: ctx.followUpId,
+  }));
+
+  await prisma.notification.createMany({ data: notifications });
+}
+
+export async function sendFollowUpSignatureNotification(
+  prisma: PrismaService,
+  ctx: FollowUpNotificationContext,
+  action: string,
+): Promise<void> {
+  const recipientIds = await resolveFollowUpRecipients(
+    prisma,
+    ctx.institutionId,
+    ctx.studentId,
+    ctx.confidentiality,
+    ctx.actorUserId,
+  );
+
+  if (recipientIds.length === 0) return;
+
+  const title = buildNotificationTitle(action, ctx.confidentiality);
+  const message = buildNotificationMessage(action, ctx.confidentiality);
+
+  const notifications = recipientIds.map((userId) => ({
+    institutionId: ctx.institutionId,
+    userId,
+    type: NotificationType.SIGNATURE_REQUEST as NotificationType,
+    title,
+    message,
+    entityType: 'StudentFollowUp',
     entityId: ctx.followUpId,
   }));
 

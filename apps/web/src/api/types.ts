@@ -173,6 +173,7 @@ export interface Grade {
   studentId: string;
   courseId: string;
   subjectId: string;
+  academicPeriodId?: string | null;
   value: string;
   period: string;
   evaluationType: string | null;
@@ -567,15 +568,29 @@ export interface SignatureRequest {
   description: string | null;
   status: SignatureRequestStatus;
   dueDate: string | null;
+  followUpId?: string | null;
+  followUpEntryId?: string | null;
   createdAt: string;
   updatedAt: string;
   recipients: SignatureRecipient[];
+  followUp?: {
+    id: string;
+    title: string;
+  } | null;
+  createdBy?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
 }
 
 export interface CreateSignatureRequestInput {
   title: string;
   description?: string;
   dueDate?: string;
+  followUpId?: string;
+  followUpEntryId?: string;
   recipientUserIds: string[];
 }
 
@@ -594,6 +609,7 @@ export interface ListSignatureRequestsParams {
   dueDateFrom?: string;
   dueDateTo?: string;
   recipientUserId?: string;
+  followUpId?: string;
 }
 
 // ── Notifications ────────────────────────────────────────────────────────────
@@ -646,16 +662,20 @@ export interface CreateNotificationInput {
 
 // ── Academic Periods ─────────────────────────────────────────────────────────
 
-export type AcademicPeriodStatus = 'ACTIVE' | 'INACTIVE';
+export type AcademicPeriodStatus = 'ACTIVE' | 'INACTIVE' | 'CLOSED';
 
 export const ACADEMIC_PERIOD_STATUS_LABELS: Record<AcademicPeriodStatus, string> = {
   ACTIVE: 'Activo',
   INACTIVE: 'Inactivo',
+  CLOSED: 'Cerrado',
 };
 
 export interface AcademicPeriod {
   id: string;
   institutionId: string;
+  createdById?: string | null;
+  closedById?: string | null;
+  closedAt?: string | null;
   name: string;
   code: string;
   startDate: string;
@@ -814,6 +834,74 @@ export interface UpdateEnrollmentInput {
   status?: EnrollmentStatus;
 }
 
+// ── Attendance ───────────────────────────────────────────────────────────────
+
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
+
+export const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {
+  PRESENT: 'Presente',
+  ABSENT: 'Ausente',
+  LATE: 'Llegó tarde',
+  EXCUSED: 'Justificado',
+};
+
+export interface Attendance {
+  id: string;
+  institutionId: string;
+  studentId: string;
+  courseId: string;
+  academicPeriodId: string;
+  date: string;
+  status: AttendanceStatus;
+  notes: string | null;
+  recordedById: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListAttendancesParams {
+  page?: number;
+  limit?: number;
+  studentId?: string;
+  courseId?: string;
+  academicPeriodId?: string;
+  date?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: AttendanceStatus;
+}
+
+export interface CreateAttendanceInput {
+  studentId: string;
+  courseId: string;
+  academicPeriodId: string;
+  date: string;
+  status: AttendanceStatus;
+  notes?: string | null;
+}
+
+export interface UpdateAttendanceInput {
+  status?: AttendanceStatus;
+  notes?: string | null;
+}
+
+export interface CreateAttendanceBulkInput {
+  courseId: string;
+  academicPeriodId: string;
+  date: string;
+  records: Array<{
+    studentId: string;
+    status: AttendanceStatus;
+    notes?: string | null;
+  }>;
+}
+
+export interface CreateAttendanceBulkResult {
+  created: number;
+  skipped: number;
+  total: number;
+}
+
 // ── Users ────────────────────────────────────────────────────────────────────
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
@@ -833,6 +921,78 @@ export interface ListUsersParams {
   limit?: number;
   search?: string;
   status?: UserStatus;
+}
+
+export interface CreateUserInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface UpdateUserInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  status?: UserStatus;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string | null;
+  isSystem: boolean;
+  assignable: boolean;
+}
+
+export type RoleName = 'INSTITUTION_ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT' | 'SUPER_ADMIN';
+
+export interface MembershipRole {
+  id: string;
+  name: string;
+}
+
+export interface MembershipUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: UserStatus;
+}
+
+export interface UserMembership {
+  id: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  userId: string;
+  institutionId: string;
+  user: MembershipUser;
+  roles: { id: string; role: MembershipRole }[];
+}
+
+export interface ListMembershipsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+}
+
+export interface CreateMembershipInput {
+  userId: string;
+  roleIds?: string[];
+}
+
+export interface AssignRoleInput {
+  roleId: string;
+}
+
+export interface UpdateMembershipInput {
+  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+}
+
+export interface InstitutionUpdateInput {
+  name?: string;
+  slug?: string;
+  status?: Institution['status'];
 }
 
 // ── Teacher Assignments ──────────────────────────────────────────────────────
@@ -878,7 +1038,9 @@ export interface UpdateTeacherAssignmentInput {
 
 export type AgendaView = 'day' | 'week' | 'month';
 
-export type AgendaEventType = 'SCHEDULE' | 'TASK' | 'COMMUNICATION' | 'SIGNATURE';
+export type AgendaEventType = 'SCHEDULE' | 'TASK' | 'COMMUNICATION' | 'SIGNATURE' | 'EVENT';
+
+export type AgendaEventStatus = 'ACTIVE' | 'CANCELLED';
 
 export interface AgendaEvent {
   id: string;
@@ -907,6 +1069,58 @@ export interface ListAgendaParams {
   end: string;
   view?: AgendaView;
   eventTypes?: AgendaEventType[];
+  page?: number;
+  limit?: number;
+}
+
+export type AgendaEventVisibility = 'ALL' | 'TEACHERS' | 'PARENTS' | 'STUDENTS';
+
+export interface AgendaEventCreatedBy {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AgendaEventItem {
+  id: string;
+  institutionId: string;
+  createdById: string;
+  title: string;
+  description: string | null;
+  startAt: string;
+  endAt: string;
+  location: string | null;
+  audience: AgendaEventVisibility;
+  status: AgendaEventStatus;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: AgendaEventCreatedBy;
+}
+
+export interface CreateAgendaEventInput {
+  title: string;
+  description?: string | null;
+  startAt: string;
+  endAt: string;
+  location?: string | null;
+  audience?: AgendaEventVisibility;
+}
+
+export interface UpdateAgendaEventInput {
+  title?: string;
+  description?: string | null;
+  startAt?: string;
+  endAt?: string;
+  location?: string | null;
+  audience?: AgendaEventVisibility;
+}
+
+export interface ListAgendaEventsParams {
+  start?: string;
+  end?: string;
+  status?: AgendaEventStatus;
+  audience?: AgendaEventVisibility;
+  search?: string;
   page?: number;
   limit?: number;
 }
@@ -1127,4 +1341,159 @@ export interface FollowUpAttachment {
 
 export interface CreateFollowUpAttachmentInput {
   fileAssetId: string;
+}
+
+// ── Follow-Up Citations ────────────────────────────────────────────────────
+
+export type FollowUpCitationStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+
+export const FOLLOW_UP_CITATION_STATUS_LABELS: Record<FollowUpCitationStatus, string> = {
+  SCHEDULED: 'Programada',
+  COMPLETED: 'Realizada',
+  CANCELLED: 'Cancelada',
+  NO_SHOW: 'No asistió',
+};
+
+export interface FollowUpCitation {
+  id: string;
+  institutionId: string;
+  followUpId: string;
+  createdById: string;
+  scheduledAt: string;
+  reason: string;
+  objective: string | null;
+  status: FollowUpCitationStatus;
+  result: string | null;
+  attendedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFollowUpCitationInput {
+  scheduledAt: string;
+  reason: string;
+  objective?: string;
+}
+
+export interface UpdateFollowUpCitationInput {
+  scheduledAt?: string;
+  reason?: string;
+  objective?: string | null;
+  status?: FollowUpCitationStatus;
+  result?: string | null;
+  attendedAt?: string | null;
+}
+
+export interface ListFollowUpCitationsParams {
+  page?: number;
+  limit?: number;
+  status?: FollowUpCitationStatus;
+}
+
+export interface ReportStudent {
+  id: string;
+  firstName: string;
+  lastName: string;
+  documentType: string;
+  documentNumber: string;
+  status: string;
+}
+
+export interface ReportInstitution {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface ReportAcademicPeriod {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface ReportEnrollment {
+  courseId: string;
+  courseCode: string;
+  courseName: string;
+  schoolGradeId: string;
+  schoolGradeName: string;
+  enrolledAt: string;
+}
+
+export interface ReportGrade {
+  id: string;
+  value: number;
+  period: string;
+  evaluationType?: string | null;
+  description?: string | null;
+  status: string;
+  updatedAt: string;
+}
+
+export interface ReportSubject {
+  subjectId: string;
+  subjectCode: string;
+  subjectName: string;
+  grades: ReportGrade[];
+  simpleAverage?: number | null;
+  teacher?: { id: string; firstName: string; lastName: string } | null;
+}
+
+export interface ReportAttendanceSummary {
+  total: number;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+}
+
+export interface ReportObservador {
+  total: number;
+  open: number;
+  resolved: number;
+  byConfidentiality: Record<string, number>;
+}
+
+export interface StudentReport {
+  student: ReportStudent;
+  institution: ReportInstitution;
+  academicPeriod: ReportAcademicPeriod | null;
+  enrollment: ReportEnrollment | null;
+  academic: ReportSubject[];
+  attendance: ReportAttendanceSummary;
+  observador: ReportObservador;
+}
+
+export interface ReportCourseStudent {
+  student: ReportStudent;
+  schoolGradeName?: string | null;
+  enrolledAt?: string | null;
+  subjectCount: number;
+  gradeCount: number;
+  simpleAverage?: number | null;
+  attendance: ReportAttendanceSummary;
+}
+
+export interface CourseReportSummary {
+  totalStudents: number;
+  studentsWithGrades: number;
+  studentsWithAttendance: number;
+}
+
+export interface ReportCourse {
+  id: string;
+  code: string;
+  name: string;
+  status: string;
+  description?: string | null;
+}
+
+export interface CourseReport {
+  course: ReportCourse;
+  academicPeriod: ReportAcademicPeriod | null;
+  students: ReportCourseStudent[];
+  summary: CourseReportSummary;
 }

@@ -219,4 +219,53 @@ describe('Institutions Module (e2e)', () => {
       expect(res.body.status).toBe('INACTIVE');
     });
   });
+
+  describe('Tenant-scoped institution access (IDOR protection)', () => {
+    it('TEST-15: INSTITUTION_ADMIN reads their OWN institution → 200', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/api/v1/institutions/${demoInstitutionId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .expect(200);
+
+      expect(res.body.id).toBe(demoInstitutionId);
+    });
+
+    it('TEST-16: INSTITUTION_ADMIN cannot read another institution via its own tenant → 404', async () => {
+      await request(app.getHttpServer())
+        .get(`/api/v1/institutions/${createdInstitutionId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .expect(404);
+    });
+
+    it('TEST-17: INSTITUTION_ADMIN updates their OWN institution → 200', async () => {
+      const fresh = await prisma.institution.findUnique({ where: { id: demoInstitutionId } });
+      const originalName = fresh!.name;
+
+      const res = await request(app.getHttpServer())
+        .patch(`/api/v1/institutions/${demoInstitutionId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({ name: 'Demo School Renamed In Test' })
+        .expect(200);
+
+      expect(res.body.name).toBe('Demo School Renamed In Test');
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/institutions/${demoInstitutionId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({ name: originalName })
+        .expect(200);
+    });
+
+    it('TEST-18: INSTITUTION_ADMIN cannot deactivate another institution → 404', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/v1/institutions/${createdInstitutionId}/deactivate`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .expect(404);
+    });
+  });
 });

@@ -5,6 +5,8 @@ import { AcademicPeriodStatus } from '@prisma/client';
 describe('AcademicPeriodsService', () => {
   let service: AcademicPeriodsService;
   let prismaMock: {
+    $transaction: jest.Mock;
+    $queryRaw: jest.Mock;
     academicPeriod: {
       findFirst: jest.Mock;
       findMany: jest.Mock;
@@ -20,6 +22,12 @@ describe('AcademicPeriodsService', () => {
 
   beforeEach(() => {
     prismaMock = {
+      $transaction: jest.fn(async (callback: (tx: any) => Promise<unknown>) =>
+        callback({
+          ...prismaMock,
+        }),
+      ),
+      $queryRaw: jest.fn(),
       academicPeriod: {
         findFirst: jest.fn(),
         findMany: jest.fn(),
@@ -333,6 +341,145 @@ describe('AcademicPeriodsService', () => {
       expect(auditServiceMock.log).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'ACADEMIC_PERIOD_DEACTIVATED',
+        }),
+      );
+    });
+
+    it('should reject deactivating a CLOSED period -> BadRequestException', async () => {
+      prismaMock.academicPeriod.findFirst.mockResolvedValue({
+        id: 'ap-1',
+        institutionId,
+        code: '2026A',
+        status: AcademicPeriodStatus.CLOSED,
+      });
+
+      await expect(
+        service.deactivate(institutionId, 'ap-1', userId),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('PROMPT 90: close academic period (OPEN -> CLOSED)', () => {
+    it('should close an ACTIVE period and set authority fields server-side', async () => {
+      prismaMock.$queryRaw.mockResolvedValue([
+        { id: 'ap-1', status: AcademicPeriodStatus.ACTIVE },
+      ]);
+      prismaMock.academicPeriod.update.mockResolvedValue({
+        id: 'ap-1',
+        institutionId,
+        name: '2026-A',
+        code: '2026A',
+        status: AcademicPeriodStatus.CLOSED,
+        closedById: userId,
+        closedAt: new Date('2026-08-01'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const result = await service.close(institutionId, 'ap-1', userId);
+
+      expect(result.status).toBe(AcademicPeriodStatus.CLOSED);
+      expect(prismaMock.academicPeriod.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'ap-1' },
+          data: expect.objectContaining({
+            status: AcademicPeriodStatus.CLOSED,
+            closedById: userId,
+            closedAt: expect.any(Date),
+          }),
+        }),
+      );
+      expect(auditServiceMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'ACADEMIC_PERIOD_CLOSED',
+          institutionId,
+          userId,
+        }),
+      );
+    });
+
+    it('should reject closing an already CLOSED period -> BadRequestException', async () => {
+      prismaMock.$queryRaw.mockResolvedValue([
+        { id: 'ap-1', status: AcademicPeriodStatus.CLOSED },
+      ]);
+
+      await expect(
+        service.close(institutionId, 'ap-1', userId),
+      ).rejects.toThrow(BadRequestException);
+      expect(prismaMock.academicPeriod.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException for cross-tenant/missing period', async () => {
+      prismaMock.$queryRaw.mockResolvedValue([]);
+
+      await expect(
+        service.close(institutionId, 'other-tenant-ap', userId),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('PROMPT 90: CLOSED period mutation guards', () => {
+    it('should reject editing a CLOSED period -> BadRequestException', async () => {
+      prismaMock.academicPeriod.findFirst.mockResolvedValue({
+        id: 'ap-1',
+        institutionId,
+        code: '2026A',
+        status: AcademicPeriodStatus.CLOSED,
+      });
+
+      await expect(
+        service.update(institutionId, 'ap-1', { name: 'X' }, userId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject setting status=CLOSED via the update endpoint -> BadRequestException', async () => {
+      prismaMock.academicPeriod.findFirst.mockResolvedValue({
+        id: 'ap-1',
+        institutionId,
+        code: '2026A',
+        status: AcademicPeriodStatus.ACTIVE,
+      });
+
+      await expect(
+        service.update(
+          institutionId,
+          'ap-1',
+          { status: AcademicPeriodStatus.CLOSED },
+          userId,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('PROMPT 90: create sets createdById server-side', () => {
+    it('should set createdById to the acting user', async () => {
+      prismaMock.academicPeriod.findFirst.mockResolvedValue(null);
+      prismaMock.academicPeriod.create.mockResolvedValue({
+        id: 'ap-1',
+        institutionId,
+        name: '2027-A',
+        code: '2027A',
+        startDate: new Date('2027-01-01'),
+        endDate: new Date('2027-06-30'),
+        status: AcademicPeriodStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await service.create(
+        institutionId,
+        {
+          name: '2027-A',
+          code: '2027A',
+          startDate: '2027-01-01',
+          endDate: '2027-06-30',
+        },
+        userId,
+      );
+
+      expect(prismaMock.academicPeriod.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ createdById: userId }),
         }),
       );
     });

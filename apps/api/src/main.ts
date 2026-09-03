@@ -103,7 +103,8 @@ async function bootstrap(): Promise<void> {
       .addTag('Enrollments', 'Student enrollment management')
       .addTag('Teacher Assignments', 'Teacher–course–subject assignment management')
       .addTag('Files', 'File upload, download, and management')
-      .addTag('Agenda', 'Aggregated calendar view — tasks, schedules, communications, signatures')
+      .addTag('Agenda', 'Aggregated calendar view — custom events, tasks, schedules, communications, signatures')
+      .addTag('Agenda Events', 'Custom agenda event CRUD (create, read, update, cancel)')
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);

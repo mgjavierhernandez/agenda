@@ -7,9 +7,10 @@ import * as agendaHook from '../hooks/useAgenda';
 import type { AgendaResponse } from '@/api/types';
 
 vi.mock('../hooks/useAgenda');
+const mockHasPermission = vi.fn().mockReturnValue(true);
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
-    hasPermission: () => true,
+    hasPermission: mockHasPermission,
     hasAnyPermission: () => true,
     hasAllPermissions: () => true,
     permissionCodes: ['agenda:read'],
@@ -84,6 +85,19 @@ const mockAgendaData: AgendaResponse = {
       sourceType: 'Communication',
       route: '/communications/c1',
     },
+    {
+      id: 'event-1',
+      type: 'EVENT',
+      title: 'Reunion general',
+      description: 'Convivencia escolar',
+      start: '2026-08-26T14:00:00.000Z',
+      end: '2026-08-26T16:00:00.000Z',
+      allDay: false,
+      status: 'ACTIVE',
+      sourceId: 'ev1',
+      sourceType: 'AgendaEvent',
+      route: '/agenda/events/ev1',
+    },
   ],
   start: '2026-08-24T00:00:00.000Z',
   end: '2026-08-30T23:59:59.999Z',
@@ -93,6 +107,7 @@ const mockAgendaData: AgendaResponse = {
 describe('AgendaPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockHasPermission.mockReturnValue(true);
   });
 
   it('should render the agenda page with header', () => {
@@ -178,6 +193,44 @@ describe('AgendaPage', () => {
     expect(screen.getAllByText('Tarea').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Comunicacion').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Firma').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Evento').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should render custom agenda events (EVENT)', () => {
+    mockUseAgenda.mockReturnValue({
+      data: mockAgendaData,
+      isLoading: false,
+      error: null,
+    } as never);
+
+    render(<AgendaPage />, { wrapper: createWrapper() });
+    expect(screen.getByText('Reunion general')).toBeDefined();
+  });
+
+  it('should show Nuevo evento button for users with agenda:create', () => {
+    mockHasPermission.mockImplementation(
+      (perm: string) => perm === 'agenda:read' || perm === 'agenda:create',
+    );
+    mockUseAgenda.mockReturnValue({
+      data: mockAgendaData,
+      isLoading: false,
+      error: null,
+    } as never);
+
+    render(<AgendaPage />, { wrapper: createWrapper() });
+    expect(screen.getByText('Nuevo evento')).toBeDefined();
+  });
+
+  it('should hide Nuevo evento button without agenda:create', () => {
+    mockHasPermission.mockReturnValue(false);
+    mockUseAgenda.mockReturnValue({
+      data: mockAgendaData,
+      isLoading: false,
+      error: null,
+    } as never);
+
+    render(<AgendaPage />, { wrapper: createWrapper() });
+    expect(screen.queryByText('Nuevo evento')).toBeNull();
   });
 
   it('should show event type badges', () => {

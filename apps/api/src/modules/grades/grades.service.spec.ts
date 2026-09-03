@@ -14,6 +14,7 @@ const mockedFindGuardianUserIds = jest.mocked(findGuardianUserIds);
 describe('GradesService', () => {
   let service: GradesService;
   let prismaMock: {
+    $transaction: jest.Mock;
     student: { findFirst: jest.Mock };
     course: { findFirst: jest.Mock };
     subject: { findFirst: jest.Mock };
@@ -38,6 +39,12 @@ describe('GradesService', () => {
 
   beforeEach(() => {
     prismaMock = {
+      $transaction: jest.fn(async (callback: (tx: any) => Promise<unknown>) =>
+        callback({
+          ...prismaMock,
+          $queryRaw: jest.fn().mockResolvedValue([]),
+        }),
+      ),
       student: { findFirst: jest.fn() },
       course: { findFirst: jest.fn() },
       subject: { findFirst: jest.fn() },

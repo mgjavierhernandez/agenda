@@ -16,11 +16,6 @@ describe('Files (e2e)', () => {
   let uploadedFileId: string;
 
   beforeAll(async () => {
-    const inst = await prisma.institution.findFirst();
-    if (inst) {
-      institutionId = inst.id;
-    }
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -42,6 +37,22 @@ describe('Files (e2e)', () => {
 
     if (loginRes.status === 200) {
       adminToken = loginRes.body.accessToken;
+      // Resolve the tenant from the admin's own (authenticated) membership
+      // rather than `institution.findFirst()`, which can pick an orphan
+      // institution left behind by other suites and yield false 403s.
+      const instRes = await request(app.getHttpServer())
+        .get('/api/v1/auth/institutions')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+      if (instRes.body.institutions?.length > 0) {
+        institutionId = instRes.body.institutions[0].id;
+        return;
+      }
+    }
+
+    const inst = await prisma.institution.findFirst();
+    if (inst) {
+      institutionId = inst.id;
     }
   }, 30000);
 
@@ -209,6 +220,7 @@ describe('Files (e2e)', () => {
 
     it('should attach file to communication', async () => {
       if (!hasAdmin() || !demoCommId || !uploadedFileId) return;
+      await prisma.communicationAttachment.deleteMany({ where: { communicationId: demoCommId } });
       const res = await request(app.getHttpServer())
         .post(`/api/v1/communications/${demoCommId}/attachments`)
         .set(auth())

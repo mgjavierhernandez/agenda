@@ -174,4 +174,49 @@ describe('Academic Periods Module (e2e)', () => {
       await request(app.getHttpServer()).post('/api/v1/academic-periods').set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).send({ name: 'Dup2', code: UNIQUE_CODE, startDate: '2026-01-01', endDate: '2026-06-30' }).expect(409);
     });
   });
+
+  describe('PROMPT 90: Close academic period (OPEN -> CLOSED)', () => {
+    let closePeriodId: string;
+
+    it('should create an OPEN period for closure tests', async () => {
+      const code = `CLOSE${Date.now().toString().slice(-6)}`;
+      const res = await request(app.getHttpServer()).post('/api/v1/academic-periods').set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).send({ name: 'Close Me', code, startDate: '2027-01-01', endDate: '2027-06-30' }).expect(201);
+      closePeriodId = res.body.id;
+      expect(res.body.status).toBe('ACTIVE');
+    });
+
+    it('should close an OPEN period as admin -> status CLOSED with authority fields', async () => {
+      const res = await request(app.getHttpServer()).patch(`/api/v1/academic-periods/${closePeriodId}/close`).set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).expect(200);
+      expect(res.body.status).toBe('CLOSED');
+      expect(res.body.closedAt).toBeTruthy();
+      expect(res.body.closedById).toBeTruthy();
+    });
+
+    it('should reject closing an already CLOSED period -> 400 (idempotent guard)', async () => {
+      await request(app.getHttpServer()).patch(`/api/v1/academic-periods/${closePeriodId}/close`).set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).expect(400);
+    });
+
+    it('should forbid TEACHER from closing a period -> 403', async () => {
+      await request(app.getHttpServer()).patch(`/api/v1/academic-periods/${closePeriodId}/close`).set('Authorization', `Bearer ${teacherToken}`).set('X-Institution-Id', demoInstitutionId).expect(403);
+    });
+
+    it('should forbid editing a CLOSED period -> 400', async () => {
+      await request(app.getHttpServer()).patch(`/api/v1/academic-periods/${closePeriodId}`).set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).send({ name: 'Should Fail' }).expect(400);
+    });
+
+    it('should forbid deactivating a CLOSED period -> 400', async () => {
+      await request(app.getHttpServer()).patch(`/api/v1/academic-periods/${closePeriodId}/deactivate`).set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).expect(400);
+    });
+
+    it('should return 404 closing a cross-tenant period', async () => {
+      const other = await prisma.academicPeriod.findFirst({ where: { institutionId: secondInstitutionId } });
+      if (other) {
+        await request(app.getHttpServer()).patch(`/api/v1/academic-periods/${other.id}/close`).set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).expect(404);
+      }
+    });
+
+    it('should forbid SUPER_ADMIN-in-other-tenant flag via body (institutionId tampering) -> 400', async () => {
+      await request(app.getHttpServer()).post('/api/v1/academic-periods').set('Authorization', `Bearer ${adminToken}`).set('X-Institution-Id', demoInstitutionId).send({ name: 'B', code: 'BB', startDate: '2027-01-01', endDate: '2027-06-30', institutionId: secondInstitutionId }).expect(400);
+    });
+  });
 });

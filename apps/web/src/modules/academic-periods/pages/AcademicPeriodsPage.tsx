@@ -14,9 +14,10 @@ import { PERMISSIONS } from '@/permissions/permission.constants';
 import type { AcademicPeriodStatus } from '@/api/types';
 import { ACADEMIC_PERIOD_STATUS_LABELS } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<AcademicPeriodStatus, 'success' | 'default'> = {
+const STATUS_BADGE_VARIANT: Record<AcademicPeriodStatus, 'success' | 'default' | 'danger'> = {
   ACTIVE: 'success',
   INACTIVE: 'default',
+  CLOSED: 'danger',
 };
 
 export function AcademicPeriodsPage() {

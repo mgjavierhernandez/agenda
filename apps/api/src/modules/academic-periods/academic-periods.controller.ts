@@ -137,4 +137,26 @@ export class AcademicPeriodsController {
       req.ip,
     );
   }
+
+  @Patch(':id/close')
+  @RequirePermission('academic-periods:close')
+  @ApiOperation({ summary: 'Close an academic period' })
+  @ApiParam({ name: 'id', description: 'Academic Period ID', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Academic period closed successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Academic period not found' })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  async close(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.academicPeriodsService.close(
+      req.tenant!.institutionId,
+      id,
+      req.user.userId,
+      req.ip,
+    );
+  }
 }

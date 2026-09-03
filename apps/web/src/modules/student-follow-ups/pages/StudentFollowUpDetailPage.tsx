@@ -17,6 +17,11 @@ import {
   useCreateFollowUpAttachment,
   useRemoveFollowUpAttachment,
   useUsers,
+  useFollowUpCitations,
+  useCreateFollowUpCitation,
+  useUpdateFollowUpCitation,
+  useRequestSignatureFromFollowUp,
+  useFollowUpSignatures,
 } from '../hooks';
 import { useUploadFile } from '@/modules/files/hooks';
 import { usePermissions } from '@/permissions/usePermissions';
@@ -34,6 +39,7 @@ import type {
   FollowUpEntryType,
   CommitmentResponsibleRole,
   CommitmentStatus,
+  FollowUpCitationStatus,
 } from '@/api/types';
 import {
   FOLLOW_UP_TYPE_LABELS,
@@ -43,6 +49,7 @@ import {
   FOLLOW_UP_ENTRY_TYPE_LABELS,
   COMMITMENT_STATUS_LABELS,
   COMMITMENT_ROLE_LABELS,
+  FOLLOW_UP_CITATION_STATUS_LABELS,
 } from '@/api/types';
 
 const STATUS_BADGE_VARIANT: Record<FollowUpStatus, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -71,7 +78,7 @@ const VALID_TRANSITIONS: Record<FollowUpStatus, FollowUpStatus[]> = {
   CLOSED: [],
 };
 
-type TabKey = 'timeline' | 'commitments' | 'attachments';
+type TabKey = 'timeline' | 'commitments' | 'attachments' | 'signatures' | 'citations';
 
 export function StudentFollowUpDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -106,6 +113,15 @@ export function StudentFollowUpDetailPage() {
   const { data: usersData } = useUsers();
   const users = usersData?.data ?? [];
 
+  const { data: citationsData, isLoading: isLoadingCitations } = useFollowUpCitations(id ?? '');
+  const citations = citationsData?.data ?? [];
+  const createCitationMutation = useCreateFollowUpCitation();
+  const updateCitationMutation = useUpdateFollowUpCitation();
+
+  const { data: signaturesData, isLoading: isLoadingSignatures } = useFollowUpSignatures(id ?? '');
+  const followUpSignatures = signaturesData ?? [];
+  const requestSignatureMutation = useRequestSignatureFromFollowUp();
+
   const { data: attachments = [], isLoading: isLoadingAttachments } = useFollowUpAttachments(id ?? '');
   const createAttachmentMutation = useCreateFollowUpAttachment();
   const removeAttachmentMutation = useRemoveFollowUpAttachment();
@@ -113,6 +129,21 @@ export function StudentFollowUpDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabKey>('timeline');
   const [confirmAction, setConfirmAction] = useState<'close' | 'escalate' | 'followUp' | 'resolve' | 'reopen' | null>(null);
+
+  // Signature request form state
+  const [showSignatureForm, setShowSignatureForm] = useState(false);
+  const [signatureTitle, setSignatureTitle] = useState('');
+  const [signatureDescription, setSignatureDescription] = useState('');
+  const [signatureDueDate, setSignatureDueDate] = useState('');
+  const [signatureRecipients, setSignatureRecipients] = useState<string[]>([]);
+  const [signatureError, setSignatureError] = useState('');
+
+  // Citation form state
+  const [showCitationForm, setShowCitationForm] = useState(false);
+  const [citationScheduledAt, setCitationScheduledAt] = useState('');
+  const [citationReason, setCitationReason] = useState('');
+  const [citationObjective, setCitationObjective] = useState('');
+  const [citationError, setCitationError] = useState('');
 
   // Entry form state
   const [entryType, setEntryType] = useState<FollowUpEntryType>('NOTE');
@@ -280,6 +311,88 @@ export function StudentFollowUpDetailPage() {
     }
   };
 
+  const handleRequestSignature = async () => {
+    if (!id) return;
+    setSignatureError('');
+    if (!signatureTitle.trim()) {
+      setSignatureError('El título es requerido');
+      return;
+    }
+    if (signatureRecipients.length === 0) {
+      setSignatureError('Se requiere al menos un destinatario');
+      return;
+    }
+    try {
+      await requestSignatureMutation.mutateAsync({
+        followUpId: id,
+        title: signatureTitle.trim(),
+        description: signatureDescription.trim() || undefined,
+        dueDate: signatureDueDate ? new Date(signatureDueDate).toISOString() : undefined,
+        recipientUserIds: signatureRecipients,
+      });
+      setSignatureTitle('');
+      setSignatureDescription('');
+      setSignatureDueDate('');
+      setSignatureRecipients([]);
+      setShowSignatureForm(false);
+    } catch (err) {
+      setSignatureError(getErrorMessage(err) || 'Error al solicitar la firma');
+    }
+  };
+
+  const toggleSignatureRecipient = (userId: string) => {
+    setSignatureRecipients((prev) =>
+      prev.includes(userId) ? prev.filter((u) => u !== userId) : [...prev, userId],
+    );
+  };
+
+  const handleCreateCitation = async () => {
+    if (!id) return;
+    setCitationError('');
+    if (!citationScheduledAt) {
+      setCitationError('La fecha de citación es requerida');
+      return;
+    }
+    if (!citationReason.trim()) {
+      setCitationError('El motivo es requerido');
+      return;
+    }
+    try {
+      await createCitationMutation.mutateAsync({
+        followUpId: id,
+        data: {
+          scheduledAt: new Date(citationScheduledAt).toISOString(),
+          reason: citationReason.trim(),
+          objective: citationObjective.trim() || undefined,
+        },
+      });
+      setCitationScheduledAt('');
+      setCitationReason('');
+      setCitationObjective('');
+      setShowCitationForm(false);
+    } catch (err) {
+      setCitationError(getErrorMessage(err) || 'Error al crear la citación');
+    }
+  };
+
+  const handleUpdateCitationStatus = async (
+    citationId: string,
+    currentStatus: FollowUpCitationStatus,
+  ) => {
+    if (!id) return;
+    let newStatus: FollowUpCitationStatus = 'COMPLETED';
+    if (currentStatus === 'COMPLETED') newStatus = 'SCHEDULED';
+    try {
+      await updateCitationMutation.mutateAsync({
+        followUpId: id,
+        citationId,
+        data: { status: newStatus },
+      });
+    } catch {
+      // Error handled by mutation
+    }
+  };
+
   const isTransitionPending = closeMutation.isPending || escalateMutation.isPending || followUpMutation.isPending || resolveMutation.isPending || reopenMutation.isPending;
 
   const getConfirmMessage = () => {
@@ -416,7 +529,7 @@ export function StudentFollowUpDetailPage() {
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="flex gap-4" aria-label="Tabs">
-          {(['timeline', 'commitments', 'attachments'] as TabKey[]).map((tab) => (
+          {(['timeline', 'commitments', 'attachments', 'signatures', 'citations'] as TabKey[]).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -431,6 +544,8 @@ export function StudentFollowUpDetailPage() {
               {tab === 'timeline' && 'Cronología'}
               {tab === 'commitments' && `Compromisos (${commitments.length})`}
               {tab === 'attachments' && `Archivos (${attachments.length})`}
+              {tab === 'signatures' && `Firmas (${followUpSignatures.length})`}
+              {tab === 'citations' && `Citaciones (${citations.length})`}
             </button>
           ))}
         </nav>
@@ -809,6 +924,235 @@ export function StudentFollowUpDetailPage() {
                 )}
               </div>
             </Card>
+          )}
+        </div>
+      )}
+
+      {/* Signatures tab */}
+      {activeTab === 'signatures' && (
+        <div className="space-y-4">
+          {canFollowUp && !isClosed && (
+            <div className="flex justify-end">
+              <Button size="sm" onClick={() => setShowSignatureForm(!showSignatureForm)}>
+                {showSignatureForm ? 'Cancelar' : 'Solicitar firma'}
+              </Button>
+            </div>
+          )}
+
+          {showSignatureForm && (
+            <Card>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Solicitar firma / recibido</h4>
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="signatureTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                    Título *
+                  </label>
+                  <Input
+                    id="signatureTitle"
+                    value={signatureTitle}
+                    onChange={(e) => setSignatureTitle(e.target.value)}
+                    placeholder="P. ej. Recibido de citación"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="signatureDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                    Descripción
+                  </label>
+                  <textarea
+                    id="signatureDescription"
+                    value={signatureDescription}
+                    onChange={(e) => setSignatureDescription(e.target.value)}
+                    rows={2}
+                    maxLength={5000}
+                    className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <Input
+                  label="Fecha límite"
+                  type="date"
+                  value={signatureDueDate}
+                  onChange={(e) => setSignatureDueDate(e.target.value)}
+                />
+                <div>
+                  <span className="block text-sm font-medium text-gray-700 mb-1">
+                    Destinatarios *
+                  </span>
+                  <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+                    {users.map((user) => (
+                      <label key={user.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={signatureRecipients.includes(user.id)}
+                          onChange={() => toggleSignatureRecipient(user.id)}
+                        />
+                        {user.firstName} {user.lastName} ({user.email})
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                {signatureError && <p className="text-sm text-red-600">{signatureError}</p>}
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={handleRequestSignature}
+                    isLoading={requestSignatureMutation.isPending}
+                  >
+                    Solicitar firma
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {isLoadingSignatures ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : followUpSignatures.length === 0 ? (
+            <Card>
+              <p className="text-sm text-gray-500 text-center py-4">No hay solicitudes de firma para este seguimiento.</p>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {followUpSignatures.map((signature) => (
+                <Card key={signature.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="default">{signature.status}</Badge>
+                        {signature.dueDate && (
+                          <span className="text-xs text-gray-500">
+                            Vence: {new Date(signature.dueDate).toLocaleDateString('es-CO')}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">{signature.title}</p>
+                      {signature.description && (
+                        <p className="text-sm text-gray-700 mt-1">{signature.description}</p>
+                      )}
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {signature.recipients.map((r) => (
+                          <span key={r.id} className="text-xs px-2 py-0.5 bg-gray-100 rounded-full">
+                            {r.user?.firstName} {r.user?.lastName}: {r.status}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Citations tab */}
+      {activeTab === 'citations' && (
+        <div className="space-y-4">
+          {canFollowUp && !isClosed && (
+            <div className="flex justify-end">
+              <Button size="sm" onClick={() => setShowCitationForm(!showCitationForm)}>
+                {showCitationForm ? 'Cancelar' : 'Nueva citación'}
+              </Button>
+            </div>
+          )}
+
+          {showCitationForm && (
+            <Card>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Crear citación</h4>
+              <div className="space-y-3">
+                <Input
+                  label="Fecha de citación *"
+                  type="datetime-local"
+                  value={citationScheduledAt}
+                  onChange={(e) => setCitationScheduledAt(e.target.value)}
+                />
+                <div>
+                  <label htmlFor="citationReason" className="block text-sm font-medium text-gray-700 mb-1">
+                    Motivo *
+                  </label>
+                  <textarea
+                    id="citationReason"
+                    value={citationReason}
+                    onChange={(e) => setCitationReason(e.target.value)}
+                    rows={2}
+                    maxLength={2000}
+                    className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="citationObjective" className="block text-sm font-medium text-gray-700 mb-1">
+                    Objetivo
+                  </label>
+                  <textarea
+                    id="citationObjective"
+                    value={citationObjective}
+                    onChange={(e) => setCitationObjective(e.target.value)}
+                    rows={2}
+                    maxLength={2000}
+                    className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                {citationError && <p className="text-sm text-red-600">{citationError}</p>}
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={handleCreateCitation}
+                    isLoading={createCitationMutation.isPending}
+                  >
+                    Crear citación
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {isLoadingCitations ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : citations.length === 0 ? (
+            <Card>
+              <p className="text-sm text-gray-500 text-center py-4">No hay citaciones registradas.</p>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {citations.map((citation) => (
+                <Card key={citation.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="default">
+                          {FOLLOW_UP_CITATION_STATUS_LABELS[citation.status]}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          {new Date(citation.scheduledAt).toLocaleString('es-CO')}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-900">{citation.reason}</p>
+                      {citation.objective && (
+                        <p className="text-sm text-gray-700 mt-1">{citation.objective}</p>
+                      )}
+                      {citation.attendedAt && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Asistió: {new Date(citation.attendedAt).toLocaleString('es-CO')}
+                        </p>
+                      )}
+                    </div>
+                    {canFollowUp && !isClosed && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleUpdateCitationStatus(citation.id, citation.status)}
+                        disabled={updateCitationMutation.isPending}
+                      >
+                        {citation.status === 'COMPLETED' ? 'Reabrir' : 'Completar'}
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       )}

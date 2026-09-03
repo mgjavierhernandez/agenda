@@ -3,3 +3,4 @@ export { useAcademicPeriod } from './useAcademicPeriod';
 export { useCreateAcademicPeriod } from './useCreateAcademicPeriod';
 export { useUpdateAcademicPeriod } from './useUpdateAcademicPeriod';
 export { useDeactivateAcademicPeriod } from './useDeactivateAcademicPeriod';
+export { useCloseAcademicPeriod } from './useCloseAcademicPeriod';

@@ -43,4 +43,9 @@ export class ListSignatureRequestsQueryDto {
   @IsOptional()
   @IsUUID()
   recipientUserId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Filter by linked follow-up' })
+  @IsOptional()
+  @IsUUID()
+  followUpId?: string;
 }

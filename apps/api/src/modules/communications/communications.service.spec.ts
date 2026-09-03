@@ -36,6 +36,12 @@ describe('CommunicationsService', () => {
       prismaMock as never,
       auditServiceMock as never,
       authzServiceMock as never,
+      {
+        sendCommunication: jest.fn(),
+        sendPasswordReset: jest.fn(),
+        sendSignatureRequest: jest.fn(),
+      } as never,
+      {} as never,
     );
   });
 

@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactNode } from 'react';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { apiClient } from '@/api/client';
-import type { PaginatedApiResponse, Task, Notification, SignatureRequest } from '@/api/types';
+import type { RoleDashboard } from '@/modules/dashboard/hooks';
 
 vi.mock('@/api/client', () => ({
   apiClient: {
@@ -58,88 +58,75 @@ const createWrapper = (initialEntries: string[] = ['/dashboard']) => {
   );
 };
 
-const paginated = <T,>(data: T[]): PaginatedApiResponse<T> => ({
-  data,
-  meta: { total: data.length, page: 1, limit: 20, totalPages: 1 },
+const emptyDashboard = (role: RoleDashboard['role']): RoleDashboard => ({
+  role,
+  activePeriod: null,
+  stats: {},
+  children: [],
+  courses: [],
+  subjects: [],
+  recentNotifications: [],
+  upcomingEvents: [],
+  recentCommunications: [],
+  pendingSignatures: [],
+  followUps: [],
+  pendingCommitments: [],
 });
 
-const paginatedWithTotal = <T,>(data: T[], total: number): PaginatedApiResponse<T> => ({
-  data,
-  meta: { total, page: 1, limit: data.length || 20, totalPages: 1 },
-});
-
-const mockTask: Task = {
-  id: 'task-1',
-  institutionId: 'inst-1',
-  courseId: 'cou-1',
-  subjectId: 'sub-1',
-  title: 'Tarea de Matemáticas',
-  description: 'Ejercicios del capítulo 3',
-  dueDate: '2026-02-15',
-  status: 'PUBLISHED',
-  createdAt: '2026-01-15T10:00:00Z',
-  updatedAt: '2026-01-15T10:00:00Z',
+const adminDashboard: RoleDashboard = {
+  role: 'INSTITUTION_ADMIN',
+  activePeriod: {
+    id: 'period-1',
+    name: 'Período 1',
+    code: 'P1',
+    startDate: '2026-01-01T00:00:00Z',
+    endDate: '2026-06-30T00:00:00Z',
+    status: 'ACTIVE',
+  },
+  stats: { students: 150, teachers: 20, courses: 12, subjects: 25, pendingFollowUps: 4 },
+  children: [],
+  courses: [],
+  subjects: [],
+  recentNotifications: [
+    {
+      id: 'notif-1',
+      type: 'GENERAL',
+      title: 'Nueva tarea asignada',
+      message: 'Se ha creado una nueva tarea',
+      status: 'UNREAD',
+      createdAt: '2026-01-15T10:00:00Z',
+    },
+  ],
+  upcomingEvents: [
+    {
+      id: 'event-1',
+      title: 'Reunión de padres',
+      description: null,
+      startAt: '2026-02-10T14:00:00Z',
+      endAt: '2026-02-10T15:00:00Z',
+      location: 'Auditorio',
+    },
+  ],
+  recentCommunications: [
+    { id: 'comm-1', title: 'Comunicado de inicio de año', content: 'Hola', publishedAt: '2026-01-05T10:00:00Z' },
+  ],
+  pendingSignatures: [
+    { id: 'sig-1', title: 'Autorización de excursión', description: 'Firma requerida', dueDate: '2026-02-20T00:00:00Z' },
+  ],
+  followUps: [
+    { id: 'fu-1', title: 'Seguimiento académico', confidentiality: 'INTERNAL', status: 'OPEN', createdAt: '2026-01-10T10:00:00Z', studentId: 'stu-1' },
+  ],
+  pendingCommitments: [
+    { id: 'co-1', description: 'Presentar reporte', status: 'PENDING', dueDate: '2026-02-01T00:00:00Z' },
+  ],
 };
 
-const mockNotification: Notification = {
-  id: 'notif-1',
-  institutionId: 'inst-1',
-  userId: 'user-1',
-  type: 'GENERAL',
-  entityType: 'TASK',
-  entityId: 'task-1',
-  title: 'Nueva tarea asignada',
-  message: 'Se ha creado una nueva tarea',
-  status: 'UNREAD',
-  readAt: null,
-  createdAt: '2026-01-15T10:00:00Z',
-  updatedAt: '2026-01-15T10:00:00Z',
-};
-
-const mockSignature: SignatureRequest = {
-  id: 'sig-1',
-  institutionId: 'inst-1',
-  title: 'Autorización de excursión',
-  description: 'Firma requerida',
-  status: 'PUBLISHED',
-  dueDate: '2026-02-20',
-  createdAt: '2026-01-15T10:00:00Z',
-  updatedAt: '2026-01-15T10:00:00Z',
-  recipients: [],
-};
-
-function mockDefaultEndpoints() {
+function mockDashboard(payload: RoleDashboard, unreadCount = 3) {
   vi.mocked(apiClient.get).mockImplementation((url: string) => {
     const u = String(url);
-    if (u.startsWith('/students')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/courses')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/subjects')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/tasks')) return Promise.resolve(paginated([mockTask]));
-    if (u.startsWith('/enrollments')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/signature-requests')) return Promise.resolve(paginated([mockSignature]));
-    if (u.startsWith('/communications')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/notifications')) return Promise.resolve(paginated([mockNotification]));
-    if (u.startsWith('/communication-recipients/unread-count')) return Promise.resolve({ count: 3 });
-    return Promise.resolve(paginated([]));
-  });
-}
-
-function mockStatsEndpoints(counts: Record<string, number>) {
-  vi.mocked(apiClient.get).mockImplementation((url: string) => {
-    const u = String(url);
-    if (u.startsWith('/students')) return Promise.resolve(paginatedWithTotal([], counts.students ?? 0));
-    if (u.startsWith('/courses')) return Promise.resolve(paginatedWithTotal([], counts.courses ?? 0));
-    if (u.startsWith('/subjects')) return Promise.resolve(paginatedWithTotal([], counts.subjects ?? 0));
-    if (u.startsWith('/tasks') && u.includes('limit=1')) return Promise.resolve(paginatedWithTotal([], counts.tasks ?? 0));
-    if (u.startsWith('/tasks')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/enrollments')) return Promise.resolve(paginatedWithTotal([], counts.enrollments ?? 0));
-    if (u.startsWith('/signature-requests') && u.includes('limit=1')) return Promise.resolve(paginatedWithTotal([], counts.signatures ?? 0));
-    if (u.startsWith('/signature-requests')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/communications') && u.includes('limit=1')) return Promise.resolve(paginatedWithTotal([], counts.communications ?? 0));
-    if (u.startsWith('/communications')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/notifications')) return Promise.resolve(paginated([]));
-    if (u.startsWith('/communication-recipients/unread-count')) return Promise.resolve({ count: counts.unreadComms ?? 0 });
-    return Promise.resolve(paginated([]));
+    if (u === '/dashboard') return Promise.resolve(payload);
+    if (u === '/communication-recipients/unread-count') return Promise.resolve({ count: unreadCount });
+    return Promise.resolve({});
   });
 }
 
@@ -150,225 +137,152 @@ describe('DashboardPage', () => {
   });
 
   it('renders the welcome greeting', async () => {
-    mockDefaultEndpoints();
+    mockDashboard(adminDashboard);
     render(<DashboardPage />, { wrapper: createWrapper() });
-    expect(screen.getByText(/Bienvenido, carlos/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Bienvenido, carlos/)).toBeInTheDocument();
+    });
   });
 
   it('renders institution name', async () => {
-    mockDefaultEndpoints();
+    mockDashboard(adminDashboard);
     render(<DashboardPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Colegio San José')).toBeInTheDocument();
   });
 
-  it('renders all stat card titles', async () => {
-    mockDefaultEndpoints();
+  it('shows loading state while fetching', () => {
+    vi.mocked(apiClient.get).mockReturnValue(new Promise(() => {}));
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    expect(screen.getByText(/Bienvenido, carlos/)).toBeInTheDocument();
+  });
+
+  it('shows error state when the dashboard request fails', async () => {
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('boom'));
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getByText('No se pudo cargar el panel. Inténtalo de nuevo más tarde.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows empty state when the dashboard has no content', async () => {
+    mockDashboard(emptyDashboard('STUDENT'), 0);
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getByText('No hay información disponible todavía.')).toBeInTheDocument();
+    });
+  });
+
+  it('renders the active academic period for admins', async () => {
+    mockDashboard(adminDashboard);
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getByText('Período activo')).toBeInTheDocument();
+      expect(screen.getByText(/Período 1/)).toBeInTheDocument();
+    });
+  });
+
+  it('renders admin stat cards', async () => {
+    mockDashboard(adminDashboard);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
       expect(screen.getAllByText('Estudiantes').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Cursos').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Asignaturas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Tareas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Matrículas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Comunicaciones').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Firmas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Notificaciones sin leer').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Docentes')).toBeInTheDocument();
+      expect(screen.getByText('Seguimientos pendientes')).toBeInTheDocument();
+      expect(screen.getByText('150')).toBeInTheDocument();
+      expect(screen.getByText('20')).toBeInTheDocument();
     });
   });
 
-  it('shows recent tasks section', async () => {
-    mockDefaultEndpoints();
+  it('renders admin recent lists', async () => {
+    mockDashboard(adminDashboard);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText('Tareas recientes')).toBeInTheDocument();
-      expect(screen.getByText('Tarea de Matemáticas')).toBeInTheDocument();
-    });
-  });
-
-  it('shows recent notifications section', async () => {
-    mockDefaultEndpoints();
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getByText('Notificaciones recientes')).toBeInTheDocument();
+      expect(screen.getByText('Reunión de padres')).toBeInTheDocument();
+      expect(screen.getByText('Comunicado de inicio de año')).toBeInTheDocument();
+      expect(screen.getByText('Autorización de excursión')).toBeInTheDocument();
+      expect(screen.getByText('Seguimiento académico')).toBeInTheDocument();
+      expect(screen.getByText('Presentar reporte')).toBeInTheDocument();
       expect(screen.getByText('Nueva tarea asignada')).toBeInTheDocument();
     });
   });
 
-  it('shows pending signatures section', async () => {
-    mockDefaultEndpoints();
+  it('renders teacher dashboard with their courses and subjects', async () => {
+    const payload: RoleDashboard = {
+      ...emptyDashboard('TEACHER'),
+      stats: { courses: 2, students: 40 },
+      courses: [
+        { id: 'cou-1', code: 'M-101', name: 'Matemáticas I', status: 'ACTIVE' },
+        { id: 'cou-2', code: 'F-101', name: 'Física I', status: 'ACTIVE' },
+      ],
+      subjects: [{ id: 'sub-1', code: 'MAT', name: 'Álgebra', status: 'ACTIVE' }],
+    };
+    mockDashboard(payload);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText('Firmas pendientes')).toBeInTheDocument();
-      expect(screen.getByText('Autorización de excursión')).toBeInTheDocument();
+      expect(screen.getByText('Matemáticas I (M-101)')).toBeInTheDocument();
+      expect(screen.getByText('Física I (F-101)')).toBeInTheDocument();
+      expect(screen.getByText('Álgebra (MAT)')).toBeInTheDocument();
+      expect(screen.getAllByText('40').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it('shows quick access links', async () => {
-    mockDefaultEndpoints();
+  it('renders parent dashboard with their children', async () => {
+    const payload: RoleDashboard = {
+      ...emptyDashboard('PARENT'),
+      stats: { children: 2 },
+      children: [
+        { id: 'stu-1', firstName: 'Ana', lastName: 'Gómez', status: 'ACTIVE' },
+        { id: 'stu-2', firstName: 'Luis', lastName: 'Gómez', status: 'ACTIVE' },
+      ],
+    };
+    mockDashboard(payload);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText('Accesos rápidos')).toBeInTheDocument();
-      expect(screen.getByText(/Estudiantes/)).toBeInTheDocument();
-      expect(screen.getByText(/Cursos/)).toBeInTheDocument();
+      expect(screen.getByText('Hijos')).toBeInTheDocument();
+      expect(screen.getByText('Ana Gómez')).toBeInTheDocument();
+      expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
+    });
+  });
+
+  it('renders student dashboard with their courses', async () => {
+    const payload: RoleDashboard = {
+      ...emptyDashboard('STUDENT'),
+      stats: { enrollments: 2, followUps: 1 },
+      courses: [{ id: 'cou-1', code: 'M-101', name: 'Matemáticas I', status: 'ACTIVE' }],
+    };
+    mockDashboard(payload);
+    render(<DashboardPage />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getAllByText('Matrículas').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Matemáticas I (M-101)')).toBeInTheDocument();
     });
   });
 
   it('shows unread communications count in quick access', async () => {
-    mockDefaultEndpoints();
+    mockDashboard(adminDashboard, 7);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      const badges = screen.getAllByText('3');
-      expect(badges.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  it('shows empty state when no tasks', async () => {
-    vi.mocked(apiClient.get).mockImplementation((url: string) => {
-      const u = String(url);
-      if (u.startsWith('/tasks') && !u.includes('limit=1')) return Promise.resolve(paginated([]));
-      if (u.startsWith('/tasks')) return Promise.resolve(paginatedWithTotal([], 0));
-      if (u.startsWith('/communication-recipients/unread-count')) return Promise.resolve({ count: 0 });
-      return Promise.resolve(paginated([]));
-    });
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getByText('No hay tareas recientes')).toBeInTheDocument();
-    });
-  });
-
-  it('shows empty state when no notifications', async () => {
-    vi.mocked(apiClient.get).mockImplementation((url: string) => {
-      const u = String(url);
-      if (u.startsWith('/notifications')) return Promise.resolve(paginated([]));
-      if (u.startsWith('/communication-recipients/unread-count')) return Promise.resolve({ count: 0 });
-      return Promise.resolve(paginated([]));
-    });
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getByText('No hay notificaciones recientes')).toBeInTheDocument();
-    });
-  });
-
-  it('shows empty state when no pending signatures', async () => {
-    vi.mocked(apiClient.get).mockImplementation((url: string) => {
-      const u = String(url);
-      if (u.startsWith('/signature-requests') && !u.includes('limit=1')) return Promise.resolve(paginated([]));
-      if (u.startsWith('/signature-requests')) return Promise.resolve(paginatedWithTotal([], 0));
-      if (u.startsWith('/communication-recipients/unread-count')) return Promise.resolve({ count: 0 });
-      return Promise.resolve(paginated([]));
-    });
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getByText('No hay firmas pendientes')).toBeInTheDocument();
-    });
-  });
-
-  it('hides quick access links when user lacks permission', async () => {
-    mockHasPermission.mockReturnValue(false);
-    mockDefaultEndpoints();
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getByText('Accesos rápidos')).toBeInTheDocument();
-    });
-  });
-
-  it('renders stat cards with correct values', async () => {
-    mockStatsEndpoints({
-      students: 150,
-      courses: 12,
-      subjects: 25,
-      tasks: 8,
-      enrollments: 200,
-      signatures: 5,
-      communications: 30,
-      unreadComms: 7,
-    });
-
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getByText('150')).toBeInTheDocument();
-      expect(screen.getByText('12')).toBeInTheDocument();
-      expect(screen.getByText('25')).toBeInTheDocument();
-      expect(screen.getByText('8')).toBeInTheDocument();
-      expect(screen.getByText('200')).toBeInTheDocument();
-      expect(screen.getByText('30')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
       expect(screen.getAllByText('7').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it('hides stat cards when user lacks permission', async () => {
-    mockHasPermission.mockImplementation((code: string) => {
-      if (code === 'students:read' || code === 'courses:read' || code === 'subjects:read') return false;
-      return true;
-    });
-    mockStatsEndpoints({
-      students: 3,
-      courses: 3,
-      subjects: 3,
-      tasks: 8,
-      enrollments: 200,
-      signatures: 5,
-      communications: 30,
-      unreadComms: 7,
-    });
-
+  it('shows quick access links with routes', async () => {
+    mockDashboard(adminDashboard);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.queryByText('Estudiantes')).not.toBeInTheDocument();
-      expect(screen.queryByText('Cursos')).not.toBeInTheDocument();
-      expect(screen.queryByText('Asignaturas')).not.toBeInTheDocument();
-      expect(screen.getByText('8')).toBeInTheDocument();
+      expect(screen.getByText('Accesos rápidos')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Estudiantes/ })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Notas/ })).toBeInTheDocument();
     });
   });
 
-  it('shows stat cards when user has permission', async () => {
-    mockHasPermission.mockReturnValue(true);
-    mockStatsEndpoints({
-      students: 150,
-      courses: 12,
-      subjects: 25,
-      tasks: 8,
-      enrollments: 200,
-      signatures: 5,
-      communications: 30,
-      unreadComms: 7,
-    });
-
+  it('hides quick access links when the user lacks permissions', async () => {
+    mockHasPermission.mockReturnValue(false);
+    mockDashboard(adminDashboard, 0);
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText('150')).toBeInTheDocument();
-      expect(screen.getByText('12')).toBeInTheDocument();
-      expect(screen.getByText('25')).toBeInTheDocument();
-      expect(screen.getByText('8')).toBeInTheDocument();
-      expect(screen.getByText('200')).toBeInTheDocument();
-      expect(screen.getByText('30')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
-    });
-  });
-
-  it('renders task status badges', async () => {
-    mockDefaultEndpoints();
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getAllByText('Publicada').length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  it('renders notification status badges', async () => {
-    mockDefaultEndpoints();
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      expect(screen.getAllByText('No leída').length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  it('shows "Ver todas" links with correct routes', async () => {
-    mockDefaultEndpoints();
-    render(<DashboardPage />, { wrapper: createWrapper() });
-    await waitFor(() => {
-      const verTodasLinks = screen.getAllByText('Ver todas');
-      expect(verTodasLinks.length).toBeGreaterThanOrEqual(3);
+      expect(screen.getByText('Accesos rápidos')).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Estudiantes/ })).not.toBeInTheDocument();
     });
   });
 });

@@ -664,4 +664,76 @@ describe('Grades Module (e2e)', () => {
       expect(res.body.data).toBeDefined();
     });
   });
+
+  describe('PROMPT 90: Grade protected when academic period is CLOSED', () => {
+    let closedPeriodCode: string | null = null;
+    let openPeriodCode: string | null = null;
+
+    beforeAll(async () => {
+      const closed = await prisma.academicPeriod.findFirst({
+        where: { institutionId: demoInstitutionId, status: 'CLOSED' },
+      });
+      if (closed) closedPeriodCode = closed.code;
+      const open = await prisma.academicPeriod.findFirst({
+        where: { institutionId: demoInstitutionId, status: 'ACTIVE' },
+      });
+      if (open) openPeriodCode = open.code;
+    });
+
+    it('should reject creating a grade when the period label resolves to a CLOSED period -> 400', async () => {
+      if (!closedPeriodCode) return;
+      await request(app.getHttpServer())
+        .post('/api/v1/grades')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          studentId: demoStudentId,
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          value: 3.00,
+          period: closedPeriodCode,
+        })
+        .expect(400);
+    });
+
+    it('should reject updating a grade into a CLOSED period -> 400', async () => {
+      if (!closedPeriodCode) return;
+      const base = await request(app.getHttpServer())
+        .post('/api/v1/grades')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          studentId: demoStudentId,
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          value: 4.00,
+          period: openPeriodCode ?? 'Q1',
+        })
+        .expect(201);
+      await request(app.getHttpServer())
+        .patch(`/api/v1/grades/${base.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({ value: 4.75, period: closedPeriodCode })
+        .expect(400);
+      await prisma.grade.delete({ where: { id: base.body.id } }).catch(() => {});
+    });
+
+    it('should allow creating a grade in an OPEN period and link academicPeriodId', async () => {
+      if (!openPeriodCode) return;
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/grades')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          studentId: demoStudentId,
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          value: 4.25,
+          period: openPeriodCode,
+        })
+        .expect(201);
+      expect(res.body.status).toBe('ACTIVE');
+    });
+  });
 });

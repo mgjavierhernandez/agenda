@@ -55,7 +55,7 @@ export class MembershipsService {
 
     const targetRoles = await this.prisma.role.findMany({
       where: { id: { in: targetRoleIds } },
-      select: { name: true, roleType: true },
+      select: { name: true, roleType: true, institutionId: true },
     });
 
     for (const role of targetRoles) {
@@ -64,6 +64,11 @@ export class MembershipsService {
       }
       if (!ASSIGNABLE_TENANT_ROLES.includes(role.name)) {
         throw new ForbiddenException(`Cannot assign role: ${role.name}`);
+      }
+      // Tenancy scoping: tenant roles must belong to the target institution.
+      // Template roles are usable within any tenant; global roles are never assignable.
+      if (role.roleType !== 'TEMPLATE' && role.institutionId !== institutionId) {
+        throw new ForbiddenException('Cannot assign a role from another institution');
       }
     }
   }
@@ -134,6 +139,17 @@ export class MembershipsService {
     const where: Prisma.UserInstitutionWhereInput = {
       institutionId,
       ...(query.status ? { status: query.status } : {}),
+      ...(query.search
+        ? {
+            user: {
+              OR: [
+                { firstName: { contains: query.search, mode: 'insensitive' } },
+                { lastName: { contains: query.search, mode: 'insensitive' } },
+                { email: { contains: query.search, mode: 'insensitive' } },
+              ],
+            },
+          }
+        : {}),
     };
 
     const [data, total] = await Promise.all([

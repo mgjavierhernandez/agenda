@@ -86,7 +86,7 @@ describe('MembershipsService', () => {
       prismaMock.userRole.findMany.mockResolvedValue([
         { role: { name: 'INSTITUTION_ADMIN' } },
       ]);
-      prismaMock.role.findMany.mockResolvedValue([{ name: 'TEACHER', roleType: 'TENANT' }]);
+      prismaMock.role.findMany.mockResolvedValue([{ name: 'TEACHER', roleType: 'TENANT', institutionId }]);
       prismaMock.userRole.findUnique.mockResolvedValue(null);
       prismaMock.userRole.create.mockResolvedValue({ id: 'ur-1', roleId: 'role-1' });
 
@@ -100,7 +100,7 @@ describe('MembershipsService', () => {
       prismaMock.userRole.findMany.mockResolvedValue([
         { role: { name: 'INSTITUTION_ADMIN' } },
       ]);
-      prismaMock.role.findMany.mockResolvedValue([{ name: 'TEACHER', roleType: 'TENANT' }]);
+      prismaMock.role.findMany.mockResolvedValue([{ name: 'TEACHER', roleType: 'TENANT', institutionId }]);
       prismaMock.userRole.findUnique.mockResolvedValue({ id: 'existing' });
 
       await expect(
@@ -114,11 +114,51 @@ describe('MembershipsService', () => {
       prismaMock.userRole.findMany.mockResolvedValue([
         { role: { name: 'INSTITUTION_ADMIN' } },
       ]);
-      prismaMock.role.findMany.mockResolvedValue([{ name: 'SUPER_ADMIN', roleType: 'GLOBAL' }]);
+      prismaMock.role.findMany.mockResolvedValue([{ name: 'SUPER_ADMIN', roleType: 'GLOBAL', institutionId: null }]);
 
       await expect(
         service.assignRole(institutionId, 'u-1', { roleId: 'role-1' }, actorUserId),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should reject assigning a role from another institution', async () => {
+      prismaMock.userInstitution.findUnique.mockResolvedValue({ id: 'm-1' });
+      prismaMock.globalUserRole.findFirst.mockResolvedValue(null);
+      prismaMock.userRole.findMany.mockResolvedValue([
+        { role: { name: 'INSTITUTION_ADMIN' } },
+      ]);
+      prismaMock.role.findMany.mockResolvedValue([
+        { name: 'TEACHER', roleType: 'TENANT', institutionId: 'other-inst' },
+      ]);
+
+      await expect(
+        service.assignRole(institutionId, 'u-1', { roleId: 'foreign-role' }, actorUserId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should apply search filter to linked users', async () => {
+      prismaMock.userInstitution.findMany.mockResolvedValue([
+        { id: 'm-1', institutionId, user: { email: 'maria@example.com' }, roles: [] },
+      ]);
+      prismaMock.userInstitution.count.mockResolvedValue(1);
+
+      await service.findAll(institutionId, { search: 'maria' });
+
+      const findManyArg = prismaMock.userInstitution.findMany.mock.calls[0][0];
+      expect(findManyArg.where.search).toBeUndefined();
+      expect(findManyArg.where.user.OR).toBeDefined();
+    });
+
+    it('should apply status filter', async () => {
+      prismaMock.userInstitution.findMany.mockResolvedValue([]);
+      prismaMock.userInstitution.count.mockResolvedValue(0);
+
+      await service.findAll(institutionId, { status: MembershipStatus.ACTIVE });
+
+      const findManyArg = prismaMock.userInstitution.findMany.mock.calls[0][0];
+      expect(findManyArg.where.status).toBe(MembershipStatus.ACTIVE);
     });
   });
 });

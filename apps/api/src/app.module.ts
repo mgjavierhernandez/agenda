@@ -27,8 +27,12 @@ import { FilesModule } from './modules/files/files.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { UsersModule } from './modules/users/users.module';
 import { MembershipsModule } from './modules/memberships/memberships.module';
+import { RolesModule } from './modules/roles/roles.module';
 import { AgendaModule } from './modules/agenda/agenda.module';
 import { StudentFollowUpsModule } from './modules/student-follow-ups/student-follow-ups.module';
+import { AttendancesModule } from './modules/attendances/attendances.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -59,6 +63,7 @@ import { StudentFollowUpsModule } from './modules/student-follow-ups/student-fol
     InstitutionsModule,
     UsersModule,
     MembershipsModule,
+    RolesModule,
     StudentsModule,
     CoursesModule,
     SubjectsModule,
@@ -79,6 +84,9 @@ import { StudentFollowUpsModule } from './modules/student-follow-ups/student-fol
     FilesModule,
     AgendaModule,
     StudentFollowUpsModule,
+    AttendancesModule,
+    ReportsModule,
+    DashboardModule,
   ],
   providers: [
     {

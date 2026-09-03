@@ -326,5 +326,33 @@ describe('Memberships Module (e2e)', () => {
         .send({ userId: escalationUserId, institutionId: secondInstitutionId })
         .expect(400);
     });
+
+    it('TEST-15: ADMIN cannot assign a role that belongs to another institution -> 403', async () => {
+      const foreignRole = await prisma.role.findFirst({
+        where: { institutionId: secondInstitutionId },
+        select: { id: true },
+      });
+      expect(foreignRole).toBeTruthy();
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/institutions/${demoInstitutionId}/memberships/user/${escalationUserId}/roles`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({ roleId: foreignRole!.id })
+        .expect(403);
+    });
+  });
+
+  describe('GET memberships with search filter', () => {
+    it('TEST-16: Admin searches memberships by user email -> 200 with filtered data', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/api/v1/institutions/${demoInstitutionId}/memberships?search=admin@demo-school`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .expect(200);
+
+      expect(res.body.data).toBeInstanceOf(Array);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+    });
   });
 });

@@ -7,7 +7,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PasswordService } from './services/password.service';
 import { TokenService } from './services/token.service';
-import { DevEmailProvider, EMAIL_PROVIDER } from './services/email';
+import {
+  DevEmailProvider,
+  EMAIL_PROVIDER,
+  EmailTemplates,
+  SmtpEmailProvider,
+} from './services/email';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { TenantContextService } from './tenant/tenant-context.service';
@@ -39,7 +44,16 @@ import { AuditModule } from '../../common/audit/audit.module';
     AuthService,
     PasswordService,
     TokenService,
-    { provide: EMAIL_PROVIDER, useClass: DevEmailProvider },
+    EmailTemplates,
+    {
+      provide: EMAIL_PROVIDER,
+      useFactory: (configService: ConfigService, templates: EmailTemplates) => {
+        const smtpHost = configService.get<string>('SMTP_HOST', '');
+        // Real SMTP sender when configured; otherwise the dev stub (local/CI).
+        return smtpHost ? new SmtpEmailProvider(configService, templates) : new DevEmailProvider();
+      },
+      inject: [ConfigService, EmailTemplates],
+    },
     JwtStrategy,
     AccessTokenGuard,
     TenantContextService,
@@ -54,6 +68,8 @@ import { AuditModule } from '../../common/audit/audit.module';
     TenantContextGuard,
     AuthorizationService,
     PermissionGuard,
+    EMAIL_PROVIDER,
+    EmailTemplates,
   ],
 })
 export class AuthModule {}

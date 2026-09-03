@@ -6,32 +6,13 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { PageHeader } from '@/components/feedback/PageHeader';
-import { useDashboardStats, useRecentTasks, useRecentNotifications, usePendingSignatures } from '@/modules/dashboard/hooks';
+import { useRoleDashboard, type RoleDashboard } from '@/modules/dashboard/hooks';
 import { useUnreadCommunicationsCount } from '@/modules/communication-recipients/hooks';
 import { usePermissions } from '@/permissions/usePermissions';
-import { useChildContext } from '@/modules/children';
 import { PERMISSIONS } from '@/permissions/permission.constants';
-import {
-  TASK_STATUS_LABELS,
-  SIGNATURE_REQUEST_STATUS_LABELS,
-} from '@/api/types';
-import type { Task, SignatureRequest, Notification } from '@/api/types';
 
-const TASK_BADGE: Record<string, 'warning' | 'success' | 'default' | 'info'> = {
-  DRAFT: 'default',
-  PUBLISHED: 'info',
-  CLOSED: 'success',
-};
-
-const SIGNATURE_BADGE: Record<string, 'warning' | 'success' | 'default' | 'info'> = {
-  DRAFT: 'default',
-  PUBLISHED: 'warning',
-  COMPLETED: 'success',
-  EXPIRED: 'default',
-  INACTIVE: 'default',
-};
-
-function formatDate(dateStr: string): string {
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('es-CO', {
     day: 'numeric',
     month: 'short',
@@ -39,86 +20,18 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function TaskItem({ task }: { task: Task }) {
-  return (
-    <Link
-      to={`/tasks/${task.id}`}
-      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {task.dueDate ? `Vence: ${formatDate(task.dueDate)}` : 'Sin fecha límite'}
-        </p>
-      </div>
-      <Badge variant={TASK_BADGE[task.status] ?? 'default'} className="ml-2 shrink-0">
-        {TASK_STATUS_LABELS[task.status]}
-      </Badge>
-    </Link>
-  );
-}
-
-function NotificationItem({ notification }: { notification: Notification }) {
-  return (
-    <Link
-      to="/notifications"
-      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-900 truncate">{notification.title}</p>
-        <p className="text-xs text-gray-500 mt-0.5 truncate">{notification.message}</p>
-      </div>
-      <Badge variant={notification.status === 'UNREAD' ? 'warning' : 'default'} className="ml-2 shrink-0">
-        {notification.status === 'UNREAD' ? 'No leída' : 'Leída'}
-      </Badge>
-    </Link>
-  );
-}
-
-function SignatureItem({ signature }: { signature: SignatureRequest }) {
-  return (
-    <Link
-      to={`/signatures/${signature.id}`}
-      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-900 truncate">{signature.title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {signature.dueDate ? `Vence: ${formatDate(signature.dueDate)}` : 'Sin fecha límite'}
-        </p>
-      </div>
-      <Badge variant={SIGNATURE_BADGE[signature.status] ?? 'default'} className="ml-2 shrink-0">
-        {SIGNATURE_REQUEST_STATUS_LABELS[signature.status]}
-      </Badge>
-    </Link>
-  );
-}
-
 interface SectionProps {
   title: string;
-  action?: { label: string; to: string };
-  isLoading?: boolean;
   isEmpty?: boolean;
   emptyMessage?: string;
   children: React.ReactNode;
 }
 
-function DashboardSection({ title, action, isLoading, isEmpty, emptyMessage, children }: SectionProps) {
+function DashboardSection({ title, isEmpty, emptyMessage, children }: SectionProps) {
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        {action && (
-          <Link to={action.to} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            {action.label}
-          </Link>
-        )}
-      </div>
-      {isLoading ? (
-        <div className="flex justify-center py-6">
-          <Spinner size="sm" />
-        </div>
-      ) : isEmpty ? (
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+      {isEmpty ? (
         <p className="text-sm text-gray-500 py-4 text-center">{emptyMessage ?? 'Sin elementos'}</p>
       ) : (
         <div className="divide-y divide-gray-100">{children}</div>
@@ -127,34 +40,82 @@ function DashboardSection({ title, action, isLoading, isEmpty, emptyMessage, chi
   );
 }
 
+function SimpleItem({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="p-3">
+      <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
+      {subtitle && <p className="text-xs text-gray-500 mt-0.5 truncate">{subtitle}</p>}
+    </div>
+  );
+}
+
+const FOLLOW_UP_BADGE: Record<string, 'warning' | 'success' | 'default' | 'info' | 'danger'> = {
+  OPEN: 'warning',
+  IN_PROGRESS: 'info',
+  ESCALATED: 'danger',
+  PENDING_FOLLOW_UP: 'info',
+  RESOLVED: 'success',
+  CLOSED: 'default',
+};
+
+const COMMITMENT_BADGE: Record<string, 'warning' | 'success' | 'default' | 'info' | 'danger'> = {
+  PENDING: 'warning',
+  IN_PROGRESS: 'info',
+  COMPLETED: 'success',
+  CANCELLED: 'default',
+  OVERDUE: 'danger',
+};
+
 export function DashboardPage() {
   const { user } = useAuth();
   const { selectedInstitution, isTenantReady } = useTenant();
   const { hasPermission } = usePermissions();
-  const { selectedChildId } = useChildContext();
-
-  const statsPermissions = {
-    students: hasPermission(PERMISSIONS.STUDENTS_READ),
-    courses: hasPermission(PERMISSIONS.COURSES_READ),
-    subjects: hasPermission(PERMISSIONS.SUBJECTS_READ),
-    tasks: hasPermission(PERMISSIONS.TASKS_READ),
-    enrollments: hasPermission(PERMISSIONS.ENROLLMENTS_READ),
-    signatures: hasPermission(PERMISSIONS.SIGNATURES_READ),
-    communications: hasPermission(PERMISSIONS.COMMUNICATIONS_READ),
-  };
-
-  const { stats, isLoading: statsLoading } = useDashboardStats(isTenantReady, statsPermissions, selectedChildId);
-  const { data: tasksData, isLoading: tasksLoading } = useRecentTasks(isTenantReady, selectedChildId);
-  const { data: notifData, isLoading: notifsLoading } = useRecentNotifications(isTenantReady);
-  const { data: sigData, isLoading: sigsLoading } = usePendingSignatures(isTenantReady);
+  const { data, isLoading, isError } = useRoleDashboard(isTenantReady);
   const { data: unreadData } = useUnreadCommunicationsCount();
 
   const unreadComms = unreadData?.count ?? 0;
-  const recentTasks = tasksData?.data ?? [];
-  const recentNotifications = notifData?.data ?? [];
-  const pendingSignatures = sigData?.data ?? [];
-
   const greeting = user?.email?.split('@')[0] || 'Usuario';
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title={`Bienvenido, ${greeting}`} description={selectedInstitution?.name ?? undefined} />
+        <div className="flex justify-center py-12">
+          <Spinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div>
+        <PageHeader title={`Bienvenido, ${greeting}`} description={selectedInstitution?.name ?? undefined} />
+        <Card>
+          <p className="text-sm text-gray-500 py-4 text-center">
+            No se pudo cargar el panel. Inténtalo de nuevo más tarde.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  const d = data as RoleDashboard;
+  const isAdmin = d.role === 'INSTITUTION_ADMIN' || d.role === 'SUPER_ADMIN';
+  const stats = d.stats ?? {};
+
+  const hasContent =
+    !!d.activePeriod ||
+    Object.keys(stats).length > 0 ||
+    d.children.length > 0 ||
+    d.courses.length > 0 ||
+    d.subjects.length > 0 ||
+    d.upcomingEvents.length > 0 ||
+    d.recentCommunications.length > 0 ||
+    d.followUps.length > 0 ||
+    d.pendingCommitments.length > 0 ||
+    d.pendingSignatures.length > 0 ||
+    d.recentNotifications.length > 0;
 
   return (
     <div className="space-y-6">
@@ -163,121 +124,150 @@ export function DashboardPage() {
         description={selectedInstitution?.name ?? undefined}
       />
 
-      {statsLoading ? (
-        <div className="flex justify-center py-12">
-          <Spinner size="lg" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statsPermissions.students && (
-            <StatCard
-              title="Estudiantes"
-              value={stats.students ?? 0}
-              icon={<span className="text-2xl">👨‍🎓</span>}
-              description="Estudiantes registrados"
-            />
-          )}
-          {statsPermissions.courses && (
-            <StatCard
-              title="Cursos"
-              value={stats.courses ?? 0}
-              icon={<span className="text-2xl">📚</span>}
-              description="Cursos activos"
-            />
-          )}
-          {statsPermissions.subjects && (
-            <StatCard
-              title="Asignaturas"
-              value={stats.subjects ?? 0}
-              icon={<span className="text-2xl">📝</span>}
-              description="Asignaturas registradas"
-            />
-          )}
-          {statsPermissions.tasks && (
-            <StatCard
-              title="Tareas"
-              value={stats.tasks ?? 0}
-              icon={<span className="text-2xl">✅</span>}
-              description="Tareas creadas"
-            />
-          )}
-        </div>
+      {!hasContent && (
+        <Card>
+          <p className="text-sm text-gray-500 py-4 text-center">
+            No hay información disponible todavía.
+          </p>
+        </Card>
+      )}
+
+      {d.activePeriod && (
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Período activo</p>
+              <p className="text-xs text-gray-500">
+                {d.activePeriod.name} ({d.activePeriod.code}) · {formatDate(d.activePeriod.startDate)} – {formatDate(d.activePeriod.endDate)}
+              </p>
+            </div>
+            <Badge variant="info">{d.activePeriod.status}</Badge>
+          </div>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsPermissions.enrollments && (
-          <StatCard
-            title="Matrículas"
-            value={stats.enrollments ?? 0}
-            icon={<span className="text-2xl">📋</span>}
-            description="Matrículas activas"
-          />
+        {isAdmin && (
+          <>
+            <StatCard title="Estudiantes" value={stats.students ?? 0} icon={<span className="text-2xl">👨‍🎓</span>} description="Estudiantes activos" />
+            <StatCard title="Docentes" value={stats.teachers ?? 0} icon={<span className="text-2xl">🧑‍🏫</span>} description="Docentes en la institución" />
+            <StatCard title="Cursos" value={stats.courses ?? 0} icon={<span className="text-2xl">📚</span>} description="Cursos activos" />
+            <StatCard title="Asignaturas" value={stats.subjects ?? 0} icon={<span className="text-2xl">📝</span>} description="Asignaturas registradas" />
+            <StatCard title="Seguimientos pendientes" value={stats.pendingFollowUps ?? 0} icon={<span className="text-2xl">📋</span>} description="Seguimientos abiertos" />
+          </>
         )}
-        {statsPermissions.communications && (
-          <StatCard
-            title="Comunicaciones"
-            value={stats.communications ?? 0}
-            icon={<span className="text-2xl">📢</span>}
-            description="Comunicaciones publicadas"
-          />
+        {d.role === 'TEACHER' && (
+          <>
+            <StatCard title="Cursos" value={stats.courses ?? 0} icon={<span className="text-2xl">📚</span>} description="Cursos asignados" />
+            <StatCard title="Estudiantes" value={stats.students ?? 0} icon={<span className="text-2xl">👨‍🎓</span>} description="Estudiantes en tus cursos" />
+            <StatCard title="Asignaturas" value={d.subjects.length} icon={<span className="text-2xl">📝</span>} description="Asignaturas asignadas" />
+          </>
         )}
-        {statsPermissions.signatures && (
-          <StatCard
-            title="Firmas"
-            value={stats.signatures ?? 0}
-            icon={<span className="text-2xl">✍️</span>}
-            description="Solicitudes de firma"
-          />
+        {d.role === 'PARENT' && (
+          <StatCard title="Hijos" value={stats.children ?? 0} icon={<span className="text-2xl">👨‍👩‍👧</span>} description="Estudiantes a tu cargo" />
         )}
-        {statsPermissions.communications && (
-          <StatCard
-            title="Notificaciones sin leer"
-            value={unreadComms}
-            icon={<span className="text-2xl">🔔</span>}
-            description="Notificaciones pendientes"
-          />
+        {d.role === 'STUDENT' && (
+          <>
+            <StatCard title="Matrículas" value={stats.enrollments ?? 0} icon={<span className="text-2xl">📋</span>} description="Cursos matriculados" />
+            <StatCard title="Seguimientos" value={stats.followUps ?? 0} icon={<span className="text-2xl">📋</span>} description="Seguimientos tuyos" />
+          </>
         )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardSection
-          title="Tareas recientes"
-          action={hasPermission(PERMISSIONS.TASKS_READ) ? { label: 'Ver todas', to: '/tasks' } : undefined}
-          isLoading={tasksLoading}
-          isEmpty={recentTasks.length === 0}
-          emptyMessage="No hay tareas recientes"
-        >
-          {recentTasks.map((task) => (
-            <TaskItem key={task.id} task={task} />
-          ))}
-        </DashboardSection>
+        {d.children.length > 0 && (
+          <DashboardSection title="Mis hijos">
+            {d.children.map((c) => (
+              <Link key={c.id} to={`/students/${c.id}`} className="block hover:bg-gray-50">
+                <SimpleItem title={`${c.firstName} ${c.lastName}`} />
+              </Link>
+            ))}
+          </DashboardSection>
+        )}
 
-        <DashboardSection
-          title="Notificaciones recientes"
-          action={hasPermission(PERMISSIONS.NOTIFICATIONS_READ) ? { label: 'Ver todas', to: '/notifications' } : undefined}
-          isLoading={notifsLoading}
-          isEmpty={recentNotifications.length === 0}
-          emptyMessage="No hay notificaciones recientes"
-        >
-          {recentNotifications.map((n) => (
-            <NotificationItem key={n.id} notification={n} />
-          ))}
-        </DashboardSection>
+        {d.courses.length > 0 && (
+          <DashboardSection title="Cursos">
+            {d.courses.map((c) => (
+              <SimpleItem key={c.id} title={`${c.name} (${c.code})`} />
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.subjects.length > 0 && (
+          <DashboardSection title="Asignaturas">
+            {d.subjects.map((s) => (
+              <SimpleItem key={s.id} title={`${s.name} (${s.code})`} />
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.upcomingEvents.length > 0 && (
+          <DashboardSection title="Próximos eventos">
+            {d.upcomingEvents.map((e) => (
+              <SimpleItem key={e.id} title={e.title} subtitle={`${formatDate(e.startAt)}${e.location ? ` · ${e.location}` : ''}`} />
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.recentCommunications.length > 0 && (
+          <DashboardSection title="Comunicaciones recientes">
+            {d.recentCommunications.map((c) => (
+              <SimpleItem key={c.id} title={c.title} subtitle={formatDate(c.publishedAt)} />
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.followUps.length > 0 && (
+          <DashboardSection title="Seguimientos recientes">
+            {d.followUps.map((f) => (
+              <div key={f.id} className="flex items-center justify-between p-3">
+                <SimpleItem title={f.title} />
+                <Badge variant={FOLLOW_UP_BADGE[f.status] ?? 'default'} className="ml-2 shrink-0">
+                  {f.status}
+                </Badge>
+              </div>
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.pendingCommitments.length > 0 && (
+          <DashboardSection title="Compromisos pendientes">
+            {d.pendingCommitments.map((c) => (
+              <div key={c.id} className="flex items-center justify-between p-3">
+                <SimpleItem title={c.description} />
+                <Badge variant={COMMITMENT_BADGE[c.status] ?? 'default'} className="ml-2 shrink-0">
+                  {c.status}
+                </Badge>
+              </div>
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.pendingSignatures.length > 0 && (
+          <DashboardSection title="Firmas pendientes de ti">
+            {d.pendingSignatures.map((s) => (
+              <Link key={s.id} to={`/signatures/${s.id}`} className="block hover:bg-gray-50">
+                <SimpleItem title={s.title} subtitle={s.dueDate ? `Vence: ${formatDate(s.dueDate)}` : undefined} />
+              </Link>
+            ))}
+          </DashboardSection>
+        )}
+
+        {d.recentNotifications.length > 0 && (
+          <DashboardSection title="Notificaciones recientes">
+            {d.recentNotifications.map((n) => (
+              <div key={n.id} className="flex items-center justify-between p-3">
+                <SimpleItem title={n.title} subtitle={n.message} />
+                <Badge variant={n.status === 'UNREAD' ? 'warning' : 'default'} className="ml-2 shrink-0">
+                  {n.status === 'UNREAD' ? 'No leída' : 'Leída'}
+                </Badge>
+              </div>
+            ))}
+          </DashboardSection>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardSection
-          title="Firmas pendientes"
-          action={hasPermission(PERMISSIONS.SIGNATURES_READ) ? { label: 'Ver todas', to: '/signatures' } : undefined}
-          isLoading={sigsLoading}
-          isEmpty={pendingSignatures.length === 0}
-          emptyMessage="No hay firmas pendientes"
-        >
-          {pendingSignatures.map((sig) => (
-            <SignatureItem key={sig.id} signature={sig} />
-          ))}
-        </DashboardSection>
-
         <Card>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Accesos rápidos</h3>
           <div className="grid grid-cols-2 gap-2">

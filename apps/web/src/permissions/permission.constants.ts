@@ -44,6 +44,7 @@ export const PERMISSIONS = {
   SCHOOL_GRADES_MANAGE: 'school-grades:manage',
   ACADEMIC_PERIODS_READ: 'academic-periods:read',
   ACADEMIC_PERIODS_MANAGE: 'academic-periods:manage',
+  ACADEMIC_PERIODS_CLOSE: 'academic-periods:close',
   GUARDIANS_READ: 'guardians:read',
   GUARDIANS_MANAGE: 'guardians:manage',
   ENROLLMENTS_READ: 'enrollments:read',
@@ -51,6 +52,9 @@ export const PERMISSIONS = {
   TEACHER_ASSIGNMENTS_READ: 'teacher-assignments:read',
   TEACHER_ASSIGNMENTS_MANAGE: 'teacher-assignments:manage',
   AGENDA_READ: 'agenda:read',
+  AGENDA_CREATE: 'agenda:create',
+  AGENDA_UPDATE: 'agenda:update',
+  AGENDA_DELETE: 'agenda:delete',
   STUDENT_FOLLOW_UPS_READ: 'student-follow-ups:read',
   STUDENT_FOLLOW_UPS_CREATE: 'student-follow-ups:create',
   STUDENT_FOLLOW_UPS_UPDATE: 'student-follow-ups:update',
@@ -62,6 +66,14 @@ export const PERMISSIONS = {
   STUDENT_FOLLOW_UPS_MANAGE: 'student-follow-ups:manage',
   STUDENT_FOLLOW_UPS_STATS: 'student-follow-ups:stats',
   STUDENT_FOLLOW_UPS_CATEGORIES: 'student-follow-ups:categories',
+  ATTENDANCE_READ: 'attendance:read',
+  ATTENDANCE_CREATE: 'attendance:create',
+  ATTENDANCE_UPDATE: 'attendance:update',
+  ATTENDANCE_DELETE: 'attendance:delete',
+  ATTENDANCE_MANAGE: 'attendance:manage',
+  ATTENDANCE_STATS: 'attendance:stats',
+  REPORTS_READ: 'reports:read',
+  REPORTS_EXPORT: 'reports:export',
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

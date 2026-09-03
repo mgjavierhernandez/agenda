@@ -32,6 +32,11 @@ const navItems: NavItem[] = [
   { to: '/teacher-assignments', label: 'Asignaciones docentes', icon: '👨‍🏫', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
   { to: '/student-follow-ups', label: 'Observador', icon: '📋', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_READ },
   { to: '/student-follow-ups/categories', label: 'Categorías', icon: '🏷️', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_CATEGORIES },
+  { to: '/attendance', label: 'Asistencia', icon: '✅', permission: PERMISSIONS.ATTENDANCE_READ },
+  { to: '/reports', label: 'Reportes y boletín', icon: '📄', permission: PERMISSIONS.REPORTS_READ },
+  { to: '/reports/course', label: 'Reporte de curso', icon: '📈', permission: PERMISSIONS.REPORTS_READ },
+  { to: '/institution', label: 'Mi institución', icon: '🏫', permission: PERMISSIONS.INSTITUTION_READ },
+  { to: '/admin/users', label: 'Usuarios', icon: '👥', permission: PERMISSIONS.USERS_READ },
 ];
 
 interface SidebarProps {

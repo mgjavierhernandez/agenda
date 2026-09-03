@@ -71,6 +71,18 @@ describe('InstitutionsService', () => {
       prismaMock.institution.findUnique.mockResolvedValue(null);
       await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
     });
+
+    it('should throw when tenant-scoped id does not match the request institution (IDOR)', async () => {
+      prismaMock.institution.findUnique.mockResolvedValue({ id: 'inst-1', name: 'Test' });
+      await expect(service.findOne('inst-1', 'other-tenant')).rejects.toThrow(NotFoundException);
+      expect(prismaMock.institution.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('should allow tenant-scoped read of own institution', async () => {
+      prismaMock.institution.findUnique.mockResolvedValue({ id: 'inst-1', name: 'Test' });
+      const result = await service.findOne('inst-1', 'inst-1');
+      expect(result.id).toBe('inst-1');
+    });
   });
 
   describe('update', () => {
@@ -94,6 +106,13 @@ describe('InstitutionsService', () => {
       await expect(
         service.update('inst-1', { slug: 'taken' }, 'user-1'),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('should reject updating an institution id that differs from the request tenant (IDOR)', async () => {
+      await expect(
+        service.update('inst-1', { name: 'New' }, 'user-1', 'other-tenant'),
+      ).rejects.toThrow(NotFoundException);
+      expect(prismaMock.institution.findUnique).not.toHaveBeenCalled();
     });
   });
 

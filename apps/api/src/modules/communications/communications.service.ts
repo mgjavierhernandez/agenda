@@ -2,10 +2,13 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { AuthorizationService } from '../auth/authorization/authorization.service';
+import { EMAIL_PROVIDER, EmailProvider, EmailTemplates } from '../auth/services/email';
 import { CreateCommunicationDto } from './dto/create-communication.dto';
 import { UpdateCommunicationDto } from './dto/update-communication.dto';
 import { ListCommunicationsQueryDto } from './dto/list-communications-query.dto';
@@ -13,10 +16,14 @@ import { Communication, CommunicationStatus, CommunicationAudience, Prisma } fro
 
 @Injectable()
 export class CommunicationsService {
+  private readonly logger = new Logger(CommunicationsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly authorizationService: AuthorizationService,
+    @Inject(EMAIL_PROVIDER) private readonly emailProvider: EmailProvider,
+    private readonly emailTemplates: EmailTemplates,
   ) {}
 
   private async canUserViewCommunication(
@@ -341,6 +348,10 @@ export class CommunicationsService {
     // Auto-create recipients based on audience
     await this.createRecipientsForCommunication(institutionId, communication.id, communication.audience);
 
+    // Best-effort, asynchronous email dispatch. Never blocks nor rolls back the
+    // publish if email fails; errors are sanitized and logged.
+    void this.sendCommunicationEmails(institutionId, communication, userId);
+
     await this.auditService.log({
       userId,
       institutionId,
@@ -437,5 +448,61 @@ export class CommunicationsService {
       data: recipientData,
       skipDuplicates: true,
     });
+  }
+
+  private async sendCommunicationEmails(
+    institutionId: string,
+    communication: Communication,
+    publisherUserId: string,
+  ): Promise<void> {
+    try {
+      const [recipients, institution] = await Promise.all([
+        this.prisma.communicationRecipient.findMany({
+          where: {
+            institutionId,
+            communicationId: communication.id,
+            user: { status: 'ACTIVE' },
+          },
+          select: {
+            user: { select: { id: true, email: true, firstName: true, lastName: true } },
+          },
+        }),
+        this.prisma.institution.findUnique({
+          where: { id: institutionId },
+          select: { name: true },
+        }),
+      ]);
+
+      if (recipients.length === 0) return;
+
+      const institutionName = institution?.name ?? '';
+      const seen = new Set<string>();
+
+      for (const r of recipients) {
+        const u = r.user;
+        // Actor exclusion + dedupe: never email the publisher twice and never
+        // resend to the same user for the same publish.
+        if (u.id === publisherUserId || seen.has(u.id)) continue;
+        seen.add(u.id);
+        if (!u.email) continue;
+
+        const data = {
+          to: u.email,
+          recipientName: `${u.firstName} ${u.lastName}`.trim(),
+          institutionName,
+          title: communication.title,
+          content: communication.content,
+        };
+        this.emailProvider
+          .sendCommunication(data)
+          .catch((err: unknown) => {
+            const message = err instanceof Error ? err.message : String(err);
+            this.logger.warn(`[comm ${communication.id}] email to ${u.email} failed: ${message}`);
+          });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`[comm ${communication.id}] email dispatch skipped: ${message}`);
+    }
   }
 }

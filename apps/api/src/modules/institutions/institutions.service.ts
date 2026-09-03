@@ -79,7 +79,13 @@ export class InstitutionsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(id: string): Promise<Institution> {
+  async findOne(id: string, tenantId?: string): Promise<Institution> {
+    // When a tenant context is present (e.g. INSTITUTION_ADMIN), the target
+    // institution must be the caller's own institution (IDOR protection).
+    if (tenantId && id !== tenantId) {
+      throw new NotFoundException('Institution not found');
+    }
+
     const institution = await this.prisma.institution.findUnique({
       where: { id },
     });
@@ -93,9 +99,10 @@ export class InstitutionsService {
     id: string,
     dto: UpdateInstitutionDto,
     userId: string,
+    tenantId?: string,
     ipAddress?: string,
   ): Promise<Institution> {
-    const existing = await this.findOne(id);
+    const existing = await this.findOne(id, tenantId);
 
     if (existing.status === InstitutionStatus.INACTIVE && dto.status !== InstitutionStatus.ACTIVE) {
       throw new BadRequestException('Cannot modify an inactive institution');
@@ -135,9 +142,10 @@ export class InstitutionsService {
   async deactivate(
     id: string,
     userId: string,
+    tenantId?: string,
     ipAddress?: string,
   ): Promise<Institution> {
-    const existing = await this.findOne(id);
+    const existing = await this.findOne(id, tenantId);
 
     if (existing.status === InstitutionStatus.INACTIVE) {
       return existing;
