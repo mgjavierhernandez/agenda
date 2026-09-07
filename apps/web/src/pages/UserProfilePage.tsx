@@ -6,24 +6,22 @@ import { PageHeader } from '@/components/feedback/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
-import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPES } from '@/api/types';
-import type { UserProfile, UpsertUserProfileInput } from '@/api/types';
+import { DOCUMENT_TYPE_LABELS } from '@/api/types';
+import type { UpsertUserProfileInput, DocumentType } from '@/api/types';
+
+const DOCUMENT_TYPES: DocumentType[] = ['DNI', 'PASSPORT', 'NATIONAL_ID', 'OTHER'];
 
 export function UserProfilePage() {
   const { user, selectedInstitutionId } = useAuth();
   const upsertProfile = useUpsertUserProfile(user?.id);
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [documentType, setDocumentType] = useState('');
+  const [documentType, setDocumentType] = useState<DocumentType | ''>('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [phone, setPhone] = useState('');
@@ -39,10 +37,7 @@ export function UserProfilePage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setProfile(data);
-        setFirstName(data.firstName ?? '');
-        setLastName(data.lastName ?? '');
-        setDocumentType(data.documentType ?? '');
+        setDocumentType((data.documentType as DocumentType) ?? '');
         setDocumentNumber(data.documentNumber ?? '');
         setBirthDate(data.birthDate ?? '');
         setPhone(data.phone ?? '');
@@ -61,14 +56,8 @@ export function UserProfilePage() {
     setIsDirty(true);
     setSaved(false);
     switch (field) {
-      case 'firstName':
-        setFirstName(value);
-        break;
-      case 'lastName':
-        setLastName(value);
-        break;
       case 'documentType':
-        setDocumentType(value);
+        setDocumentType(value as DocumentType | '');
         break;
       case 'documentNumber':
         setDocumentNumber(value);
@@ -97,8 +86,6 @@ export function UserProfilePage() {
     setSaved(false);
 
     const input: UpsertUserProfileInput = {
-      firstName: firstName.trim() || undefined,
-      lastName: lastName.trim() || undefined,
       documentType: documentType || undefined,
       documentNumber: documentNumber.trim() || undefined,
       birthDate: birthDate || undefined,
@@ -129,6 +116,15 @@ export function UserProfilePage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Mi perfil" description="Información personal y profesional" />
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Datos del usuario</h3>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="sm:col-span-2">
+            <dt className="text-gray-500">Correo</dt>
+            <dd className="text-gray-900 font-medium">{user?.email ?? ''}</dd>
+          </div>
+        </dl>
+      </Card>
       {saved && (
         <div className="rounded-lg border border-green-200 bg-green-50 p-4">
           <p className="text-sm text-green-700">Perfil guardado correctamente.</p>
@@ -140,23 +136,8 @@ export function UserProfilePage() {
         </div>
       )}
       <Card>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Perfil personal y profesional</h3>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Nombres"
-              placeholder="Nombres"
-              value={firstName}
-              onChange={(e) => handleChange('firstName', e.target.value)}
-              required
-            />
-            <Input
-              label="Apellidos"
-              placeholder="Apellidos"
-              value={lastName}
-              onChange={(e) => handleChange('lastName', e.target.value)}
-              required
-            />
-          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">

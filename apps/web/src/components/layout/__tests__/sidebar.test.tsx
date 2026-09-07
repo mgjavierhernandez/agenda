@@ -46,11 +46,11 @@ describe('Sidebar por categorias', () => {
       '/school-grades', '/guardians', '/enrollments', '/teacher-assignments',
       '/course-directors', '/teachers', '/student-follow-ups',
       '/student-follow-ups/categories', '/attendance', '/reports', '/reports/course',
-      '/institution', '/admin/users', '/admin/requests',
+      '/institution', '/admin/users', '/admin/requests', '/profile', '/students/import',
     ]) {
       expect(allTos).toContain(to);
     }
-    expect(allTos).toHaveLength(32);
+    expect(allTos).toHaveLength(34);
   });
 
   it('admin ve categorias administrativas y gestion academica/docente', () => {
@@ -66,15 +66,16 @@ describe('Sidebar por categorias', () => {
     expect(screen.getByText('Estudiantes')).toBeInTheDocument();
   });
 
-  it('docente sin permisos admin NO ve Usuarios ni Mi institucion', () => {
+  it('docente sin permisos admin ve Mi perfil pero NO ve Usuarios ni Mi institucion', () => {
     mockHasPermission.mockImplementation((code: string) =>
       ['agenda:read', 'teacher-assignments:read', 'courses:read'].includes(code),
     );
     renderSidebar('/dashboard');
     expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
     expect(screen.queryByText('Mi institución')).not.toBeInTheDocument();
-    // La categoria Administracion queda oculta al no tener items visibles
-    expect(screen.queryByRole('button', { name: /Categoría Administración/i })).not.toBeInTheDocument();
+    // Expandir Administración para ver Mi perfil
+    fireEvent.click(screen.getByRole('button', { name: /Categoría Administración/i }));
+    expect(screen.getByText('Mi perfil')).toBeInTheDocument();
   });
 
   it('estudiante solo ve lo permitido (sin gestion docente/admin)', () => {
@@ -85,6 +86,9 @@ describe('Sidebar por categorias', () => {
     expect(screen.queryByText('Directores de grupo')).not.toBeInTheDocument();
     expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Categoría Gestión docente/i })).not.toBeInTheDocument();
+    // Expandir Administración para ver Mi perfil
+    fireEvent.click(screen.getByRole('button', { name: /Categoría Administración/i }));
+    expect(screen.getByText('Mi perfil')).toBeInTheDocument();
   });
 
   it('expande/colapsa categorias y recuerda estado', () => {

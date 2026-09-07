@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/auth/auth.store';
 import { apiClient } from '@/api/client';
 import { getErrorMessage } from '@/api/errors';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Link } from 'react-router-dom';
 
 export function GoogleCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login: emailLogin } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'not-configured'>('loading');
   const [error, setError] = useState('');
 
@@ -18,9 +15,6 @@ export function GoogleCallbackPage() {
     const handleCallback = async () => {
       const accessToken = searchParams.get('access_token');
       const refreshToken = searchParams.get('refresh_token');
-      const userEmail = searchParams.get('email');
-      const userId = searchParams.get('user_id');
-      const userStatus = searchParams.get('status');
       const err = searchParams.get('error');
       const errDesc = searchParams.get('error_description');
 
@@ -30,20 +24,17 @@ export function GoogleCallbackPage() {
         return;
       }
 
-      if (accessToken && refreshToken && userEmail && userId && userStatus) {
+      if (accessToken && refreshToken) {
         try {
           apiClient.setAccessToken(accessToken);
           sessionStorage.setItem('agenda_access_token', accessToken);
           sessionStorage.setItem('agenda_refresh_token', refreshToken);
 
-          const { fetchInstitutions, selectInstitution } = await import('@/auth/auth.store').then(m => ({
-            fetchInstitutions: m.useAuth.getState().fetchInstitutions,
-            selectInstitution: m.useAuth.getState().selectInstitution,
-          }));
+          await apiClient.get<{ id: string; email: string; status: string }>('/auth/profile');
+          const insts = await apiClient.get<{ institutions: { id: string }[] }>('/auth/institutions');
 
-          const institutions = await fetchInstitutions();
-          if (institutions.length === 1) {
-            await selectInstitution(institutions[0].id);
+          if (insts.institutions.length === 1) {
+            await apiClient.post('/auth/tenant/select', { institutionId: insts.institutions[0].id });
           }
 
           setStatus('success');
