@@ -36,6 +36,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     icon: '🎓',
     items: [
       { to: '/students', label: 'Estudiantes', icon: '👨‍🎓', permission: PERMISSIONS.STUDENTS_READ },
+      { to: '/students/import', label: 'Importar estudiantes', icon: '📥', permission: PERMISSIONS.STUDENTS_MANAGE },
       { to: '/enrollments', label: 'Matrículas', icon: '📋', permission: PERMISSIONS.ENROLLMENTS_READ },
       { to: '/courses', label: 'Cursos', icon: '📚', permission: PERMISSIONS.COURSES_READ },
       { to: '/subjects', label: 'Asignaturas', icon: '📝', permission: PERMISSIONS.SUBJECTS_READ },
@@ -118,6 +119,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'Administración',
     icon: '⚙️',
     items: [
+      { to: '/profile', label: 'Mi perfil', icon: '👤' },
       { to: '/institution', label: 'Mi institución', icon: '🏫', permission: PERMISSIONS.INSTITUTION_READ },
       { to: '/admin/users', label: 'Usuarios', icon: '👥', permission: PERMISSIONS.USERS_READ },
       { to: '/admin/requests', label: 'Solicitudes de acceso', icon: '📨', permission: PERMISSIONS.MEMBERSHIPS_MANAGE },

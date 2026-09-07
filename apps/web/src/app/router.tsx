@@ -5,6 +5,8 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { InstitutionSelectPage } from '@/pages/InstitutionSelectPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { UserProfilePage } from '@/pages/UserProfilePage';
+import { GoogleCallbackPage } from '@/pages/GoogleCallbackPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
@@ -44,6 +46,7 @@ export const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
+      { path: '/auth/google/callback', element: <GoogleCallbackPage /> },
       { path: '/unauthorized', element: <UnauthorizedPage /> },
     ],
   },
@@ -56,6 +59,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: '/select-institution', element: <InstitutionSelectPage /> },
           { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/profile', element: <UserProfilePage /> },
           { path: '/agenda', element: <AgendaPage /> },
           { path: '/agenda/events/new', element: <AgendaEventFormPage /> },
           { path: '/agenda/events/:id', element: <AgendaEventDetailPage /> },

@@ -5,6 +5,7 @@ import { getErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { Spinner } from '@/components/ui/Spinner';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -13,6 +14,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -28,6 +30,13 @@ export function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    setError('');
+    setIsGoogleLoading(true);
+    const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
+    window.location.href = `${apiUrl}/auth/google`;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
       <h1 className="text-xl font-semibold text-gray-900 mb-6">Iniciar sesión</h1>
@@ -40,7 +49,7 @@ export function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isGoogleLoading}
         />
         <PasswordInput
           label="Contraseña"
@@ -49,22 +58,33 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isGoogleLoading}
         />
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3" role="alert">
             {error}
           </div>
         )}
-        <Button type="submit" isLoading={isSubmitting} className="w-full">
+        <Button type="submit" isLoading={isSubmitting} className="w-full" disabled={isGoogleLoading}>
           Entrar
         </Button>
-        <a
-          href={`${import.meta.env.VITE_API_URL || '/api/v1'}/auth/google`}
-          className="block w-full text-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          onClick={handleGoogleLogin}
+          disabled={isSubmitting || isGoogleLoading}
+          isLoading={isGoogleLoading}
         >
-          Continuar con Google
-        </a>
+          {isGoogleLoading ? (
+            <>
+              <Spinner size="sm" className="mr-2" />
+              Redirigiendo a Google...
+            </>
+          ) : (
+            'Continuar con Google'
+          )}
+        </Button>
         <p className="text-sm text-gray-500 text-center">
           ¿No tienes cuenta?{' '}
           <Link to="/register" className="font-medium text-blue-600 hover:text-blue-800">
