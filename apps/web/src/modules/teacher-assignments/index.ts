@@ -1,8 +1,17 @@
 export { TeacherAssignmentsPage } from './pages/TeacherAssignmentsPage';
 export { TeacherAssignmentDetailPage } from './pages/TeacherAssignmentDetailPage';
 export { TeacherAssignmentFormPage } from './pages/TeacherAssignmentFormPage';
+export { TeachersPage } from './pages/TeachersPage';
+export { CourseDirectorsPage } from './pages/CourseDirectorsPage';
+export { CourseDirectorFormPage } from './pages/CourseDirectorFormPage';
+export { CourseDirectorDetailPage } from './pages/CourseDirectorDetailPage';
 export { useTeacherAssignments } from './hooks/useTeacherAssignments';
 export { useTeacherAssignment } from './hooks/useTeacherAssignment';
 export { useCreateTeacherAssignment } from './hooks/useCreateTeacherAssignment';
 export { useUpdateTeacherAssignment } from './hooks/useUpdateTeacherAssignment';
 export { useDeactivateTeacherAssignment } from './hooks/useDeactivateTeacherAssignment';
+export { useCourseDirectorAssignments } from './hooks/useCourseDirectorAssignments';
+export { useCourseDirectorAssignment } from './hooks/useCourseDirectorAssignment';
+export { useCreateCourseDirectorAssignment } from './hooks/useCreateCourseDirectorAssignment';
+export { useUpdateCourseDirectorAssignment } from './hooks/useUpdateCourseDirectorAssignment';
+export { useDeactivateCourseDirectorAssignment } from './hooks/useDeactivateCourseDirectorAssignment';

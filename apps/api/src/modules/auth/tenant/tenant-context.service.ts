@@ -20,7 +20,7 @@ export class TenantContextService {
 
   async getUserInstitutions(userId: string): Promise<InstitutionListItem[]> {
     const memberships = await this.prisma.userInstitution.findMany({
-      where: { userId },
+      where: { userId, status: MembershipStatus.ACTIVE },
       select: {
         institution: {
           select: {
@@ -128,6 +128,10 @@ export class TenantContextService {
     });
 
     if (!membership) {
+      throw new NotFoundException('Institution not found or access denied');
+    }
+
+    if (membership.status !== MembershipStatus.ACTIVE) {
       throw new NotFoundException('Institution not found or access denied');
     }
 

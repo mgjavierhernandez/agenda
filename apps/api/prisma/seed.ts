@@ -21,6 +21,7 @@ const ALL_PERMISSIONS = [
   'roles:read', 'roles:manage',
   'grades:read', 'grades:manage',
   'courses:read', 'courses:manage',
+  'areas:read', 'areas:manage',
   'subjects:read', 'subjects:manage',
   'students:read', 'students:manage',
   'schedules:read', 'schedules:manage',
@@ -50,6 +51,7 @@ const INSTITUTION_ADMIN_PERMISSIONS = [
   'roles:read', 'roles:manage',
   'grades:read', 'grades:manage',
   'courses:read', 'courses:manage',
+  'areas:read', 'areas:manage',
   'subjects:read', 'subjects:manage',
   'students:read', 'students:manage',
   'schedules:read', 'schedules:manage',
@@ -74,6 +76,7 @@ const INSTITUTION_ADMIN_PERMISSIONS = [
 
 const TEACHER_PERMISSIONS = [
   'courses:read', 'courses:manage',
+  'areas:read',
   'subjects:read', 'subjects:manage',
   'students:read',
   'grades:read', 'grades:manage',
@@ -93,6 +96,15 @@ const TEACHER_PERMISSIONS = [
   'attendance:read', 'attendance:create', 'attendance:update',
   'reports:read', 'reports:export',
 ];
+
+const DIRECTOR_DE_GRUPO_PERMISSIONS = Array.from(
+  new Set([
+    ...TEACHER_PERMISSIONS,
+    'enrollments:read',
+    'attendance:stats',
+    'student-follow-ups:manage',
+  ]),
+);
 
 const PARENT_PERMISSIONS = [
   'students:read',
@@ -114,6 +126,7 @@ const PARENT_PERMISSIONS = [
 ];
 
 const STUDENT_PERMISSIONS = [
+  'students:read',
   'tasks:read', 'tasks:update',
   'grades:read',
   'schedules:read',
@@ -126,6 +139,113 @@ const STUDENT_PERMISSIONS = [
   'agenda:read',
   'student-follow-ups:read',
   'attendance:read',
+  'reports:read',
+];
+
+const RECTOR_PERMISSIONS = [
+  'institution:read',
+  'users:read',
+  'memberships:read',
+  'roles:read',
+  'grades:read', 'grades:manage',
+  'courses:read', 'courses:manage',
+  'areas:read', 'areas:manage',
+  'subjects:read', 'subjects:manage',
+  'students:read', 'students:manage',
+  'schedules:read', 'schedules:manage',
+  'tasks:read', 'tasks:create', 'tasks:update', 'tasks:manage',
+  'communications:read', 'communications:create', 'communications:manage', 'communications:send_bulk',
+  'signatures:read', 'signatures:request', 'signatures:manage',
+  'notifications:read', 'notifications:manage', 'audit:read', 'files:read', 'files:upload', 'files:manage',
+  'school-grades:read', 'school-grades:manage',
+  'academic-periods:read', 'academic-periods:manage', 'academic-periods:close',
+  'guardians:read',
+  'enrollments:read', 'enrollments:manage',
+  'teacher-assignments:read', 'teacher-assignments:manage',
+  'agenda:read', 'agenda:create', 'agenda:update', 'agenda:delete',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
+  'student-follow-ups:stats', 'student-follow-ups:categories',
+  'attendance:read', 'attendance:manage', 'attendance:stats',
+  'reports:read', 'reports:export',
+];
+
+const COORDINADOR_ACADEMICO_PERMISSIONS = [
+  'institution:read',
+  'courses:read', 'courses:manage',
+  'areas:read', 'areas:manage',
+  'subjects:read', 'subjects:manage',
+  'students:read',
+  'grades:read', 'grades:manage',
+  'schedules:read', 'schedules:manage',
+  'tasks:read', 'tasks:create', 'tasks:update', 'tasks:manage',
+  'attendance:read', 'attendance:create', 'attendance:update', 'attendance:stats',
+  'teacher-assignments:read', 'teacher-assignments:manage',
+  'academic-periods:read', 'academic-periods:manage', 'academic-periods:close',
+  'school-grades:read', 'school-grades:manage',
+  'enrollments:read', 'enrollments:manage',
+  'guardians:read',
+  'notifications:read', 'notifications:manage',
+  'files:read', 'files:upload', 'files:manage',
+  'agenda:read', 'agenda:create', 'agenda:update',
+  'student-follow-ups:read', 'student-follow-ups:stats', 'student-follow-ups:categories',
+  'reports:read', 'reports:export',
+];
+
+const COORDINADOR_CONVIVENCIA_PERMISSIONS = [
+  'institution:read',
+  'students:read', 'students:manage',
+  'courses:read', 'subjects:read',
+  'schedules:read',
+  'communications:read', 'communications:create', 'communications:manage',
+  'notifications:read', 'notifications:manage',
+  'files:read', 'files:upload',
+  'agenda:read', 'agenda:create', 'agenda:update',
+  'attendance:read', 'attendance:stats',
+  'guardians:read',
+  'school-grades:read', 'academic-periods:read',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
+  'student-follow-ups:stats', 'student-follow-ups:categories',
+  'reports:read', 'reports:export',
+];
+
+const ORIENTADOR_PERMISSIONS = [
+  'institution:read',
+  'students:read',
+  'courses:read', 'subjects:read', 'schedules:read',
+  'grades:read',
+  'attendance:read', 'attendance:stats',
+  'guardians:read',
+  'school-grades:read', 'academic-periods:read', 'enrollments:read',
+  'notifications:read', 'notifications:manage',
+  'files:read', 'files:upload',
+  'agenda:read', 'agenda:create', 'agenda:update',
+  'communications:read', 'communications:create',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
+  'student-follow-ups:stats', 'student-follow-ups:categories',
+  'reports:read', 'reports:export',
+];
+
+const PSICOLOGO_PERMISSIONS = [
+  'institution:read',
+  'students:read',
+  'courses:read', 'subjects:read', 'schedules:read',
+  'grades:read',
+  'attendance:read',
+  'guardians:read',
+  'school-grades:read', 'academic-periods:read', 'enrollments:read',
+  'notifications:read', 'files:read', 'files:upload',
+  'agenda:read',
+  'communications:read',
+  'student-follow-ups:read', 'student-follow-ups:create', 'student-follow-ups:update',
+  'student-follow-ups:close', 'student-follow-ups:escalate', 'student-follow-ups:follow_up',
+  'student-follow-ups:commit', 'student-follow-ups:attach', 'student-follow-ups:manage',
+  'student-follow-ups:stats', 'student-follow-ups:categories',
   'reports:read',
 ];
 
@@ -190,6 +310,8 @@ async function main(): Promise<void> {
     { code: 'grades:manage', module: 'grades', description: 'CRUD grades' },
     { code: 'courses:read', module: 'courses', description: 'List and read courses' },
     { code: 'courses:manage', module: 'courses', description: 'CRUD courses' },
+    { code: 'areas:read', module: 'areas', description: 'List and read areas' },
+    { code: 'areas:manage', module: 'areas', description: 'CRUD areas' },
     { code: 'subjects:read', module: 'subjects', description: 'List and read subjects' },
     { code: 'subjects:manage', module: 'subjects', description: 'CRUD subjects' },
     { code: 'students:read', module: 'students', description: 'List and read students' },
@@ -262,8 +384,14 @@ async function main(): Promise<void> {
   const tplTeacher = await findOrCreateTemplateRole('TEACHER', 'Teacher assigned to courses (template)');
   const tplParent = await findOrCreateTemplateRole('PARENT', 'Parent or guardian (template)');
   const tplStudent = await findOrCreateTemplateRole('STUDENT', 'Enrolled student (template)');
+  const tplRector = await findOrCreateTemplateRole('RECTOR', 'School principal (template)');
+  const tplCoordAcad = await findOrCreateTemplateRole('COORDINADOR_ACADEMICO', 'Academic coordinator (template)');
+  const tplCoordConv = await findOrCreateTemplateRole('COORDINADOR_CONVIVENCIA', 'Coexistence coordinator (template)');
+  const tplOrientador = await findOrCreateTemplateRole('ORIENTADOR', 'School counselor (template)');
+  const tplPsicologo = await findOrCreateTemplateRole('PSICOLOGO', 'Psychologist (template)');
+  const tplDirectorGrupo = await findOrCreateTemplateRole('DIRECTOR_DE_GRUPO', 'Group director (template)');
 
-  console.log('  Created template roles: SUPER_ADMIN(GLOBAL), INSTITUTION_ADMIN(TEMPLATE), TEACHER(TEMPLATE), PARENT(TEMPLATE), STUDENT(TEMPLATE)');
+  console.log('  Created template roles: SUPER_ADMIN(GLOBAL), INSTITUTION_ADMIN(TEMPLATE), TEACHER(TEMPLATE), PARENT(TEMPLATE), STUDENT(TEMPLATE), RECTOR(TEMPLATE), COORDINADOR_ACADEMICO(TEMPLATE), COORDINADOR_CONVIVENCIA(TEMPLATE), ORIENTADOR(TEMPLATE), PSICOLOGO(TEMPLATE)');
 
   // 3. ASSIGN PERMISSIONS TO TEMPLATES
   await assignPermissions(superAdmin.id, ALL_PERMISSIONS);
@@ -281,6 +409,24 @@ async function main(): Promise<void> {
   await assignPermissions(tplStudent.id, STUDENT_PERMISSIONS);
   console.log(`  Assigned ${STUDENT_PERMISSIONS.length} permissions to STUDENT template`);
 
+  await assignPermissions(tplRector.id, RECTOR_PERMISSIONS);
+  console.log(`  Assigned ${RECTOR_PERMISSIONS.length} permissions to RECTOR template`);
+
+  await assignPermissions(tplCoordAcad.id, COORDINADOR_ACADEMICO_PERMISSIONS);
+  console.log(`  Assigned ${COORDINADOR_ACADEMICO_PERMISSIONS.length} permissions to COORDINADOR_ACADEMICO template`);
+
+  await assignPermissions(tplCoordConv.id, COORDINADOR_CONVIVENCIA_PERMISSIONS);
+  console.log(`  Assigned ${COORDINADOR_CONVIVENCIA_PERMISSIONS.length} permissions to COORDINADOR_CONVIVENCIA template`);
+
+  await assignPermissions(tplOrientador.id, ORIENTADOR_PERMISSIONS);
+  console.log(`  Assigned ${ORIENTADOR_PERMISSIONS.length} permissions to ORIENTADOR template`);
+
+  await assignPermissions(tplPsicologo.id, PSICOLOGO_PERMISSIONS);
+  console.log(`  Assigned ${PSICOLOGO_PERMISSIONS.length} permissions to PSICOLOGO template`);
+
+  await assignPermissions(tplDirectorGrupo.id, DIRECTOR_DE_GRUPO_PERMISSIONS);
+  console.log(`  Assigned ${DIRECTOR_DE_GRUPO_PERMISSIONS.length} permissions to DIRECTOR_DE_GRUPO template`);
+
   // 4. DEMO INSTITUTION
   const demoInstitution = await prisma.institution.upsert({
     where: { slug: 'demo-school' },
@@ -294,14 +440,26 @@ async function main(): Promise<void> {
   const demoTeacher = await findOrCreateTenantRole('TEACHER', 'Teacher at Demo School', demoInstitution.id);
   const demoParent = await findOrCreateTenantRole('PARENT', 'Parent at Demo School', demoInstitution.id);
   const demoStudent = await findOrCreateTenantRole('STUDENT', 'Student at Demo School', demoInstitution.id);
+  const demoRector = await findOrCreateTenantRole('RECTOR', 'Principal at Demo School', demoInstitution.id);
+  const demoCoordAcad = await findOrCreateTenantRole('COORDINADOR_ACADEMICO', 'Academic coordinator at Demo School', demoInstitution.id);
+  const demoCoordConv = await findOrCreateTenantRole('COORDINADOR_CONVIVENCIA', 'Coexistence coordinator at Demo School', demoInstitution.id);
+  const demoOrientador = await findOrCreateTenantRole('ORIENTADOR', 'Counselor at Demo School', demoInstitution.id);
+  const demoPsicologo = await findOrCreateTenantRole('PSICOLOGO', 'Psychologist at Demo School', demoInstitution.id);
+  const demoDirectorGrupo = await findOrCreateTenantRole('DIRECTOR_DE_GRUPO', 'Group director at Demo School', demoInstitution.id);
 
-  console.log('  Created tenant roles for Demo School: INSTITUTION_ADMIN, TEACHER, PARENT, STUDENT');
+  console.log('  Created tenant roles for Demo School: INSTITUTION_ADMIN, TEACHER, PARENT, STUDENT, RECTOR, COORDINADOR_ACADEMICO, COORDINADOR_CONVIVENCIA, ORIENTADOR, PSICOLOGO');
 
   // 6. ASSIGN PERMISSIONS TO TENANT ROLES
   await assignPermissions(demoAdmin.id, INSTITUTION_ADMIN_PERMISSIONS);
   await assignPermissions(demoTeacher.id, TEACHER_PERMISSIONS);
   await assignPermissions(demoParent.id, PARENT_PERMISSIONS);
   await assignPermissions(demoStudent.id, STUDENT_PERMISSIONS);
+  await assignPermissions(demoRector.id, RECTOR_PERMISSIONS);
+  await assignPermissions(demoCoordAcad.id, COORDINADOR_ACADEMICO_PERMISSIONS);
+  await assignPermissions(demoCoordConv.id, COORDINADOR_CONVIVENCIA_PERMISSIONS);
+  await assignPermissions(demoOrientador.id, ORIENTADOR_PERMISSIONS);
+  await assignPermissions(demoPsicologo.id, PSICOLOGO_PERMISSIONS);
+  await assignPermissions(demoDirectorGrupo.id, DIRECTOR_DE_GRUPO_PERMISSIONS);
   console.log('  Assigned permissions to Demo School tenant roles');
 
   // 7. DEMO USERS
@@ -371,6 +529,54 @@ async function main(): Promise<void> {
     create: { userInstitutionId: teacherMembership.id, roleId: demoTeacher.id, institutionId: demoInstitution.id },
   });
   console.log(`  Created teacher: ${teacherUser.email}`);
+
+  await prisma.userRole.upsert({
+    where: { userInstitutionId_roleId: { userInstitutionId: teacherMembership.id, roleId: demoDirectorGrupo.id } },
+    update: {},
+    create: { userInstitutionId: teacherMembership.id, roleId: demoDirectorGrupo.id, institutionId: demoInstitution.id },
+  });
+  console.log(`  Assigned DIRECTOR_DE_GRUPO role: ${teacherUser.email}`);
+
+  // Staff-directive roles at Demo School (Rector, Coordinators, Counselor, Psychologist)
+  const staffUsers: Array<{
+    email: string;
+    firstName: string;
+    lastName: string;
+    tenantRole: { id: string };
+  }> = [
+    { email: 'rector@demo-school.dev', firstName: 'Ana', lastName: 'Martínez', tenantRole: demoRector },
+    { email: 'coordinador-academico@demo-school.dev', firstName: 'Jorge', lastName: 'Ramírez', tenantRole: demoCoordAcad },
+    { email: 'coordinador-convivencia@demo-school.dev', firstName: 'Lucía', lastName: 'Herrera', tenantRole: demoCoordConv },
+    { email: 'orientador@demo-school.dev', firstName: 'Pedro', lastName: 'Vargas', tenantRole: demoOrientador },
+    { email: 'psicologo@demo-school.dev', firstName: 'Sofía', lastName: 'Castro', tenantRole: demoPsicologo },
+  ];
+
+  for (const su of staffUsers) {
+    const user = await prisma.user.upsert({
+      where: { email: su.email },
+      update: {},
+      create: {
+        email: su.email,
+        passwordHash: demoPasswordHash,
+        firstName: su.firstName,
+        lastName: su.lastName,
+        status: 'ACTIVE',
+      },
+    });
+
+    const membership = await prisma.userInstitution.upsert({
+      where: { userId_institutionId: { userId: user.id, institutionId: demoInstitution.id } },
+      update: {},
+      create: { userId: user.id, institutionId: demoInstitution.id, status: 'ACTIVE' },
+    });
+
+    await prisma.userRole.upsert({
+      where: { userInstitutionId_roleId: { userInstitutionId: membership.id, roleId: su.tenantRole.id } },
+      update: {},
+      create: { userInstitutionId: membership.id, roleId: su.tenantRole.id, institutionId: demoInstitution.id },
+    });
+    console.log(`  Created staff user: ${user.email}`);
+  }
 
   // Parent at Demo School
   const parentUser = await prisma.user.upsert({
@@ -495,11 +701,33 @@ async function main(): Promise<void> {
   }
   console.log(`  Created ${demoCourses.length} demo courses for ${demoInstitution.name}`);
 
+  // 9b. DEMO AREAS (curriculum hierarchy)
+  const demoAreas = [
+    { code: 'ARE-MAT', name: 'Matemáticas' },
+    { code: 'ARE-CIE', name: 'Ciencias Naturales' },
+    { code: 'ARE-LEN', name: 'Lenguaje' },
+  ];
+
+  const demoAreaRecords: Record<string, any> = {};
+  for (const a of demoAreas) {
+    const existing = await prisma.area.findFirst({
+      where: { institutionId: demoInstitution.id, code: a.code },
+    });
+    if (existing) {
+      demoAreaRecords[a.code] = existing;
+    } else {
+      demoAreaRecords[a.code] = await prisma.area.create({
+        data: { institutionId: demoInstitution.id, code: a.code, name: a.name, isOfficial: true },
+      });
+    }
+  }
+  console.log(`  Created ${demoAreas.length} demo areas for ${demoInstitution.name}`);
+
   // 10. DEMO SUBJECTS
   const demoSubjects = [
-    { code: 'MAT-S', name: 'Matemáticas', description: 'Asignatura de matemáticas' },
-    { code: 'CIE-S', name: 'Ciencias Naturales', description: 'Asignatura de ciencias naturales' },
-    { code: 'LEN-S', name: 'Lengua y Literatura', description: 'Asignatura de lengua y literatura' },
+    { code: 'MAT-S', name: 'Matemáticas', description: 'Asignatura de matemáticas', areaCode: 'ARE-MAT', subjectType: 'OBLIGATORIA' },
+    { code: 'CIE-S', name: 'Ciencias Naturales', description: 'Asignatura de ciencias naturales', areaCode: 'ARE-CIE', subjectType: 'OBLIGATORIA' },
+    { code: 'LEN-S', name: 'Lengua y Literatura', description: 'Asignatura de lengua y literatura', areaCode: 'ARE-LEN', subjectType: 'OBLIGATORIA' },
   ];
 
   for (const s of demoSubjects) {
@@ -516,11 +744,71 @@ async function main(): Promise<void> {
         code: s.code,
         name: s.name,
         description: s.description,
+        areaId: demoAreaRecords[s.areaCode] ? demoAreaRecords[s.areaCode].id : undefined,
+        subjectType: s.subjectType as any,
         status: 'ACTIVE',
       },
     });
   }
   console.log(`  Created ${demoSubjects.length} demo subjects for ${demoInstitution.name}`);
+
+  // 10b. DEMO CLASSROOMS
+  const demoClassrooms = [
+    { code: 'AULA-101', name: 'Aula 101', type: 'AULA' },
+    { code: 'AULA-102', name: 'Aula 102', type: 'AULA' },
+    { code: 'AULA-201', name: 'Aula 201', type: 'AULA' },
+    { code: 'AULA-202', name: 'Aula 202', type: 'AULA' },
+    { code: 'LAB-1', name: 'Laboratorio 1', type: 'LAB_FISICA' },
+    { code: 'LAB-2', name: 'Laboratorio 2', type: 'LAB_QUIMICA' },
+    { code: 'COMP-1', name: 'Sala de cómputo 1', type: 'COMPUTO' },
+    { code: 'CANCH-1', name: 'Cancha deportiva', type: 'CANCHA' },
+    { code: 'AUD-1', name: 'Auditorio', type: 'AUDITORIO' },
+  ];
+
+  const demoClassroomRecords: Record<string, any> = {};
+  for (const cl of demoClassrooms) {
+    const existing = await prisma.classroom.findFirst({
+      where: { institutionId: demoInstitution.id, code: cl.code },
+    });
+    if (existing) {
+      demoClassroomRecords[cl.code] = existing;
+    } else {
+      demoClassroomRecords[cl.code] = await prisma.classroom.create({
+        data: { institutionId: demoInstitution.id, code: cl.code, name: cl.name, type: cl.type as any },
+      });
+    }
+  }
+  console.log(`  Created ${demoClassrooms.length} demo classrooms for ${demoInstitution.name}`);
+
+  // 10c. DEMO SCHEDULE BLOCKS
+  const demoBlocks = [
+    { name: 'Bloque 1', day: 'MONDAY', start: '07:00', end: '12:30' },
+    { name: 'Bloque 2', day: 'TUESDAY', start: '07:00', end: '12:30' },
+    { name: 'Bloque 3', day: 'WEDNESDAY', start: '07:00', end: '12:30' },
+    { name: 'Bloque 4', day: 'THURSDAY', start: '07:00', end: '12:30' },
+    { name: 'Bloque 5', day: 'FRIDAY', start: '07:00', end: '12:30' },
+  ];
+
+  for (const b of demoBlocks) {
+    await prisma.scheduleBlock.upsert({
+      where: {
+        institutionId_name_dayOfWeek: {
+          institutionId: demoInstitution.id,
+          name: b.name,
+          dayOfWeek: b.day as any,
+        },
+      },
+      update: {},
+      create: {
+        institutionId: demoInstitution.id,
+        name: b.name,
+        dayOfWeek: b.day as any,
+        startTime: new Date(`1970-01-01T${b.start}:00`),
+        endTime: new Date(`1970-01-01T${b.end}:00`),
+      },
+    });
+  }
+  console.log(`  Created ${demoBlocks.length} demo schedule blocks for ${demoInstitution.name}`);
 
   // 11. DEMO GRADES
   const gradeStudents = await prisma.student.findMany({
@@ -584,12 +872,12 @@ async function main(): Promise<void> {
 
   if (scheduleCourses.length > 0 && scheduleSubjects.length > 0) {
     const scheduleData = [
-      { courseIdx: 0, subjectIdx: 0, day: 'MONDAY', start: '08:00', end: '09:30', classroom: 'Aula 101' },
-      { courseIdx: 0, subjectIdx: 0, day: 'WEDNESDAY', start: '08:00', end: '09:30', classroom: 'Aula 101' },
-      { courseIdx: 0, subjectIdx: 1, day: 'TUESDAY', start: '10:00', end: '11:30', classroom: 'Aula 102' },
-      { courseIdx: 1, subjectIdx: 1, day: 'THURSDAY', start: '08:00', end: '09:30', classroom: 'Lab 1' },
-      { courseIdx: 1, subjectIdx: 2, day: 'FRIDAY', start: '10:00', end: '11:30', classroom: 'Aula 201' },
-      { courseIdx: 2, subjectIdx: 2, day: 'MONDAY', start: '10:00', end: '11:30', classroom: 'Aula 202' },
+      { courseIdx: 0, subjectIdx: 0, day: 'MONDAY', start: '08:00', end: '09:30', classroomCode: 'AULA-101', blockName: 'Bloque 1' },
+      { courseIdx: 0, subjectIdx: 0, day: 'WEDNESDAY', start: '08:00', end: '09:30', classroomCode: 'AULA-101', blockName: 'Bloque 3' },
+      { courseIdx: 0, subjectIdx: 1, day: 'TUESDAY', start: '10:00', end: '11:30', classroomCode: 'AULA-102', blockName: 'Bloque 2' },
+      { courseIdx: 1, subjectIdx: 1, day: 'THURSDAY', start: '08:00', end: '09:30', classroomCode: 'LAB-1', blockName: 'Bloque 4' },
+      { courseIdx: 1, subjectIdx: 2, day: 'FRIDAY', start: '10:00', end: '11:30', classroomCode: 'AULA-201', blockName: 'Bloque 5' },
+      { courseIdx: 2, subjectIdx: 2, day: 'MONDAY', start: '10:00', end: '11:30', classroomCode: 'AULA-202', blockName: 'Bloque 1' },
     ];
 
     let scheduleCount = 0;
@@ -597,6 +885,11 @@ async function main(): Promise<void> {
       const course = scheduleCourses[s.courseIdx];
       const subject = scheduleSubjects[s.subjectIdx];
       if (!course || !subject) continue;
+
+      const classroom = demoClassroomRecords[s.classroomCode];
+      const block = await prisma.scheduleBlock.findFirst({
+        where: { institutionId: demoInstitution.id, name: s.blockName },
+      });
 
       const existing = await prisma.schedule.findFirst({
         where: {
@@ -612,10 +905,11 @@ async function main(): Promise<void> {
             institutionId: demoInstitution.id,
             courseId: course.id,
             subjectId: subject.id,
+            classroomId: classroom ? classroom.id : undefined,
+            blockId: block ? block.id : undefined,
             dayOfWeek: s.day as any,
             startTime: new Date(`1970-01-01T${s.start}:00`),
             endTime: new Date(`1970-01-01T${s.end}:00`),
-            classroom: s.classroom,
             status: 'ACTIVE',
           },
         });
@@ -737,6 +1031,7 @@ async function main(): Promise<void> {
         description: 'Firma de autorización para la excursión al museo del próximo viernes.',
         status: 'PUBLISHED' as const,
         recipientIds: [parentUser.id, teacherUser.id],
+        createdById: adminUser.id,
         dueDays: 14,
       },
       {
@@ -744,6 +1039,7 @@ async function main(): Promise<void> {
         description: 'Acuerdo de confidencialidad que todos los docentes deben firmar al inicio del ciclo.',
         status: 'DRAFT' as const,
         recipientIds: [teacherUser.id, adminUser.id],
+        createdById: adminUser.id,
         dueDays: 30,
       },
     ];
@@ -761,6 +1057,7 @@ async function main(): Promise<void> {
         const req = await prisma.signatureRequest.create({
           data: {
             institutionId: demoInstitution.id,
+            createdById: s.createdById,
             title: s.title,
             description: s.description,
             status: s.status,
@@ -931,29 +1228,36 @@ async function main(): Promise<void> {
   const enrollCourses = await prisma.course.findMany({ where: { institutionId: demoInstitution.id } });
 
   if (enrollStudents.length > 0 && enrollCourses.length > 0 && schoolGradeRecords['1RO'] && academicPeriodRecords['2026-P1']) {
+    // Enroll the first students in every course the demo teacher is assigned to
+    // (enrollCourses.slice(0, 2) matches the teacher-assignment loop below). Keeping
+    // enrollments in sync with teacher assignments guarantees each course the teacher
+    // teaches has enrolled students, so report fixtures (course report) are coherent.
+    const coursesToEnroll = enrollCourses.slice(0, 2);
     let enrollCount = 0;
-    for (const student of enrollStudents.slice(0, 2)) {
-      const existing = await prisma.enrollment.findUnique({
-        where: {
-          institutionId_studentId_courseId_academicPeriodId: {
-            institutionId: demoInstitution.id,
-            studentId: student.id,
-            courseId: enrollCourses[0].id,
-            academicPeriodId: academicPeriodRecords['2026-P1'].id,
-          },
-        },
-      });
-      if (!existing) {
-        await prisma.enrollment.create({
-          data: {
-            institutionId: demoInstitution.id,
-            studentId: student.id,
-            courseId: enrollCourses[0].id,
-            schoolGradeId: schoolGradeRecords['1RO'].id,
-            academicPeriodId: academicPeriodRecords['2026-P1'].id,
+    for (const course of coursesToEnroll) {
+      for (const student of enrollStudents.slice(0, 2)) {
+        const existing = await prisma.enrollment.findUnique({
+          where: {
+            institutionId_studentId_courseId_academicPeriodId: {
+              institutionId: demoInstitution.id,
+              studentId: student.id,
+              courseId: course.id,
+              academicPeriodId: academicPeriodRecords['2026-P1'].id,
+            },
           },
         });
-        enrollCount++;
+        if (!existing) {
+          await prisma.enrollment.create({
+            data: {
+              institutionId: demoInstitution.id,
+              studentId: student.id,
+              courseId: course.id,
+              schoolGradeId: schoolGradeRecords['1RO'].id,
+              academicPeriodId: academicPeriodRecords['2026-P1'].id,
+            },
+          });
+          enrollCount++;
+        }
       }
     }
     console.log(`  Created ${enrollCount} demo enrollments for ${demoInstitution.name}`);
@@ -985,6 +1289,7 @@ async function main(): Promise<void> {
               courseId: course.id,
               subjectId: subject.id,
               academicPeriodId: academicPeriodRecords['2026-P1'].id,
+              startDate: new Date('2026-01-01'),
             },
           });
           taCount++;

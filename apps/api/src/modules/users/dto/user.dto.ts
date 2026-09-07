@@ -1,6 +1,8 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsEnum, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEmail, IsEnum, MaxLength, MinLength, IsInt, Min, Max, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserStatus } from '@prisma/client';
+import { UpsertUserProfileDto } from './user-profile.dto';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'User email address', example: 'user@example.com', maxLength: 255 })
@@ -27,6 +29,12 @@ export class CreateUserDto {
   @IsNotEmpty()
   @MaxLength(100)
   lastName!: string;
+
+  @ApiPropertyOptional({ type: UpsertUserProfileDto, description: 'Optional tenant-scoped personal/professional profile' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpsertUserProfileDto)
+  profile?: UpsertUserProfileDto;
 }
 
 export class UpdateUserDto {
@@ -57,11 +65,18 @@ export class UpdateUserDto {
 export class ListUsersQueryDto {
   @ApiPropertyOptional({ description: 'Page number', example: 1 })
   @IsOptional()
-  page?: number;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
 
   @ApiPropertyOptional({ description: 'Items per page', example: 20 })
   @IsOptional()
-  limit?: number;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
 
   @ApiPropertyOptional({ description: 'Search term', example: 'john' })
   @IsOptional()

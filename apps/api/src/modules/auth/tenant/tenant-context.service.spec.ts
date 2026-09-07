@@ -67,7 +67,7 @@ describe('TenantContextService', () => {
         { id: 'inst-2', name: 'School B', slug: 'school-b', status: InstitutionStatus.ACTIVE },
       ]);
       expect(prismaMock.userInstitution.findMany).toHaveBeenCalledWith({
-        where: { userId },
+        where: { userId, status: 'ACTIVE' },
         select: {
           institution: {
             select: {

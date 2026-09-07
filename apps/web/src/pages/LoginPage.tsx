@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/auth.store';
 import { getErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
@@ -59,6 +59,18 @@ export function LoginPage() {
         <Button type="submit" isLoading={isSubmitting} className="w-full">
           Entrar
         </Button>
+        <a
+          href={`${import.meta.env.VITE_API_URL || '/api/v1'}/auth/google`}
+          className="block w-full text-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Continuar con Google
+        </a>
+        <p className="text-sm text-gray-500 text-center">
+          ¿No tienes cuenta?{' '}
+          <Link to="/register" className="font-medium text-blue-600 hover:text-blue-800">
+            Solicita acceso
+          </Link>
+        </p>
       </form>
     </div>
   );

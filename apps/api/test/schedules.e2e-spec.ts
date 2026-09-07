@@ -21,10 +21,25 @@ describe('Schedules Module (e2e)', () => {
   let demoSubjectId: string;
   let createdScheduleId: string;
 
+  let demoAcademicPeriodId: string;
+  let demoClassroomId: string;
+  let demoBlockId: string;
+
+  // Fixtures taken from the demo teacher's ACTIVE assignment so the
+  // teacher-valid schedule test uses a real, coherent assignment.
+  let taTeacherUserId: string;
+  let taCourseId: string;
+  let taSubjectId: string;
+  let taAcademicPeriodId: string;
+
   let secondCourseId: string;
   let secondSubjectId: string;
+  let secondClassroomId: string;
+  let secondBlockId: string;
 
   const testCreatedScheduleIds: string[] = [];
+
+  const teacherAssignmentExists = () => Boolean(taTeacherUserId && taCourseId && taSubjectId && taAcademicPeriodId);
 
   beforeAll(async () => {
     prisma = new PrismaClient();
@@ -59,6 +74,38 @@ describe('Schedules Module (e2e)', () => {
       where: { institutionId: demoInstitutionId },
     });
     demoSubjectId = demoSubject!.id;
+
+    const demoAcademicPeriod = await prisma.academicPeriod.findFirst({
+      where: { institutionId: demoInstitutionId },
+    });
+    demoAcademicPeriodId = demoAcademicPeriod!.id;
+
+    const demoClassroom = await prisma.classroom.findFirst({
+      where: { institutionId: demoInstitutionId },
+    });
+    demoClassroomId = demoClassroom?.id ?? '';
+
+    const demoBlock = await prisma.scheduleBlock.findFirst({
+      where: { institutionId: demoInstitutionId },
+    });
+    demoBlockId = demoBlock?.id ?? '';
+
+    const demoTeacher = await prisma.user.findUnique({
+      where: { email: 'teacher@demo-school.dev' },
+    });
+    const teacherAssignment = await prisma.teacherAssignment.findFirst({
+      where: {
+        institutionId: demoInstitutionId,
+        teacherUserId: demoTeacher!.id,
+        status: 'ACTIVE',
+      },
+    });
+    if (teacherAssignment) {
+      taTeacherUserId = teacherAssignment.teacherUserId;
+      taCourseId = teacherAssignment.courseId;
+      taSubjectId = teacherAssignment.subjectId;
+      taAcademicPeriodId = teacherAssignment.academicPeriodId;
+    }
 
     // Clean up any stale test-created schedules for this course/day that
     // may have been left behind by previous E2E runs.  We only delete
@@ -151,6 +198,55 @@ describe('Schedules Module (e2e)', () => {
     });
     secondSubjectId = secondSubject.id;
 
+    const secondClassroom = await prisma.classroom.create({
+      data: {
+        institutionId: secondInstitutionId,
+        code: 'SEC-CL',
+        name: 'Second Classroom',
+        status: 'ACTIVE',
+      },
+    });
+    secondClassroomId = secondClassroom.id;
+
+    const secondBlock = await prisma.scheduleBlock.create({
+      data: {
+        institutionId: secondInstitutionId,
+        name: 'Second Block',
+        dayOfWeek: 'MONDAY',
+        startTime: new Date('1970-01-01T08:00:00.000Z'),
+        endTime: new Date('1970-01-01T09:30:00.000Z'),
+        status: 'ACTIVE',
+      },
+    });
+    secondBlockId = secondBlock.id;
+
+    // Create an AcademicPeriod in the second institution so we can seed a
+    // schedule there. This makes the cross-tenant GET/PATCH/deactivate tests
+    // (TEST-16/17/07b) non-vacuous (they fetch another tenant's schedule).
+    const secondPeriod = await prisma.academicPeriod.create({
+      data: {
+        institutionId: secondInstitutionId,
+        name: 'Second Period',
+        code: 'SEC-P',
+        startDate: new Date('2026-01-01T00:00:00.000Z'),
+        endDate: new Date('2026-12-31T00:00:00.000Z'),
+        status: 'ACTIVE',
+      },
+    });
+
+    await prisma.schedule.create({
+      data: {
+        institutionId: secondInstitutionId,
+        courseId: secondCourseId,
+        subjectId: secondSubjectId,
+        academicPeriodId: secondPeriod.id,
+        dayOfWeek: 'MONDAY',
+        startTime: new Date('1970-01-01T08:00:00.000Z'),
+        endTime: new Date('1970-01-01T09:30:00.000Z'),
+        status: 'ACTIVE',
+      },
+    });
+
     const login = async (email: string) => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
@@ -174,8 +270,13 @@ describe('Schedules Module (e2e)', () => {
     await prisma.schedule.deleteMany({
       where: { institutionId: secondInstitutionId },
     });
+    await prisma.academicPeriod.deleteMany({
+      where: { institutionId: secondInstitutionId },
+    });
     await prisma.course.delete({ where: { id: secondCourseId } }).catch(() => {});
     await prisma.subject.delete({ where: { id: secondSubjectId } }).catch(() => {});
+    await prisma.scheduleBlock.delete({ where: { id: secondBlockId } }).catch(() => {});
+    await prisma.classroom.delete({ where: { id: secondClassroomId } }).catch(() => {});
     await prisma.userRole.deleteMany({
       where: { institutionId: secondInstitutionId },
     });
@@ -203,18 +304,114 @@ describe('Schedules Module (e2e)', () => {
         .send({
           courseId: demoCourseId,
           subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
+          classroomId: demoClassroomId || null,
+          blockId: demoBlockId || null,
           dayOfWeek: 'TUESDAY',
           startTime: '14:00',
           endTime: '15:30',
-          classroom: 'Aula E2E',
         });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('id');
       expect(res.body.institutionId).toBe(demoInstitutionId);
       expect(res.body.dayOfWeek).toBe('TUESDAY');
+      expect(res.body.classroomId).toBe(demoClassroomId || null);
+      expect(res.body.blockId).toBe(demoBlockId || null);
       createdScheduleId = res.body.id;
       testCreatedScheduleIds.push(res.body.id);
+    });
+
+    it('creates schedule with teacher having active assignment → 201', async () => {
+      if (!teacherAssignmentExists()) {
+        return;
+      }
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/schedules')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          courseId: taCourseId,
+          subjectId: taSubjectId,
+          academicPeriodId: taAcademicPeriodId,
+          teacherUserId: taTeacherUserId,
+          dayOfWeek: 'WEDNESDAY',
+          startTime: '14:00',
+          endTime: '15:30',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.teacherUserId).toBe(taTeacherUserId);
+      testCreatedScheduleIds.push(res.body.id);
+    });
+
+    it('creates schedule WITHOUT teacher (teacher optional) → 201', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/schedules')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
+          dayOfWeek: 'THURSDAY',
+          startTime: '14:00',
+          endTime: '15:30',
+        });
+
+      expect(res.status).toBe(201);
+      testCreatedScheduleIds.push(res.body.id);
+    });
+
+    it('rejects teacher WITHOUT active assignment → 400', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/schedules')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
+          teacherUserId: '00000000-0000-0000-0000-000000000000',
+          dayOfWeek: 'FRIDAY',
+          startTime: '14:00',
+          endTime: '15:30',
+        })
+        .expect(400);
+    });
+
+    it('rejects classroom from another tenant → 404', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/schedules')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
+          classroomId: secondClassroomId,
+          dayOfWeek: 'FRIDAY',
+          startTime: '09:00',
+          endTime: '10:00',
+        })
+        .expect(404);
+    });
+
+    it('rejects block from another tenant → 404', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/schedules')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('X-Institution-Id', demoInstitutionId)
+        .send({
+          courseId: demoCourseId,
+          subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
+          blockId: secondBlockId,
+          dayOfWeek: 'FRIDAY',
+          startTime: '09:00',
+          endTime: '10:00',
+        })
+        .expect(404);
     });
 
     it('TEST-02: Teacher without schedules:manage → 403', async () => {
@@ -286,6 +483,7 @@ describe('Schedules Module (e2e)', () => {
         .send({
           courseId: secondCourseId,
           subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
           dayOfWeek: 'FRIDAY',
           startTime: '14:00',
           endTime: '15:30',
@@ -301,6 +499,7 @@ describe('Schedules Module (e2e)', () => {
         .send({
           courseId: demoCourseId,
           subjectId: secondSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
           dayOfWeek: 'FRIDAY',
           startTime: '14:00',
           endTime: '15:30',
@@ -325,6 +524,7 @@ describe('Schedules Module (e2e)', () => {
         .send({
           courseId: demoCourseId,
           subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
           dayOfWeek: 'FRIDAY',
           startTime: '15:30',
           endTime: '14:00',
@@ -475,10 +675,10 @@ describe('Schedules Module (e2e)', () => {
         .patch(`/api/v1/schedules/${createdScheduleId}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ classroom: 'Aula Updated' })
+        .send({ status: 'ACTIVE' })
         .expect(200);
 
-      expect(res.body.classroom).toBe('Aula Updated');
+      expect(res.body.status).toBe('ACTIVE');
     });
 
     it('TEST-17: Admin updates schedule from other tenant → 404', async () => {
@@ -491,7 +691,7 @@ describe('Schedules Module (e2e)', () => {
           .patch(`/api/v1/schedules/${otherSchedule.id}`)
           .set('Authorization', `Bearer ${adminToken}`)
           .set('X-Institution-Id', demoInstitutionId)
-          .send({ classroom: 'FAIL' })
+          .send({ status: 'ACTIVE' })
           .expect(404);
       }
     });
@@ -530,6 +730,7 @@ describe('Schedules Module (e2e)', () => {
         .send({
           courseId: demoCourseId,
           subjectId: demoSubjectId,
+          academicPeriodId: demoAcademicPeriodId,
           dayOfWeek: 'SATURDAY',
           startTime: '08:00',
           endTime: '09:00',

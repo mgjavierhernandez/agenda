@@ -36,7 +36,7 @@ export class GuardiansController {
   ) {
     return this.guardiansService.linkStudent(
       req.tenant!.institutionId,
-      req.user.userId,
+      dto.guardianUserId ?? req.user.userId,
       { ...dto, studentId },
       req.user.userId,
       req.ip,

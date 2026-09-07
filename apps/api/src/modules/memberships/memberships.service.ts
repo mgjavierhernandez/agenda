@@ -8,12 +8,11 @@ import {
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { LinkUserDto, UpdateMembershipDto, AssignRoleDto, ListMembershipsQueryDto } from './dto/membership.dto';
-import { UserInstitution, UserRole, Prisma } from '@prisma/client';
+import { UserInstitution, UserRole, MembershipStatus, UserStatus, Prisma } from '@prisma/client';
+import { ASSIGNABLE_TENANT_ROLES } from '../../common/rbac/assignable-roles';
 
 const SUPER_ADMIN_ROLE_NAME = 'SUPER_ADMIN';
 const INSTITUTION_ADMIN_ROLE_NAME = 'INSTITUTION_ADMIN';
-
-const ASSIGNABLE_TENANT_ROLES = ['INSTITUTION_ADMIN', 'TEACHER', 'PARENT', 'STUDENT'];
 
 @Injectable()
 export class MembershipsService {
@@ -159,7 +158,16 @@ export class MembershipsService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          user: { select: { id: true, email: true, firstName: true, lastName: true, status: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              status: true,
+              profiles: { where: { institutionId } },
+            },
+          },
           roles: { include: { role: { select: { id: true, name: true } } } },
         },
       }),
@@ -176,7 +184,16 @@ export class MembershipsService {
     const membership = await this.prisma.userInstitution.findFirst({
       where: { id: membershipId, institutionId },
       include: {
-        user: { select: { id: true, email: true, firstName: true, lastName: true, status: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            profiles: { where: { institutionId } },
+          },
+        },
         roles: { include: { role: { select: { id: true, name: true } } } },
       },
     });
@@ -236,13 +253,126 @@ export class MembershipsService {
     return membership;
   }
 
+  async approve(
+    institutionId: string,
+    membershipId: string,
+    actorUserId: string,
+    ipAddress?: string,
+  ): Promise<UserInstitution> {
+    const existing = await this.prisma.userInstitution.findFirst({
+      where: { id: membershipId, institutionId },
+    });
+    if (!existing) {
+      throw new NotFoundException('Membership not found');
+    }
+    if (existing.status !== MembershipStatus.PENDING) {
+      throw new ConflictException('Only PENDING requests can be approved');
+    }
+
+    // Resolve the requested role: tenant role first, template role as fallback.
+    let roleId: string | null = null;
+    if (existing.requestedRole) {
+      const tenantRole = await this.prisma.role.findFirst({
+        where: { name: existing.requestedRole, institutionId },
+        select: { id: true },
+      });
+      if (tenantRole) {
+        roleId = tenantRole.id;
+      } else {
+        const templateRole = await this.prisma.role.findFirst({
+          where: { name: existing.requestedRole, roleType: 'TEMPLATE', institutionId: null },
+          select: { id: true },
+        });
+        if (templateRole) roleId = templateRole.id;
+      }
+    }
+
+    if (roleId) {
+      await this.validateActorCanManageRoles(actorUserId, institutionId, [roleId]);
+    }
+
+    const membership = await this.prisma.userInstitution.update({
+      where: { id: membershipId },
+      data: { status: MembershipStatus.ACTIVE },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: existing.userId },
+      select: { id: true, status: true },
+    });
+    if (user && user.status !== UserStatus.ACTIVE) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { status: UserStatus.ACTIVE },
+      });
+    }
+
+    if (roleId) {
+      const existingRole = await this.prisma.userRole.findUnique({
+        where: { userInstitutionId_roleId: { userInstitutionId: membership.id, roleId } },
+      });
+      if (!existingRole) {
+        await this.prisma.userRole.create({
+          data: { userInstitutionId: membership.id, roleId, institutionId },
+        });
+      }
+    }
+
+    await this.auditService.log({
+      userId: actorUserId,
+      institutionId,
+      action: 'MEMBERSHIP_APPROVED',
+      entityType: 'UserInstitution',
+      entityId: membership.id,
+      oldValues: { status: existing.status },
+      newValues: { status: membership.status, requestedRole: existing.requestedRole, roleId },
+      ipAddress,
+    });
+
+    return membership;
+  }
+
+  async reject(
+    institutionId: string,
+    membershipId: string,
+    actorUserId: string,
+    ipAddress?: string,
+  ): Promise<UserInstitution> {
+    const existing = await this.prisma.userInstitution.findFirst({
+      where: { id: membershipId, institutionId },
+    });
+    if (!existing) {
+      throw new NotFoundException('Membership not found');
+    }
+    if (existing.status !== MembershipStatus.PENDING) {
+      throw new ConflictException('Only PENDING requests can be rejected');
+    }
+
+    const membership = await this.prisma.userInstitution.update({
+      where: { id: membershipId },
+      data: { status: MembershipStatus.REJECTED },
+    });
+
+    await this.auditService.log({
+      userId: actorUserId,
+      institutionId,
+      action: 'MEMBERSHIP_REJECTED',
+      entityType: 'UserInstitution',
+      entityId: membership.id,
+      oldValues: { status: existing.status },
+      newValues: { status: membership.status },
+      ipAddress,
+    });
+
+    return membership;
+  }
+
   async unlinkUser(
     institutionId: string,
     userId: string,
     actorUserId: string,
     ipAddress?: string,
-  ): Promise<void> {
-    const membership = await this.prisma.userInstitution.findUnique({
+  ): Promise<void> {    const membership = await this.prisma.userInstitution.findUnique({
       where: { userId_institutionId: { userId, institutionId } },
     });
     if (!membership) {

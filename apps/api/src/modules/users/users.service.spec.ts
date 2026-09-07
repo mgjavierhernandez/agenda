@@ -1,12 +1,14 @@
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserStatus } from '@prisma/client';
+import { UserStatus, DocumentType, Prisma } from '@prisma/client';
 
 describe('UsersService', () => {
   let service: UsersService;
   let prismaMock: {
     user: { findUnique: jest.Mock; findMany: jest.Mock; count: jest.Mock; create: jest.Mock; update: jest.Mock };
     userInstitution: { findMany: jest.Mock; findUnique: jest.Mock };
+    userProfile: { findFirst: jest.Mock; findUnique: jest.Mock; upsert: jest.Mock };
+    student: { findFirst: jest.Mock; update: jest.Mock };
     refreshToken: { updateMany: jest.Mock };
   };
   let auditServiceMock: { log: jest.Mock };
@@ -17,6 +19,8 @@ describe('UsersService', () => {
     prismaMock = {
       user: { findUnique: jest.fn(), findMany: jest.fn(), count: jest.fn(), create: jest.fn(), update: jest.fn() },
       userInstitution: { findMany: jest.fn(), findUnique: jest.fn() },
+      userProfile: { findFirst: jest.fn(), findUnique: jest.fn(), upsert: jest.fn() },
+      student: { findFirst: jest.fn(), update: jest.fn() },
       refreshToken: { updateMany: jest.fn() },
     };
     auditServiceMock = { log: jest.fn() };
@@ -107,6 +111,136 @@ describe('UsersService', () => {
       const result = await service.deactivate(institutionId, 'u-1', 'admin-1');
       expect(result.status).toBe(UserStatus.INACTIVE);
       expect(prismaMock.refreshToken.updateMany).toHaveBeenCalled();
+    });
+  });
+
+  describe('user profile (GAP-1)', () => {
+    const profileDto = {
+      documentType: DocumentType.NATIONAL_ID,
+      documentNumber: '12345678',
+      phone: '3001234567',
+      address: 'Calle 1 # 2-3',
+      birthDate: '1990-05-01',
+      profession: 'Docente de Matemáticas',
+      bio: 'Perfil profesional',
+    };
+
+    it('should create user with nested profile', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.userProfile.findFirst.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({
+        id: 'u-1', email: 't@t.com', firstName: 'T', lastName: 'U',
+        status: UserStatus.ACTIVE, passwordHash: 'hash', profiles: [],
+      });
+
+      await service.create(institutionId, {
+        email: 't@t.com', password: 'password123', firstName: 'T', lastName: 'U', profile: profileDto,
+      }, 'admin-1');
+
+      expect(prismaMock.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            profiles: expect.objectContaining({
+              create: expect.objectContaining({ documentNumber: '12345678', phone: '3001234567' }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should reject profile with documentNumber but no documentType', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create(institutionId, {
+          email: 't@t.com', password: 'password123', firstName: 'T', lastName: 'U',
+          profile: { documentNumber: '123' },
+        }, 'admin-1'),
+      ).rejects.toThrow(BadRequestException);
+      expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('should reject duplicate document in the same institution', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.userProfile.findFirst.mockResolvedValue({ id: 'p-1' });
+
+      await expect(
+        service.create(institutionId, {
+          email: 't@t.com', password: 'password123', firstName: 'T', lastName: 'U', profile: profileDto,
+        }, 'admin-1'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should upsert profile for a member user', async () => {
+      prismaMock.userInstitution.findUnique.mockResolvedValue({ userId: 'u-1' });
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1' });
+      prismaMock.userProfile.findFirst.mockResolvedValue(null);
+      prismaMock.userProfile.upsert.mockResolvedValue({ id: 'p-1', userId: 'u-1', ...profileDto });
+
+      const result = await service.upsertProfile(institutionId, 'u-1', profileDto, 'admin-1');
+
+      expect(result.id).toBe('p-1');
+      expect(prismaMock.userProfile.upsert).toHaveBeenCalled();
+    });
+
+    it('should reject upsert when user is not a member', async () => {
+      prismaMock.userInstitution.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.upsertProfile(institutionId, 'u-1', profileDto, 'admin-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should map P2002 race on document to ConflictException', async () => {
+      prismaMock.userInstitution.findUnique.mockResolvedValue({ userId: 'u-1' });
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1' });
+      prismaMock.userProfile.findFirst.mockResolvedValue(null);
+      prismaMock.userProfile.upsert.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      );
+
+      await expect(
+        service.upsertProfile(institutionId, 'u-1', profileDto, 'admin-1'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should return null profile when not set', async () => {
+      prismaMock.userInstitution.findUnique.mockResolvedValue({ userId: 'u-1' });
+      prismaMock.userProfile.findUnique.mockResolvedValue(null);
+
+      await expect(service.findProfile(institutionId, 'u-1')).resolves.toBeNull();
+    });
+
+    it('should link an unclaimed student record matching the profile document', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.userProfile.findFirst.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({ id: 'u-1', email: 's@t.com', passwordHash: 'h' });
+      prismaMock.student.findFirst.mockResolvedValue({ id: 'student-1' });
+      prismaMock.student.update.mockResolvedValue({ id: 'student-1' });
+
+      await service.create(institutionId, {
+        email: 's@t.com', password: 'password123', firstName: 'S', lastName: 'T', profile: profileDto,
+      }, 'admin-1');
+
+      expect(prismaMock.student.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'student-1' }, data: { userId: 'u-1' } }),
+      );
+    });
+
+    it('should not link when no unclaimed student matches', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.userProfile.findFirst.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({ id: 'u-1', email: 's@t.com', passwordHash: 'h' });
+      prismaMock.student.findFirst.mockResolvedValue(null);
+
+      await service.create(institutionId, {
+        email: 's@t.com', password: 'password123', firstName: 'S', lastName: 'T', profile: profileDto,
+      }, 'admin-1');
+
+      expect(prismaMock.student.update).not.toHaveBeenCalled();
     });
   });
 });

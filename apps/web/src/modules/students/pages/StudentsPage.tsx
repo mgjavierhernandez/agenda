@@ -55,9 +55,14 @@ export function StudentsPage() {
         description="Gestionar estudiantes de la institución"
         actions={
           canCreate ? (
-            <Button onClick={() => navigate('/students/new')}>
-              Nuevo estudiante
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => navigate('/students/import')}>
+                Importar
+              </Button>
+              <Button onClick={() => navigate('/students/new')}>
+                Nuevo estudiante
+              </Button>
+            </div>
           ) : undefined
         }
       />

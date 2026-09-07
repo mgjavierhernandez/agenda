@@ -21,6 +21,10 @@ vi.mock('../hooks', () => ({
   useUpdateSubject: vi.fn().mockReturnValue({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
+vi.mock('@/modules/areas/hooks/useAreas', () => ({
+  useAreas: () => ({ data: { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } } }),
+}));
+
 vi.mock('@/api/errors', () => ({
   getErrorMessage: (err: unknown) => {
     if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);

@@ -19,6 +19,8 @@ vi.mock('../hooks', () => ({
   useSchedule: (...args: unknown[]) => mockUseSchedule(...args),
   useCreateSchedule: () => mockUseCreateSchedule(),
   useUpdateSchedule: vi.fn().mockReturnValue({ mutateAsync: vi.fn(), isPending: false }),
+  useScheduleBlocks: vi.fn().mockReturnValue({ data: { data: [], meta: { total: 0 } }, isLoading: false }),
+  useClassrooms: vi.fn().mockReturnValue({ data: { data: [], meta: { total: 0 } }, isLoading: false }),
 }));
 
 vi.mock('@/modules/courses/hooks', () => ({
@@ -31,6 +33,20 @@ vi.mock('@/modules/courses/hooks', () => ({
 vi.mock('@/modules/subjects/hooks', () => ({
   useSubjects: vi.fn().mockReturnValue({
     data: { data: [{ id: 'sub-1', code: 'ALG-S', name: 'Álgebra' }], meta: { total: 1 } },
+    isLoading: false,
+  }),
+}));
+
+vi.mock('@/modules/academic-periods/hooks', () => ({
+  useAcademicPeriods: vi.fn().mockReturnValue({
+    data: { data: [{ id: 'ap-1', code: '2026-P1', name: '2026 Primer Periodo' }], meta: { total: 1 } },
+    isLoading: false,
+  }),
+}));
+
+vi.mock('@/modules/teacher-assignments/hooks', () => ({
+  useUsers: vi.fn().mockReturnValue({
+    data: { data: [{ id: 'usr-1', firstName: 'Ana', lastName: 'Pérez' }], meta: { total: 1 } },
     isLoading: false,
   }),
 }));
@@ -119,7 +135,7 @@ describe('ScheduleFormPage', () => {
 
     await user.selectOptions(screen.getByLabelText(/curso/i), 'cou-1');
     await user.selectOptions(screen.getByLabelText(/asignatura/i), 'sub-1');
-    await user.type(screen.getByLabelText(/aula/i), 'Aula 101');
+    await user.selectOptions(screen.getByLabelText(/periodo académico/i), 'ap-1');
     await user.click(screen.getByRole('button', { name: /crear horario/i }));
 
     await waitFor(() => {

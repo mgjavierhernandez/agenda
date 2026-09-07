@@ -2,6 +2,7 @@ export { InstitutionProfilePage } from './pages/InstitutionProfilePage';
 export { InstitutionUsersPage } from './pages/InstitutionUsersPage';
 export { CreateUserPage } from './pages/CreateUserPage';
 export { UserDetailPage } from './pages/UserDetailPage';
+export { MembershipRequestsPage } from './pages/MembershipRequestsPage';
 export { useInstitution } from './hooks/useInstitution';
 export { useUpdateInstitution } from './hooks/useUpdateInstitution';
 export { useRoles } from './hooks/useRoles';

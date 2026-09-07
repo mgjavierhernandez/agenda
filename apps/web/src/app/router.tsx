@@ -2,16 +2,18 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { AppLayout } from '@/layouts/AppLayout';
 import { LoginPage } from '@/pages/LoginPage';
+import { RegisterPage } from '@/pages/RegisterPage';
 import { InstitutionSelectPage } from '@/pages/InstitutionSelectPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
-import { StudentsPage, StudentDetailPage, StudentFormPage } from '@/modules/students';
+import { StudentsPage, StudentDetailPage, StudentFormPage, StudentImportPage } from '@/modules/students';
 import { CoursesPage, CourseDetailPage, CourseFormPage } from '@/modules/courses';
 import { SubjectsPage, SubjectDetailPage, SubjectFormPage } from '@/modules/subjects';
+import { AreasPage } from '@/modules/areas';
 import { GradesPage, GradeDetailPage, GradeFormPage } from '@/modules/grades';
-import { SchedulesPage, ScheduleDetailPage, ScheduleFormPage } from '@/modules/schedules';
+import { SchedulesPage, ScheduleDetailPage, ScheduleFormPage, ScheduleBlocksPage, ClassroomsPage } from '@/modules/schedules';
 import { TasksPage, TaskDetailPage, TaskFormPage } from '@/modules/tasks';
 import { TaskAssignmentsPage, TaskAssignmentDetailPage, TaskAssignmentFormPage } from '@/modules/task-assignments';
 import { TaskSubmissionsPage, TaskSubmissionDetailPage, TaskSubmissionFormPage } from '@/modules/task-submissions';
@@ -23,7 +25,7 @@ import { AcademicPeriodsPage, AcademicPeriodDetailPage, AcademicPeriodFormPage }
 import { SchoolGradesPage, SchoolGradeDetailPage, SchoolGradeFormPage } from '@/modules/school-grades';
 import { GuardiansPage, GuardiansFormPage } from '@/modules/guardians';
 import { EnrollmentsPage, EnrollmentDetailPage, EnrollmentFormPage } from '@/modules/enrollments';
-import { TeacherAssignmentsPage, TeacherAssignmentDetailPage, TeacherAssignmentFormPage } from '@/modules/teacher-assignments';
+import { TeacherAssignmentsPage, TeacherAssignmentDetailPage, TeacherAssignmentFormPage, TeachersPage, CourseDirectorsPage, CourseDirectorDetailPage, CourseDirectorFormPage } from '@/modules/teacher-assignments';
 import { StudentFollowUpsPage, StudentFollowUpDetailPage, StudentFollowUpFormPage, FollowUpCategoriesPage } from '@/modules/student-follow-ups';
 import { AgendaPage, AgendaEventDetailPage, AgendaEventFormPage } from '@/modules/agenda';
 import { AttendanceListPage, AttendanceRegisterPage } from '@/modules/attendance';
@@ -33,6 +35,7 @@ import {
   InstitutionUsersPage,
   CreateUserPage,
   UserDetailPage,
+  MembershipRequestsPage,
 } from '@/modules/administration';
 
 export const router = createBrowserRouter([
@@ -40,6 +43,7 @@ export const router = createBrowserRouter([
     element: <AuthLayout />,
     children: [
       { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
       { path: '/unauthorized', element: <UnauthorizedPage /> },
     ],
   },
@@ -58,6 +62,7 @@ export const router = createBrowserRouter([
           { path: '/agenda/events/:id/edit', element: <AgendaEventFormPage /> },
           { path: '/students', element: <StudentsPage /> },
           { path: '/students/new', element: <StudentFormPage /> },
+          { path: '/students/import', element: <StudentImportPage /> },
           { path: '/students/:id', element: <StudentDetailPage /> },
           { path: '/students/:id/edit', element: <StudentFormPage /> },
           { path: '/courses', element: <CoursesPage /> },
@@ -68,12 +73,15 @@ export const router = createBrowserRouter([
           { path: '/subjects/new', element: <SubjectFormPage /> },
           { path: '/subjects/:id', element: <SubjectDetailPage /> },
           { path: '/subjects/:id/edit', element: <SubjectFormPage /> },
+          { path: '/areas', element: <AreasPage /> },
           { path: '/grades', element: <GradesPage /> },
           { path: '/grades/new', element: <GradeFormPage /> },
           { path: '/grades/:id', element: <GradeDetailPage /> },
           { path: '/grades/:id/edit', element: <GradeFormPage /> },
           { path: '/schedules', element: <SchedulesPage /> },
           { path: '/schedules/new', element: <ScheduleFormPage /> },
+          { path: '/schedules/blocks', element: <ScheduleBlocksPage /> },
+          { path: '/schedules/classrooms', element: <ClassroomsPage /> },
           { path: '/schedules/:id', element: <ScheduleDetailPage /> },
           { path: '/schedules/:id/edit', element: <ScheduleFormPage /> },
           { path: '/tasks', element: <TasksPage /> },
@@ -113,6 +121,10 @@ export const router = createBrowserRouter([
           { path: '/teacher-assignments', element: <TeacherAssignmentsPage /> },
           { path: '/teacher-assignments/new', element: <TeacherAssignmentFormPage /> },
           { path: '/teacher-assignments/:id', element: <TeacherAssignmentDetailPage /> },
+          { path: '/course-directors', element: <CourseDirectorsPage /> },
+          { path: '/course-directors/new', element: <CourseDirectorFormPage /> },
+          { path: '/course-directors/:id', element: <CourseDirectorDetailPage /> },
+          { path: '/teachers', element: <TeachersPage /> },
           { path: '/student-follow-ups', element: <StudentFollowUpsPage /> },
           { path: '/student-follow-ups/new', element: <StudentFollowUpFormPage /> },
           { path: '/student-follow-ups/:id', element: <StudentFollowUpDetailPage /> },
@@ -126,6 +138,7 @@ export const router = createBrowserRouter([
           { path: '/admin/users', element: <InstitutionUsersPage /> },
           { path: '/admin/users/new', element: <CreateUserPage /> },
           { path: '/admin/users/:membershipId', element: <UserDetailPage /> },
+          { path: '/admin/requests', element: <MembershipRequestsPage /> },
         ],
       },
     ],

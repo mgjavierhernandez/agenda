@@ -1,24 +1,47 @@
-import { IsString, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsInt, Min, Max, IsDateString, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTeacherAssignmentDto {
   @ApiProperty()
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   teacherUserId!: string;
 
   @ApiProperty()
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   courseId!: string;
 
   @ApiProperty()
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   subjectId!: string;
 
   @ApiProperty()
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   academicPeriodId!: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional({ default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  weeklyHours?: number;
+
+  @ApiPropertyOptional({ default: 22 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(60)
+  maxWeeklyHours?: number;
 }

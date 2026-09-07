@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSubjects } from '../hooks';
+import { useAreas } from '@/modules/areas/hooks/useAreas';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -11,7 +12,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { PERMISSIONS } from '@/permissions/permission.constants';
-import type { SubjectStatus } from '@/api/types';
+import type { SubjectStatus, SubjectType, EducationLevel } from '@/api/types';
+import { EDUCATION_LEVEL_LABELS, SUBJECT_TYPE_LABELS } from '@/api/types';
 
 export function SubjectsPage() {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ export function SubjectsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<SubjectStatus | ''>('');
+  const [areaFilter, setAreaFilter] = useState('');
   const limit = 20;
 
   useEffect(() => {
@@ -32,19 +35,24 @@ export function SubjectsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  const { data: areasData } = useAreas({ limit: 100 });
+
   const { data, isLoading, error } = useSubjects({
     page,
     limit,
     search: debouncedSearch || undefined,
     status: (statusFilter as SubjectStatus) || undefined,
+    areaId: areaFilter || undefined,
   });
 
   const subjects = data?.data ?? [];
   const meta = data?.meta;
 
-  const handleClearSearch = useCallback(() => {
+  const handleClearFilters = useCallback(() => {
     setSearch('');
     setDebouncedSearch('');
+    setStatusFilter('');
+    setAreaFilter('');
     setPage(1);
   }, []);
 
@@ -93,13 +101,34 @@ export function SubjectsPage() {
             <option value="INACTIVE">Inactivo</option>
           </select>
         </div>
-        {debouncedSearch && (
+        <div className="w-full sm:w-48">
+          <label htmlFor="areaFilter" className="block text-sm font-medium text-gray-700 mb-1">
+            Área
+          </label>
+          <select
+            id="areaFilter"
+            value={areaFilter}
+            onChange={(e) => {
+              setAreaFilter(e.target.value);
+              setPage(1);
+            }}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="">Todas las áreas</option>
+            {areasData?.data.map((area) => (
+              <option key={area.id} value={area.id}>
+                {area.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        {(debouncedSearch || statusFilter || areaFilter) && (
           <button
             type="button"
-            onClick={handleClearSearch}
+            onClick={handleClearFilters}
             className="text-sm text-blue-600 hover:text-blue-800 self-end mb-1"
           >
-            Limpiar búsqueda
+            Limpiar filtros
           </button>
         )}
       </div>
@@ -132,7 +161,9 @@ export function SubjectsPage() {
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Código</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Descripción</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Área</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Tipo</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Nivel</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
                   </tr>
@@ -142,8 +173,20 @@ export function SubjectsPage() {
                     <tr key={subject.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-xs">{subject.code}</td>
                       <td className="px-4 py-3">{subject.name}</td>
-                      <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
-                        {subject.description || '—'}
+                      <td className="px-4 py-3 text-gray-600">
+                        {areasData?.data.find((a) => a.id === subject.areaId)?.name || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ?? subject.subjectType}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {subject.minimumLevel && subject.maximumLevel
+                          ? `${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]} - ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
+                          : subject.minimumLevel
+                          ? `Desde ${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]}`
+                          : subject.maximumLevel
+                          ? `Hasta ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
+                          : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={subject.status === 'ACTIVE' ? 'success' : 'default'}>
@@ -179,6 +222,21 @@ export function SubjectsPage() {
                     </p>
                     <p className="text-sm text-gray-500 mt-1 font-mono">
                       {subject.code}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Área: {areasData?.data.find((a) => a.id === subject.areaId)?.name || '—'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Tipo: {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ?? subject.subjectType}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Nivel: {subject.minimumLevel && subject.maximumLevel
+                        ? `${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]} - ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
+                        : subject.minimumLevel
+                        ? `Desde ${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]}`
+                        : subject.maximumLevel
+                        ? `Hasta ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
+                        : '—'}
                     </p>
                     {subject.description && (
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">

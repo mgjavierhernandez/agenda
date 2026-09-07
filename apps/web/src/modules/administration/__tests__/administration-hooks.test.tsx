@@ -49,6 +49,8 @@ const mockMembership: UserMembership = {
   status: 'ACTIVE',
   userId: 'user-1',
   institutionId: 'inst-1',
+  requestedRole: null,
+  createdAt: '2026-01-01T10:00:00Z',
   user: {
     id: 'user-1',
     email: 'admin@demo-school.dev',

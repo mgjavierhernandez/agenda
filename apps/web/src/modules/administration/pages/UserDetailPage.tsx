@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/auth/auth.store';
-import { useMembership, useRoles, useAssignRole, useRemoveRole, useUnlinkUser } from '../hooks';
+import { useMembership, useRoles, useAssignRole, useRemoveRole, useUnlinkUser, useUser } from '../hooks';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { PERMISSIONS } from '@/permissions/permission.constants';
+import { DOCUMENT_TYPE_LABELS } from '@/api/types';
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -26,9 +27,9 @@ export function UserDetailPage() {
   const canManage = hasPermission(PERMISSIONS.MEMBERSHIPS_MANAGE);
 
   const { data: membership, isLoading, error } = useMembership(selectedInstitutionId, membershipId);
+  const { data: fullUser } = useUser(selectedInstitutionId, membership?.userId);
   const { data: roles = [] } = useRoles();
-  const assignRole = useAssignRole(selectedInstitutionId);
-  const removeRole = useRemoveRole(selectedInstitutionId);
+  const assignRole = useAssignRole(selectedInstitutionId);  const removeRole = useRemoveRole(selectedInstitutionId);
   const unlinkUser = useUnlinkUser(selectedInstitutionId);
 
   const [apiError, setApiError] = useState('');
@@ -52,7 +53,7 @@ export function UserDetailPage() {
   }
 
   const user = membership.user;
-  const assignedRoleIds = new Set(
+  const profile = fullUser?.profiles?.[0] ?? null;  const assignedRoleIds = new Set(
     membership.roles.map((r) => (typeof r.role === 'string' ? r.role : r.role.id)),
   );
   const availableRoles = assignableRoles.filter((r) => !assignedRoleIds.has(r.id));
@@ -126,6 +127,43 @@ export function UserDetailPage() {
             </dd>
           </div>
         </dl>
+      </Card>
+
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Perfil personal y profesional</h3>
+        {!profile ? (
+          <p className="text-sm text-gray-400">Sin perfil registrado en esta institución</p>
+        ) : (
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-gray-500">Documento</dt>
+              <dd className="text-gray-900 font-medium">
+                {profile.documentType ? DOCUMENT_TYPE_LABELS[profile.documentType] : '—'}
+                {profile.documentNumber ? ` ${profile.documentNumber}` : ''}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Fecha de nacimiento</dt>
+              <dd className="text-gray-900 font-medium">{profile.birthDate ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Teléfono</dt>
+              <dd className="text-gray-900 font-medium">{profile.phone ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Dirección</dt>
+              <dd className="text-gray-900 font-medium">{profile.address ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Profesión</dt>
+              <dd className="text-gray-900 font-medium">{profile.profession ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Perfil profesional</dt>
+              <dd className="text-gray-900 font-medium">{profile.bio ?? '—'}</dd>
+            </div>
+          </dl>
+        )}
       </Card>
 
       <Card>

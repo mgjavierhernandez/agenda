@@ -70,9 +70,13 @@ const mockCourse: Course = {
 const mockSubject: Subject = {
   id: 'sub-1',
   institutionId: 'inst-1',
+  areaId: null,
   code: 'MAT',
   name: 'Matemáticas',
   description: 'Asignatura de matemáticas',
+  subjectType: 'OBLIGATORIA',
+  minimumLevel: null,
+  maximumLevel: null,
   status: 'ACTIVE',
   createdAt: '2026-01-01T10:00:00Z',
   updatedAt: '2026-01-01T10:00:00Z',
@@ -98,6 +102,8 @@ const mockAssignment: TeacherAssignment = {
   subjectId: 'sub-1',
   academicPeriodId: 'ap-1',
   status: 'ACTIVE',
+  startDate: '2026-01-15',
+  endDate: null,
   createdAt: '2026-01-15T10:00:00Z',
   updatedAt: '2026-01-15T10:00:00Z',
 };
@@ -315,7 +321,8 @@ describe('TeacherAssignmentFormPage', () => {
     submitButton.click();
 
     await waitFor(() => {
-      expect(screen.getByText('El profesor es requerido')).toBeInTheDocument();
+      expect(screen.findByText('El profesor es requerido')).toBeTruthy();
+      expect(screen.findByText('Fecha de inicio es requerida')).toBeTruthy();
     });
   });
 

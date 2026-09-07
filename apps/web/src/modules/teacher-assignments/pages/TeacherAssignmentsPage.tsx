@@ -232,6 +232,8 @@ export function TeacherAssignmentsPage() {
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Curso</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Asignatura</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Periodo</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Inicio</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Fin</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
                   </tr>
@@ -250,6 +252,12 @@ export function TeacherAssignmentsPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {periodMap[assignment.academicPeriodId] ?? assignment.academicPeriodId}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={STATUS_BADGE_VARIANT[assignment.status]}>
@@ -291,6 +299,12 @@ export function TeacherAssignmentsPage() {
                   </div>
                   <p className="text-sm text-gray-600">
                     Periodo: {periodMap[assignment.academicPeriodId] ?? '—'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Inicio: {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Fin: {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
                   </p>
                 </div>
                 <div className="mt-3 flex justify-end">

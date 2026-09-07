@@ -7,6 +7,10 @@ describe('SchedulesService', () => {
   let prismaMock: {
     course: { findFirst: jest.Mock };
     subject: { findFirst: jest.Mock };
+    academicPeriod: { findFirst: jest.Mock };
+    teacherAssignment: { findFirst: jest.Mock };
+    classroom: { findFirst: jest.Mock };
+    scheduleBlock: { findFirst: jest.Mock };
     schedule: {
       findFirst: jest.Mock;
       findMany: jest.Mock;
@@ -21,11 +25,19 @@ describe('SchedulesService', () => {
   const userId = 'user-1';
   const courseId = 'course-1';
   const subjectId = 'subject-1';
+  const academicPeriodId = 'period-1';
+  const teacherUserId = 'teacher-1';
+  const classroomId = 'classroom-1';
+  const blockId = 'block-1';
 
   beforeEach(() => {
     prismaMock = {
       course: { findFirst: jest.fn() },
       subject: { findFirst: jest.fn() },
+      academicPeriod: { findFirst: jest.fn() },
+      teacherAssignment: { findFirst: jest.fn() },
+      classroom: { findFirst: jest.fn() },
+      scheduleBlock: { findFirst: jest.fn() },
       schedule: {
         findFirst: jest.fn(),
         findMany: jest.fn(),
@@ -43,7 +55,21 @@ describe('SchedulesService', () => {
     );
 
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
-    prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId });
+    prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId, name: 'Matemáticas' });
+    prismaMock.academicPeriod.findFirst.mockResolvedValue({ id: academicPeriodId, institutionId });
+    prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId });
+    prismaMock.classroom.findFirst.mockResolvedValue({ id: classroomId, institutionId, status: 'ACTIVE' });
+    prismaMock.scheduleBlock.findFirst.mockResolvedValue({ id: blockId, institutionId });
+  });
+
+  const baseCreate = (overrides: Record<string, unknown> = {}) => ({
+    courseId,
+    subjectId,
+    academicPeriodId,
+    dayOfWeek: DayOfWeek.MONDAY,
+    startTime: '08:00',
+    endTime: '09:30',
+    ...overrides,
   });
 
   describe('create', () => {
@@ -54,25 +80,21 @@ describe('SchedulesService', () => {
         institutionId,
         courseId,
         subjectId,
+        academicPeriodId,
         dayOfWeek: DayOfWeek.MONDAY,
         startTime: '08:00',
         endTime: '09:30',
-        classroom: 'Aula 101',
         status: ScheduleStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      const result = await service.create(
-        institutionId,
-        { courseId, subjectId, dayOfWeek: DayOfWeek.MONDAY, startTime: '08:00', endTime: '09:30', classroom: 'Aula 101' },
-        userId,
-      );
+      const result = await service.create(institutionId, baseCreate(), userId);
 
       expect(result.institutionId).toBe(institutionId);
       expect(prismaMock.schedule.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ institutionId }),
+          data: expect.objectContaining({ institutionId, academicPeriodId }),
         }),
       );
       expect(auditServiceMock.log).toHaveBeenCalledWith(
@@ -88,11 +110,7 @@ describe('SchedulesService', () => {
       prismaMock.course.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(
-          institutionId,
-          { courseId, subjectId, dayOfWeek: DayOfWeek.MONDAY, startTime: '08:00', endTime: '09:30' },
-          userId,
-        ),
+        service.create(institutionId, baseCreate(), userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -100,11 +118,15 @@ describe('SchedulesService', () => {
       prismaMock.subject.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(
-          institutionId,
-          { courseId, subjectId, dayOfWeek: DayOfWeek.MONDAY, startTime: '08:00', endTime: '09:30' },
-          userId,
-        ),
+        service.create(institutionId, baseCreate(), userId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject academic period from another tenant', async () => {
+      prismaMock.academicPeriod.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(institutionId, baseCreate(), userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -112,7 +134,7 @@ describe('SchedulesService', () => {
       await expect(
         service.create(
           institutionId,
-          { courseId, subjectId, dayOfWeek: DayOfWeek.MONDAY, startTime: '09:30', endTime: '08:00' },
+          baseCreate({ startTime: '09:30', endTime: '08:00' }),
           userId,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -128,10 +150,49 @@ describe('SchedulesService', () => {
       await expect(
         service.create(
           institutionId,
-          { courseId, subjectId, dayOfWeek: DayOfWeek.MONDAY, startTime: '09:00', endTime: '10:00' },
+          baseCreate({ startTime: '09:00', endTime: '10:00' }),
           userId,
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject teacher without active assignment', async () => {
+      prismaMock.schedule.findFirst.mockResolvedValue(null);
+      prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(
+          institutionId,
+          baseCreate({ teacherUserId }),
+          userId,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject classroom from another tenant', async () => {
+      prismaMock.schedule.findFirst.mockResolvedValue(null);
+      prismaMock.classroom.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(
+          institutionId,
+          baseCreate({ classroomId }),
+          userId,
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject schedule block from another tenant', async () => {
+      prismaMock.schedule.findFirst.mockResolvedValue(null);
+      prismaMock.scheduleBlock.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(
+          institutionId,
+          baseCreate({ blockId }),
+          userId,
+        ),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -216,6 +277,19 @@ describe('SchedulesService', () => {
       );
     });
 
+    it('should filter by teacherUserId within tenant', async () => {
+      prismaMock.schedule.findMany.mockResolvedValue([]);
+      prismaMock.schedule.count.mockResolvedValue(0);
+
+      await service.findAll(institutionId, { teacherUserId });
+
+      expect(prismaMock.schedule.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ institutionId, teacherUserId }),
+        }),
+      );
+    });
+
     it('should filter by dayOfWeek within tenant', async () => {
       prismaMock.schedule.findMany.mockResolvedValue([]);
       prismaMock.schedule.count.mockResolvedValue(0);
@@ -244,59 +318,57 @@ describe('SchedulesService', () => {
   });
 
   describe('update', () => {
+    const existingSchedule = {
+      id: 'schedule-1',
+      institutionId,
+      courseId,
+      subjectId,
+      academicPeriodId,
+      dayOfWeek: DayOfWeek.MONDAY,
+      startTime: new Date('1970-01-01T08:00:00Z'),
+      endTime: new Date('1970-01-01T09:30:00Z'),
+      status: ScheduleStatus.ACTIVE,
+    };
+
     it('should update schedule only in current tenant', async () => {
       prismaMock.schedule.findFirst
-        .mockResolvedValueOnce({
-          id: 'schedule-1',
-          institutionId,
-          courseId,
-          subjectId,
-          dayOfWeek: DayOfWeek.MONDAY,
-          startTime: new Date('1970-01-01T08:00:00Z'),
-          endTime: new Date('1970-01-01T09:30:00Z'),
-          status: ScheduleStatus.ACTIVE,
-        })
+        .mockResolvedValueOnce(existingSchedule)
         .mockResolvedValueOnce(null);
       prismaMock.schedule.update.mockResolvedValue({
         id: 'schedule-1',
         institutionId,
-        classroom: 'Aula 102',
       });
 
       const result = await service.update(
         institutionId,
         'schedule-1',
-        { classroom: 'Aula 102' },
+        { startTime: '09:00', endTime: '10:00' },
         userId,
       );
 
-      expect(result.classroom).toBe('Aula 102');
+      expect(result.id).toBe('schedule-1');
     });
 
     it('should throw NotFoundException for cross-tenant update', async () => {
       prismaMock.schedule.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.update(institutionId, 'other-tenant-schedule', { classroom: 'X' }, userId),
+        service.update(institutionId, 'other-tenant-schedule', { startTime: '09:00' }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should not allow modifying institutionId', async () => {
       prismaMock.schedule.findFirst
-        .mockResolvedValueOnce({
-          id: 'schedule-1',
-          institutionId,
-          courseId,
-          subjectId,
-          dayOfWeek: DayOfWeek.MONDAY,
-          startTime: new Date('1970-01-01T08:00:00Z'),
-          endTime: new Date('1970-01-01T09:30:00Z'),
-          status: ScheduleStatus.ACTIVE,
-        })
+        .mockResolvedValueOnce(existingSchedule)
         .mockResolvedValueOnce(null);
       prismaMock.schedule.update.mockResolvedValue({ id: 'schedule-1', institutionId });
 
-      await service.update(institutionId, 'schedule-1', { classroom: 'X' }, userId);
+      await service.update(
+        institutionId,
+        'schedule-1',
+        { startTime: '09:00', endTime: '10:00' },
+        userId,
+      );
 
       const updateCall = prismaMock.schedule.update.mock.calls[0][0];
       expect(updateCall.data).not.toHaveProperty('institutionId');
@@ -304,16 +376,7 @@ describe('SchedulesService', () => {
 
     it('should validate relations when courseId changes', async () => {
       prismaMock.schedule.findFirst
-        .mockResolvedValueOnce({
-          id: 'schedule-1',
-          institutionId,
-          courseId,
-          subjectId,
-          dayOfWeek: DayOfWeek.MONDAY,
-          startTime: new Date('1970-01-01T08:00:00Z'),
-          endTime: new Date('1970-01-01T09:30:00Z'),
-          status: ScheduleStatus.ACTIVE,
-        })
+        .mockResolvedValueOnce(existingSchedule)
         .mockResolvedValueOnce(null);
       prismaMock.schedule.update.mockResolvedValue({ id: 'schedule-1', institutionId });
 
@@ -325,16 +388,7 @@ describe('SchedulesService', () => {
     });
 
     it('should reject startTime >= endTime on update', async () => {
-      prismaMock.schedule.findFirst.mockResolvedValue({
-        id: 'schedule-1',
-        institutionId,
-        courseId,
-        subjectId,
-        dayOfWeek: DayOfWeek.MONDAY,
-        startTime: '08:00',
-        endTime: '09:30',
-        status: ScheduleStatus.ACTIVE,
-      });
+      prismaMock.schedule.findFirst.mockResolvedValue(existingSchedule);
 
       await expect(
         service.update(institutionId, 'schedule-1', { startTime: '10:00', endTime: '09:00' }, userId),
@@ -350,6 +404,7 @@ describe('SchedulesService', () => {
           institutionId,
           courseId,
           subjectId,
+          academicPeriodId,
           dayOfWeek: DayOfWeek.MONDAY,
           startTime: new Date('1970-01-01T08:00:00Z'),
           endTime: new Date('1970-01-01T09:30:00Z'),

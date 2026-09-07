@@ -36,12 +36,20 @@ export class SubjectsService {
       throw new ConflictException('Subject with this code already exists in this institution');
     }
 
+    if (dto.areaId) {
+      await this.assertAreaBelongsToInstitution(institutionId, dto.areaId);
+    }
+
     const subject = await this.prisma.subject.create({
       data: {
         institutionId,
         code: dto.code,
         name: dto.name,
         description: dto.description,
+        areaId: dto.areaId,
+        subjectType: dto.subjectType ?? 'OBLIGATORIA',
+        minimumLevel: dto.minimumLevel,
+        maximumLevel: dto.maximumLevel,
         status: dto.status,
       },
     });
@@ -56,6 +64,10 @@ export class SubjectsService {
         code: subject.code,
         name: subject.name,
         description: subject.description,
+        areaId: subject.areaId,
+        subjectType: subject.subjectType,
+        minimumLevel: subject.minimumLevel,
+        maximumLevel: subject.maximumLevel,
         status: subject.status,
       },
       ipAddress,
@@ -75,6 +87,7 @@ export class SubjectsService {
     const where: Prisma.SubjectWhereInput = {
       institutionId,
       ...(query.status ? { status: query.status } : {}),
+      ...(query.areaId ? { areaId: query.areaId } : {}),
       ...(query.search
         ? {
             OR: [
@@ -153,10 +166,18 @@ export class SubjectsService {
       }
     }
 
+    if (dto.areaId !== undefined && dto.areaId !== null) {
+      await this.assertAreaBelongsToInstitution(institutionId, dto.areaId);
+    }
+
     const updateData: Prisma.SubjectUpdateInput = {};
     if (dto.code !== undefined) updateData.code = dto.code;
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.description !== undefined) updateData.description = dto.description;
+    if (dto.areaId !== undefined) updateData.area = dto.areaId ? { connect: { id: dto.areaId } } : { disconnect: true };
+    if (dto.subjectType !== undefined) updateData.subjectType = dto.subjectType;
+    if (dto.minimumLevel !== undefined) updateData.minimumLevel = dto.minimumLevel;
+    if (dto.maximumLevel !== undefined) updateData.maximumLevel = dto.maximumLevel;
     if (dto.status !== undefined) updateData.status = dto.status;
 
     const subject = await this.prisma.subject.update({
@@ -176,12 +197,20 @@ export class SubjectsService {
         code: existing.code,
         name: existing.name,
         description: existing.description,
+        areaId: existing.areaId,
+        subjectType: existing.subjectType,
+        minimumLevel: existing.minimumLevel,
+        maximumLevel: existing.maximumLevel,
         status: existing.status,
       },
       newValues: {
         code: subject.code,
         name: subject.name,
         description: subject.description,
+        areaId: subject.areaId,
+        subjectType: subject.subjectType,
+        minimumLevel: subject.minimumLevel,
+        maximumLevel: subject.maximumLevel,
         status: subject.status,
       },
       ipAddress,
@@ -203,5 +232,12 @@ export class SubjectsService {
       userId,
       ipAddress,
     );
+  }
+
+  private async assertAreaBelongsToInstitution(institutionId: string, areaId: string): Promise<void> {
+    const area = await this.prisma.area.findFirst({ where: { id: areaId, institutionId } });
+    if (!area) {
+      throw new NotFoundException('Area not found in this institution');
+    }
   }
 }

@@ -180,7 +180,15 @@ export function SchedulesPage() {
                       <td className="px-4 py-3 font-mono text-xs" title={schedule.subjectId}>
                         {schedule.subjectId.slice(0, 8)}…
                       </td>
-                      <td className="px-4 py-3">{schedule.classroom ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {schedule.classroomId ? (
+                          <span className="font-mono text-xs" title={schedule.classroomId}>
+                            {schedule.classroomId.slice(0, 8)}…
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <Badge variant={schedule.status === 'ACTIVE' ? 'success' : 'default'}>
                           {schedule.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
@@ -216,9 +224,9 @@ export function SchedulesPage() {
                     <p className="text-sm text-gray-500">
                       {schedule.startTime} — {schedule.endTime}
                     </p>
-                    {schedule.classroom && (
+                    {schedule.classroomId && (
                       <p className="text-sm text-gray-500">
-                        Aula: {schedule.classroom}
+                        Aula: {schedule.classroomId.slice(0, 8)}…
                       </p>
                     )}
                     <p className="text-xs text-gray-500 font-mono">

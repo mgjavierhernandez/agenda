@@ -2,10 +2,11 @@ import {
   IsString,
   IsOptional,
   IsEnum,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { CourseStatus } from '@prisma/client';
+import { CourseStatus, EducationLevel } from '@prisma/client';
 
 export class UpdateCourseDto {
   @ApiPropertyOptional({ maxLength: 50 })
@@ -25,6 +26,22 @@ export class UpdateCourseDto {
   @IsString()
   @MaxLength(1000)
   description?: string;
+
+  @ApiPropertyOptional({ enum: EducationLevel })
+  @IsOptional()
+  @IsEnum(EducationLevel)
+  level?: EducationLevel;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'School grade this course belongs to' })
+  @IsOptional()
+  @IsUUID()
+  schoolGradeId?: string;
+
+  @ApiPropertyOptional({ maxLength: 10 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  section?: string;
 
   @ApiPropertyOptional({ enum: CourseStatus })
   @IsOptional()

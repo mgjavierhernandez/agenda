@@ -9,8 +9,11 @@ import { AuthModule } from './modules/auth/auth.module';
 import { StudentsModule } from './modules/students/students.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
+import { AreasModule } from './modules/areas/areas.module';
 import { GradesModule } from './modules/grades/grades.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
+import { ScheduleBlocksModule } from './modules/schedule-blocks/schedule-blocks.module';
+import { ClassroomsModule } from './modules/classrooms/classrooms.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { CommunicationsModule } from './modules/communications/communications.module';
 import { SignaturesModule } from './modules/signatures/signatures.module';
@@ -67,8 +70,11 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     StudentsModule,
     CoursesModule,
     SubjectsModule,
+    AreasModule,
     GradesModule,
     SchedulesModule,
+    ScheduleBlocksModule,
+    ClassroomsModule,
     TasksModule,
     CommunicationsModule,
     SignaturesModule,

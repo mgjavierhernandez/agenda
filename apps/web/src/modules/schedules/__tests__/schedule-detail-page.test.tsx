@@ -42,10 +42,13 @@ const mockSchedule = {
   institutionId: 'inst-1',
   courseId: 'cou-1',
   subjectId: 'sub-1',
+  academicPeriodId: 'ap-1',
+  teacherUserId: 'usr-1',
+  classroomId: 'room-1',
+  blockId: 'blk-1',
   dayOfWeek: 'MONDAY',
   startTime: '08:00',
   endTime: '09:30',
-  classroom: 'Aula 101',
   status: 'ACTIVE',
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-06-15T12:00:00Z',
@@ -86,7 +89,7 @@ describe('ScheduleDetailPage', () => {
   it('shows classroom', async () => {
     mockUseSchedule.mockReturnValue({ data: mockSchedule, isLoading: false, error: null });
     renderPage();
-    const elements = screen.getAllByText('Aula 101');
+    const elements = screen.getAllByText('room-1');
     expect(elements.length).toBeGreaterThanOrEqual(1);
   });
 

@@ -10,6 +10,20 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { ListStudentsQueryDto } from './dto/list-students-query.dto';
 import { Student, StudentStatus, Prisma } from '@prisma/client';
 
+// Roles with unrestricted student visibility within their institution.
+const FULL_ACCESS_ROLES = new Set([
+  'SUPER_ADMIN',
+  'INSTITUTION_ADMIN',
+  'RECTOR',
+  'COORDINADOR_ACADEMICO',
+  'COORDINADOR_CONVIVENCIA',
+  'ORIENTADOR',
+  'PSICOLOGO',
+]);
+
+// Roles scoped to the courses they teach or direct.
+const TEACHER_SCOPED_ROLES = new Set(['TEACHER', 'DIRECTOR_DE_GRUPO']);
+
 @Injectable()
 export class StudentsService {
   constructor(
@@ -66,6 +80,67 @@ export class StudentsService {
     return student;
   }
 
+  /**
+   * Resolves which students the actor may see.
+   * @returns null for unrestricted (administrative) access, otherwise the allowed student ids.
+   */
+  private async resolveAccessibleStudentIds(institutionId: string, userId: string): Promise<string[] | null> {
+    const membership = await this.prisma.userInstitution.findUnique({
+      where: { userId_institutionId: { userId, institutionId } },
+      select: { id: true },
+    });
+    if (!membership) return [];
+
+    const userRoles = await this.prisma.userRole.findMany({
+      where: { userInstitutionId: membership.id },
+      include: { role: { select: { name: true } } },
+    });
+    const roleNames = userRoles.map((ur) => ur.role.name);
+
+    if (roleNames.some((name) => FULL_ACCESS_ROLES.has(name))) {
+      return null;
+    }
+
+    const allowed = new Set<string>();
+
+    if (roleNames.some((name) => TEACHER_SCOPED_ROLES.has(name))) {
+      const [assignments, directions] = await Promise.all([
+        this.prisma.teacherAssignment.findMany({
+          where: { institutionId, teacherUserId: userId, status: 'ACTIVE' },
+          select: { courseId: true },
+        }),
+        this.prisma.courseDirectorAssignment.findMany({
+          where: { institutionId, directorUserId: userId, status: 'ACTIVE' },
+          select: { courseId: true },
+        }),
+      ]);
+      const courseIds = [...new Set([...assignments.map((a) => a.courseId), ...directions.map((d) => d.courseId)])];
+      if (courseIds.length > 0) {
+        const enrollments = await this.prisma.enrollment.findMany({
+          where: { institutionId, courseId: { in: courseIds }, status: 'ACTIVE' },
+          select: { studentId: true },
+        });
+        for (const e of enrollments) allowed.add(e.studentId);
+      }
+    }
+
+    if (roleNames.includes('STUDENT')) {
+      const own = await this.prisma.student.findFirst({
+        where: { institutionId, userId },
+        select: { id: true },
+      });
+      if (own) allowed.add(own.id);
+    }
+
+    const linked = await this.prisma.guardianStudent.findMany({
+      where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
+      select: { studentId: true },
+    });
+    for (const gs of linked) allowed.add(gs.studentId);
+
+    return [...allowed];
+  }
+
   async findAll(
     institutionId: string,
     query: ListStudentsQueryDto,
@@ -88,20 +163,11 @@ export class StudentsService {
     let where: Prisma.StudentWhereInput;
 
     if (userId) {
-      const isParent = await this.prisma.guardianStudent.findFirst({
-        where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
-        select: { id: true },
-      });
-
-      if (isParent) {
-        const linkedStudentIds = await this.prisma.guardianStudent.findMany({
-          where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
-          select: { studentId: true },
-        });
-        const studentIds = linkedStudentIds.map((gs) => gs.studentId);
-        where = { institutionId, id: { in: studentIds }, ...searchFilter };
-      } else {
+      const accessibleIds = await this.resolveAccessibleStudentIds(institutionId, userId);
+      if (accessibleIds === null) {
         where = { institutionId, ...searchFilter };
+      } else {
+        where = { institutionId, id: { in: accessibleIds }, ...searchFilter };
       }
     } else {
       where = { institutionId, ...searchFilter };
@@ -130,20 +196,9 @@ export class StudentsService {
 
   async findOne(institutionId: string, studentId: string, userId?: string): Promise<Student> {
     if (userId) {
-      const isParent = await this.prisma.guardianStudent.findFirst({
-        where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
-        select: { id: true },
-      });
-
-      if (isParent) {
-        const linked = await this.prisma.guardianStudent.findFirst({
-          where: { guardianUserId: userId, institutionId, studentId, status: 'ACTIVE' },
-          select: { id: true },
-        });
-
-        if (!linked) {
-          throw new NotFoundException('Student not found');
-        }
+      const accessibleIds = await this.resolveAccessibleStudentIds(institutionId, userId);
+      if (accessibleIds !== null && !accessibleIds.includes(studentId)) {
+        throw new NotFoundException('Student not found');
       }
     }
 

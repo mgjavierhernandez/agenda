@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useSubject, useDeactivateSubject } from '../hooks';
+import { useAreas } from '@/modules/areas/hooks/useAreas';
+import { useTeacherAssignments } from '@/modules/teacher-assignments/hooks/useTeacherAssignments';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -9,6 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { PERMISSIONS } from '@/permissions/permission.constants';
+import type { SubjectType, EducationLevel } from '@/api/types';
+import { EDUCATION_LEVEL_LABELS, SUBJECT_TYPE_LABELS } from '@/api/types';
 
 export function SubjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +21,8 @@ export function SubjectDetailPage() {
   const canManage = hasPermission(PERMISSIONS.SUBJECTS_MANAGE);
 
   const { data: subject, isLoading, error } = useSubject(id ?? '');
+  const { data: areasData } = useAreas({ limit: 100 });
+  const { data: assignmentsData } = useTeacherAssignments({ subjectId: id ?? '', limit: 100 });
   const deactivateMutation = useDeactivateSubject();
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -41,6 +47,21 @@ export function SubjectDetailPage() {
 
   if (!subject) {
     return <ErrorState error={{ statusCode: 404, message: 'Asignatura no encontrada', timestamp: '', path: '' }} />;
+  }
+
+  const assignments = assignmentsData?.data ?? [];
+
+  const teacherMap = new Map<string, { name: string; email: string }>();
+  const courseMap = new Map<string, { name: string; code: string }>();
+
+  for (const assignment of assignments) {
+    if (!teacherMap.has(assignment.teacherUserId)) {
+      // We'll use a placeholder since we don't have user details here
+      teacherMap.set(assignment.teacherUserId, { name: 'Docente', email: '' });
+    }
+    if (!courseMap.has(assignment.courseId)) {
+      courseMap.set(assignment.courseId, { name: assignment.courseId, code: '' });
+    }
   }
 
   return (
@@ -88,6 +109,30 @@ export function SubjectDetailPage() {
                 </Badge>
               </dd>
             </div>
+            <div>
+              <dt className="text-sm text-gray-500">Área</dt>
+              <dd className="text-gray-900">
+                {areasData?.data.find((a) => a.id === subject.areaId)?.name || 'Sin área asignada'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Tipo de asignatura</dt>
+              <dd className="text-gray-900">
+                {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ?? subject.subjectType}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Nivel mínimo</dt>
+              <dd className="text-gray-900">
+                {subject.minimumLevel ? EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel] : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Nivel máximo</dt>
+              <dd className="text-gray-900">
+                {subject.maximumLevel ? EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel] : '—'}
+              </dd>
+            </div>
           </dl>
         </Card>
 
@@ -113,6 +158,49 @@ export function SubjectDetailPage() {
           </dl>
         </Card>
       </div>
+
+      {/* Relaciones académicas */}
+      {assignments.length > 0 && (
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Relaciones académicas</h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Docentes asignados</h4>
+              <div className="space-y-2">
+                {Array.from(new Set(assignments.map((a) => a.teacherUserId))).map((teacherId) => {
+                  const teacherAssignments = assignments.filter((a) => a.teacherUserId === teacherId);
+                  const courses = Array.from(new Set(teacherAssignments.map((a) => a.courseId)));
+                  return (
+                    <div key={teacherId} className="p-3 rounded-md border border-gray-100 bg-gray-50">
+                      <p className="font-medium text-gray-900">Docente (ID: {teacherId.slice(0, 8)}...)</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Cursos: {courses.map((c) => c.slice(0, 8) + '...').join(', ')}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Cursos con esta asignatura</h4>
+              <div className="space-y-2">
+                {Array.from(new Set(assignments.map((a) => a.courseId))).map((courseId) => {
+                  const courseAssignments = assignments.filter((a) => a.courseId === courseId);
+                  const periods = Array.from(new Set(courseAssignments.map((a) => a.academicPeriodId)));
+                  return (
+                    <div key={courseId} className="p-3 rounded-md border border-gray-100 bg-gray-50">
+                      <p className="font-medium text-gray-900">Curso (ID: {courseId.slice(0, 8)}...)</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Periodos: {periods.map((p) => p.slice(0, 8) + '...').join(', ')}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <div className="flex justify-start">
         <Button variant="ghost" onClick={() => navigate('/subjects')}>

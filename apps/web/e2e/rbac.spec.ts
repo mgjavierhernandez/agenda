@@ -71,7 +71,13 @@ test.describe('RBAC', () => {
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav).toBeVisible();
 
+    await expect(nav.getByRole('button', { name: /Categoría Gestión académica/i })).toBeVisible();
+    const catBtn = nav.getByRole('button', { name: /Categoría Gestión académica/i });
+    if ((await catBtn.getAttribute('aria-expanded')) !== 'true') {
+      await catBtn.click();
+    }
     await expect(nav.getByRole('link', { name: 'Estudiantes' })).toBeVisible({ timeout: 15_000 });
+
     const items = nav.locator('li a');
     const count = await items.count();
     expect(count).toBeGreaterThan(5);

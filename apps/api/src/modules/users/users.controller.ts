@@ -18,6 +18,7 @@ import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, ListUsersQueryDto } from './dto/user.dto';
+import { UpsertUserProfileDto } from './dto/user-profile.dto';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { UserStatus } from '@prisma/client';
 
@@ -101,8 +102,45 @@ export class UsersController {
     );
   }
 
-  @ApiOperation({ summary: 'Deactivate user' })
+  @ApiOperation({ summary: 'Get tenant-scoped profile of a user' })
   @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'User profile found (null when not set)' })
+  @ApiResponse({ status: 404, description: 'User not found in this institution' })
+  @Get(':id/profile')
+  @RequirePermission('users:read')
+  async findProfile(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.usersService.findProfile(
+      req.tenant!.institutionId,
+      id,
+    );
+  }
+
+  @ApiOperation({ summary: 'Create or update the tenant-scoped profile of a user' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'User profile upserted' })
+  @ApiResponse({ status: 404, description: 'User not found in this institution' })
+  @ApiResponse({ status: 409, description: 'Document already registered in this institution' })
+  @ApiBody({ type: UpsertUserProfileDto })
+  @Patch(':id/profile')
+  @RequirePermission('users:update')
+  async upsertProfile(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpsertUserProfileDto,
+  ) {
+    return this.usersService.upsertProfile(
+      req.tenant!.institutionId,
+      id,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @ApiOperation({ summary: 'Deactivate user' })  @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'User deactivated' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Patch(':id/deactivate')

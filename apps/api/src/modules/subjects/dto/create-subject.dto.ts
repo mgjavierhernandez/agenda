@@ -3,10 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsEnum,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { SubjectStatus } from '@prisma/client';
+import { SubjectStatus, SubjectType, EducationLevel } from '@prisma/client';
 
 export class CreateSubjectDto {
   @ApiProperty({ maxLength: 50 })
@@ -26,6 +27,26 @@ export class CreateSubjectDto {
   @IsString()
   @MaxLength(1000)
   description?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  areaId?: string;
+
+  @ApiPropertyOptional({ enum: SubjectType })
+  @IsOptional()
+  @IsEnum(SubjectType)
+  subjectType?: SubjectType;
+
+  @ApiPropertyOptional({ enum: EducationLevel })
+  @IsOptional()
+  @IsEnum(EducationLevel)
+  minimumLevel?: EducationLevel;
+
+  @ApiPropertyOptional({ enum: EducationLevel })
+  @IsOptional()
+  @IsEnum(EducationLevel)
+  maximumLevel?: EducationLevel;
 
   @ApiPropertyOptional({ enum: SubjectStatus })
   @IsOptional()

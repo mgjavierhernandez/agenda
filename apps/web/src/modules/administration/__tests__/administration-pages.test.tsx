@@ -66,6 +66,8 @@ const mockMembership: UserMembership = {
   status: 'ACTIVE',
   userId: 'user-1',
   institutionId: 'inst-1',
+  requestedRole: null,
+  createdAt: '2026-01-01T00:00:00.000Z',
   user: {
     id: 'user-1',
     email: 'admin@demo-school.dev',
@@ -242,6 +244,64 @@ describe('CreateUserPage', () => {
 
     expect(screen.getByText(/No tienes permisos para crear usuarios/)).toBeInTheDocument();
   });
+
+  it('renders personal and professional profile sections', () => {
+    render(<CreateUserPage />, { wrapper: createWrapper() });
+
+    expect(screen.getByText('Datos personales')).toBeInTheDocument();
+    expect(screen.getByText('Datos profesionales')).toBeInTheDocument();
+    expect(screen.getByLabelText('Tipo de documento')).toBeInTheDocument();
+    expect(screen.getByLabelText('Número de documento')).toBeInTheDocument();
+    expect(screen.getByLabelText('Profesión')).toBeInTheDocument();
+    expect(screen.getByLabelText('Perfil profesional')).toBeInTheDocument();
+  });
+
+  it('submits profile data together with the user', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ id: 'u-9' });
+
+    render(<CreateUserPage />, { wrapper: createWrapper() });
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'doc@colegio.edu.co' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Andrea' } });
+    fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Gómez' } });
+    fireEvent.change(screen.getByLabelText('Tipo de documento'), { target: { value: 'NATIONAL_ID' } });
+    fireEvent.change(screen.getByLabelText('Número de documento'), { target: { value: '12345678' } });
+    fireEvent.change(screen.getByLabelText('Profesión'), { target: { value: 'Docente' } });
+
+    fireEvent.click(screen.getByText('Crear usuario'));
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/users',
+        expect.objectContaining({
+          email: 'doc@colegio.edu.co',
+          profile: expect.objectContaining({
+            documentType: 'NATIONAL_ID',
+            documentNumber: '12345678',
+            profession: 'Docente',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('warns when document type and number are not provided together', async () => {
+    render(<CreateUserPage />, { wrapper: createWrapper() });
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'doc@colegio.edu.co' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Andrea' } });
+    fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Gómez' } });
+    fireEvent.change(screen.getByLabelText('Número de documento'), { target: { value: '12345678' } });
+
+    fireEvent.click(screen.getByText('Crear usuario'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/tipo y el número de documento deben indicarse juntos/)).toBeInTheDocument();
+    });
+    expect(apiClient.post).not.toHaveBeenCalled();
+  });
 });
 
 describe('UserDetailPage', () => {
@@ -283,8 +343,7 @@ describe('UserDetailPage', () => {
     expect(screen.queryByText('Desvincular usuario')).not.toBeInTheDocument();
   });
 
-  it('unlinks a user', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('unlinks a user', async () => {    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     render(<UserDetailPage />, { wrapper: createWrapper(['/admin/users/mem-1']) });
 
@@ -298,6 +357,53 @@ describe('UserDetailPage', () => {
       expect(apiClient.delete).toHaveBeenCalledWith(
         '/institutions/inst-1/memberships/user/user-1',
       );
+    });
+  });
+
+  it('renders the tenant profile when present', async () => {
+    mockGetByUrl({
+      '/users/user-1': {
+        id: 'user-1',
+        email: 'admin@demo-school.dev',
+        firstName: 'Admin',
+        lastName: 'Demo',
+        status: 'ACTIVE',
+        profiles: [
+          {
+            id: 'p-1',
+            userId: 'user-1',
+            institutionId: 'inst-1',
+            documentType: 'NATIONAL_ID',
+            documentNumber: '12345678',
+            phone: '3001234567',
+            address: 'Calle 1',
+            birthDate: '1980-01-01',
+            profession: 'Docente',
+            bio: 'Perfil profesional',
+          },
+        ],
+      },
+    });
+
+    render(<UserDetailPage />, { wrapper: createWrapper(['/admin/users/mem-1']) });
+
+    await waitFor(() => {
+      expect(screen.getByText('Perfil personal y profesional')).toBeInTheDocument();
+      expect(screen.getByText(/12345678/)).toBeInTheDocument();
+    });
+    expect(screen.getByText('Docente')).toBeInTheDocument();
+  });
+
+  it('shows empty profile state when absent', async () => {
+    mockGetByUrl({ '/users/user-1': { ...mockMembership.user, profiles: [] } });
+
+    render(<UserDetailPage />, { wrapper: createWrapper(['/admin/users/mem-1']) });
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Admin Demo/).length).toBeGreaterThan(0);
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/Sin perfil registrado en esta institución/)).toBeInTheDocument();
     });
   });
 });

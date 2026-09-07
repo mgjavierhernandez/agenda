@@ -11,6 +11,7 @@ import { RELATIONSHIP_TYPE_LABELS } from '@/api/types';
 import type { RelationshipType, LinkGuardianInput } from '@/api/types';
 
 interface FormErrors {
+  guardianUserId?: string;
   studentId?: string;
   relationshipType?: string;
 }
@@ -32,6 +33,7 @@ export function GuardiansFormPage() {
   const linkMutation = useLinkGuardian();
 
   const [studentId, setStudentId] = useState('');
+  const [guardianUserId, setGuardianUserId] = useState('');
   const [relationshipType, setRelationshipType] = useState<RelationshipType | ''>('');
   const [isPrimary, setIsPrimary] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -47,6 +49,10 @@ export function GuardiansFormPage() {
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
+
+    if (guardianUserId.trim() && !UUID_REGEX.test(guardianUserId.trim())) {
+      newErrors.guardianUserId = 'El ID del acudiente debe ser un UUID válido';
+    }
 
     if (!studentId.trim()) {
       newErrors.studentId = 'El ID del estudiante es requerido';
@@ -72,6 +78,7 @@ export function GuardiansFormPage() {
       studentId: studentId.trim(),
       relationshipType: relationshipType as RelationshipType,
       isPrimary,
+      ...(guardianUserId.trim() ? { guardianUserId: guardianUserId.trim() } : {}),
     };
 
     try {
@@ -99,6 +106,14 @@ export function GuardiansFormPage() {
         <Card>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Datos de la vinculación</h3>
           <div className="space-y-4">
+            <Input
+              label="ID del Acudiente (opcional)"
+              placeholder="UUID del usuario acudiente (vacío = tu propio usuario)"
+              value={guardianUserId}
+              onChange={(e) => setGuardianUserId(e.target.value)}
+            />
+            {errors.guardianUserId && <p className="text-sm text-red-600">{errors.guardianUserId}</p>}
+
             <Input
               label="ID del Estudiante"
               placeholder="UUID del estudiante"

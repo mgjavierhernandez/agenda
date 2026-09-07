@@ -3,3 +3,4 @@ export { useStudent } from './useStudent';
 export { useCreateStudent } from './useCreateStudent';
 export { useUpdateStudent } from './useUpdateStudent';
 export { useDeactivateStudent } from './useDeactivateStudent';
+export { useImportStudents } from './useImportStudents';

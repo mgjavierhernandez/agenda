@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsEnum,
   IsUUID,
-  MaxLength,
   Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -20,6 +19,26 @@ export class CreateScheduleDto {
   @IsUUID()
   @IsNotEmpty()
   subjectId!: string;
+
+  @ApiProperty({ format: 'uuid', description: 'Período académico del horario' })
+  @IsUUID()
+  @IsNotEmpty()
+  academicPeriodId!: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Docente que dicta la clase' })
+  @IsOptional()
+  @IsUUID()
+  teacherUserId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Aula/espacio asignado' })
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Bloque horario (jornada)' })
+  @IsOptional()
+  @IsUUID()
+  blockId?: string;
 
   @ApiProperty({ enum: DayOfWeek })
   @IsEnum(DayOfWeek)
@@ -40,12 +59,6 @@ export class CreateScheduleDto {
     message: 'endTime must be a valid time (HH:MM or HH:MM:SS)',
   })
   endTime!: string;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  classroom?: string;
 
   @ApiPropertyOptional({ enum: ScheduleStatus })
   @IsOptional()

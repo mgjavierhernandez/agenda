@@ -12,11 +12,14 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { PERMISSIONS } from '@/permissions/permission.constants';
+import type { MembershipStatus } from '@/api/types';
 
-const STATUS_VARIANT: Record<'ACTIVE' | 'INACTIVE' | 'SUSPENDED', 'success' | 'default' | 'danger'> = {
+const STATUS_VARIANT: Record<MembershipStatus, 'success' | 'default' | 'danger' | 'info'> = {
   ACTIVE: 'success',
   INACTIVE: 'default',
   SUSPENDED: 'danger',
+  PENDING: 'info',
+  REJECTED: 'danger',
 };
 
 export function InstitutionUsersPage() {

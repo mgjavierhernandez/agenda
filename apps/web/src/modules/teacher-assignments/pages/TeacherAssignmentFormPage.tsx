@@ -17,6 +17,8 @@ interface FormErrors {
   courseId?: string;
   subjectId?: string;
   academicPeriodId?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -42,6 +44,8 @@ export function TeacherAssignmentFormPage() {
   const [courseId, setCourseId] = useState('');
   const [subjectId, setSubjectId] = useState('');
   const [academicPeriodId, setAcademicPeriodId] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState('');
 
@@ -78,6 +82,12 @@ export function TeacherAssignmentFormPage() {
     if (!academicPeriodId) {
       newErrors.academicPeriodId = 'El periodo académico es requerido';
     }
+    if (!startDate) {
+      newErrors.startDate = 'La fecha de inicio es requerida';
+    }
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      newErrors.endDate = 'La fecha de fin no puede ser anterior a la fecha de inicio';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -94,6 +104,8 @@ export function TeacherAssignmentFormPage() {
       courseId,
       subjectId,
       academicPeriodId,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
     };
 
     try {
@@ -191,6 +203,35 @@ export function TeacherAssignmentFormPage() {
                 ))}
               </select>
               {errors.academicPeriodId && <p className="text-sm text-red-600 mt-1">{errors.academicPeriodId}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha de inicio *
+                </label>
+                <input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
+              </div>
+              <div>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha de fin
+                </label>
+                <input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {errors.endDate && <p className="text-sm text-red-600 mt-1">{errors.endDate}</p>}
+              </div>
             </div>
           </div>
         </Card>

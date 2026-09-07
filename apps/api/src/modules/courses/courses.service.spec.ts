@@ -1,6 +1,6 @@
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { CoursesService } from './courses.service';
-import { CourseStatus } from '@prisma/client';
+import { CourseStatus, EducationLevel } from '@prisma/client';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -13,6 +13,7 @@ describe('CoursesService', () => {
       create: jest.Mock;
       update: jest.Mock;
     };
+    schoolGrade: { findFirst: jest.Mock };
   };
   let auditServiceMock: { log: jest.Mock };
 
@@ -29,6 +30,7 @@ describe('CoursesService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      schoolGrade: { findFirst: jest.fn() },
     };
 
     auditServiceMock = { log: jest.fn() };
@@ -108,6 +110,38 @@ describe('CoursesService', () => {
       );
 
       expect(result.institutionId).toBe('inst-2');
+    });
+
+    it('should create a course with level, section and school grade', async () => {
+      prismaMock.course.findUnique.mockResolvedValue(null);
+      prismaMock.schoolGrade.findFirst.mockResolvedValue({ id: 'grade-1' });
+      prismaMock.course.create.mockResolvedValue({
+        id: 'course-1', institutionId, code: '2A', name: 'Segundo A',
+      });
+
+      await service.create(
+        institutionId,
+        { code: '2A', name: 'Segundo A', level: EducationLevel.PRIMARIA, section: 'A', schoolGradeId: 'grade-1' },
+        userId,
+      );
+
+      expect(prismaMock.course.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            level: 'PRIMARIA', section: 'A', schoolGradeId: 'grade-1',
+          }),
+        }),
+      );
+    });
+
+    it('should reject an unknown school grade on create', async () => {
+      prismaMock.course.findUnique.mockResolvedValue(null);
+      prismaMock.schoolGrade.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(institutionId, { code: '2A', name: 'Segundo A', schoolGradeId: 'missing' }, userId),
+      ).rejects.toThrow(NotFoundException);
+      expect(prismaMock.course.create).not.toHaveBeenCalled();
     });
   });
 

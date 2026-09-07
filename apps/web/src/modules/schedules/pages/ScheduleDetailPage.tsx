@@ -48,7 +48,7 @@ export function ScheduleDetailPage() {
     <div className="space-y-6">
       <PageHeader
         title={`${DAY_OF_WEEK_LABELS[schedule.dayOfWeek]} — ${schedule.startTime} a ${schedule.endTime}`}
-        description={schedule.classroom ? `Aula: ${schedule.classroom}` : 'Sin aula asignada'}
+        description={schedule.classroomId ? `Aula ${schedule.classroomId.slice(0, 8)}…` : 'Sin aula asignada'}
         actions={
           <div className="flex gap-2">
             {canManage && (
@@ -83,7 +83,15 @@ export function ScheduleDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Aula</dt>
-              <dd className="text-gray-900">{schedule.classroom ?? 'Sin aula asignada'}</dd>
+              <dd className="text-gray-900 font-mono text-xs break-all">
+                {schedule.classroomId ?? 'Sin aula asignada'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Bloque de horario</dt>
+              <dd className="text-gray-900 font-mono text-xs break-all">
+                {schedule.blockId ?? 'Sin bloque asignado'}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Estado</dt>
@@ -106,6 +114,18 @@ export function ScheduleDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Asignatura</dt>
               <dd className="text-gray-900 font-mono text-xs break-all">{schedule.subjectId}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Periodo académico</dt>
+              <dd className="text-gray-900 font-mono text-xs break-all">
+                {schedule.academicPeriodId ?? '—'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Profesor asignado</dt>
+              <dd className="text-gray-900 font-mono text-xs break-all">
+                {schedule.teacherUserId ?? 'Sin profesor'}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">ID</dt>

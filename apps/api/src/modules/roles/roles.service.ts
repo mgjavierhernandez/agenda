@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { Role } from '@prisma/client';
-
-const ASSIGNABLE_TENANT_ROLES = ['INSTITUTION_ADMIN', 'TEACHER', 'PARENT', 'STUDENT'];
+import { ASSIGNABLE_TENANT_ROLES } from '../../common/rbac/assignable-roles';
 
 export interface RoleListItem {
   id: string;

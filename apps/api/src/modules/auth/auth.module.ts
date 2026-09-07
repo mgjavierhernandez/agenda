@@ -14,6 +14,8 @@ import {
   SmtpEmailProvider,
 } from './services/email';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { TenantContextService } from './tenant/tenant-context.service';
 import { TenantContextGuard } from './tenant/tenant-context.guard';
@@ -55,6 +57,15 @@ import { AuditModule } from '../../common/audit/audit.module';
       inject: [ConfigService, EmailTemplates],
     },
     JwtStrategy,
+    // Google OAuth registers its passport strategy only when
+    // GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL are configured.
+    {
+      provide: GoogleStrategy,
+      useFactory: (configService: ConfigService) =>
+        GoogleStrategy.isConfigured(configService) ? new GoogleStrategy(configService) : null,
+      inject: [ConfigService],
+    },
+    GoogleOAuthGuard,
     AccessTokenGuard,
     TenantContextService,
     TenantContextGuard,

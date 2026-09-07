@@ -36,12 +36,25 @@ export class CoursesService {
       throw new ConflictException('Course with this code already exists in this institution');
     }
 
+    if (dto.schoolGradeId) {
+      const schoolGrade = await this.prisma.schoolGrade.findFirst({
+        where: { id: dto.schoolGradeId, institutionId },
+        select: { id: true },
+      });
+      if (!schoolGrade) {
+        throw new NotFoundException('School grade not found in this institution');
+      }
+    }
+
     const course = await this.prisma.course.create({
       data: {
         institutionId,
         code: dto.code,
         name: dto.name,
         description: dto.description,
+        level: dto.level,
+        schoolGradeId: dto.schoolGradeId,
+        section: dto.section,
         status: dto.status,
       },
     });
@@ -157,6 +170,22 @@ export class CoursesService {
     if (dto.code !== undefined) updateData.code = dto.code;
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.description !== undefined) updateData.description = dto.description;
+    if (dto.level !== undefined) updateData.level = dto.level;
+    if (dto.section !== undefined) updateData.section = dto.section;
+    if (dto.schoolGradeId !== undefined) {
+      if (dto.schoolGradeId) {
+        const schoolGrade = await this.prisma.schoolGrade.findFirst({
+          where: { id: dto.schoolGradeId, institutionId },
+          select: { id: true },
+        });
+        if (!schoolGrade) {
+          throw new NotFoundException('School grade not found in this institution');
+        }
+        updateData.schoolGrade = { connect: { id: dto.schoolGradeId } };
+      } else {
+        updateData.schoolGrade = { disconnect: true };
+      }
+    }
     if (dto.status !== undefined) updateData.status = dto.status;
 
     const course = await this.prisma.course.update({

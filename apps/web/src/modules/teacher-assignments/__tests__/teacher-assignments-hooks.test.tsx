@@ -35,6 +35,8 @@ const mockAssignment: TeacherAssignment = {
   subjectId: 'sub-1',
   academicPeriodId: 'ap-1',
   status: 'ACTIVE',
+  startDate: '2026-01-15',
+  endDate: null,
   createdAt: '2026-01-15T10:00:00Z',
   updatedAt: '2026-01-15T10:00:00Z',
 };

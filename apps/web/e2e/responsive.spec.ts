@@ -95,7 +95,18 @@ test.describe('Responsive - Layout', () => {
     await page.getByRole('button', { name: /toggle menu/i }).click();
     await page.waitForTimeout(300);
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
-    await nav.getByText('Tareas').click();
+
+    async function openCategoryAndClick(category: RegExp, item: string) {
+      const cat = nav.getByRole('button', { name: category });
+      if ((await cat.getAttribute('aria-expanded')) !== 'true') {
+        await cat.scrollIntoViewIfNeeded();
+        await cat.click();
+      }
+      await nav.getByRole('link', { name: item, exact: true }).waitFor({ state: 'visible', timeout: 10_000 });
+      await nav.getByRole('link', { name: item, exact: true }).click();
+    }
+
+    await openCategoryAndClick(/Categoría Trabajo académico/i, 'Tareas');
     await page.waitForURL(/\/tasks/, { timeout: 10_000 });
   });
 });

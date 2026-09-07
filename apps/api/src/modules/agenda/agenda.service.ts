@@ -225,6 +225,7 @@ export class AgendaService {
       include: {
         course: { select: { id: true, name: true } },
         subject: { select: { id: true, name: true } },
+        classroom: { select: { id: true, name: true } },
       },
     });
 
@@ -261,7 +262,7 @@ export class AgendaService {
           id: `schedule-${schedule.id}-${currentDate.toISOString().split('T')[0]}`,
           type: AgendaEventType.SCHEDULE,
           title: `${schedule.course.name} — ${schedule.subject.name}`,
-          description: schedule.classroom ?? undefined,
+          description: schedule.classroom?.name ?? undefined,
           start: eventStart.toISOString(),
           end: eventEnd.toISOString(),
           allDay: false,
@@ -272,7 +273,7 @@ export class AgendaService {
           metadata: {
             courseId: schedule.courseId,
             subjectId: schedule.subjectId,
-            classroom: schedule.classroom,
+            classroom: schedule.classroom?.name ?? undefined,
             dayOfWeek: schedule.dayOfWeek,
             ...(userContext.role === 'parent' && userContext.studentNames
               ? { studentName: this.findStudentNameForCourse(schedule.courseId, userContext.studentIds, userContext.studentNames) }

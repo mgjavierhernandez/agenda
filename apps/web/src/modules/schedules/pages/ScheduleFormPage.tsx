@@ -1,8 +1,10 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSchedule, useCreateSchedule, useUpdateSchedule } from '../hooks';
+import { useSchedule, useCreateSchedule, useUpdateSchedule, useScheduleBlocks, useClassrooms } from '../hooks';
 import { useCourses } from '@/modules/courses/hooks';
 import { useSubjects } from '@/modules/subjects/hooks';
+import { useAcademicPeriods } from '@/modules/academic-periods/hooks';
+import { useUsers } from '@/modules/teacher-assignments/hooks';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { Button } from '@/components/ui/Button';
@@ -25,28 +27,42 @@ export function ScheduleFormPage() {
 
   const { data: coursesData } = useCourses({ limit: 100 });
   const { data: subjectsData } = useSubjects({ limit: 100 });
+  const { data: academicPeriodsData } = useAcademicPeriods({ limit: 100 });
+  const { data: usersData } = useUsers({ limit: 200 });
+  const { data: blocksData } = useScheduleBlocks({ limit: 100, status: 'ACTIVE' });
+  const { data: classroomsData } = useClassrooms({ limit: 100, status: 'ACTIVE' });
 
   const [courseId, setCourseId] = useState('');
   const [subjectId, setSubjectId] = useState('');
+  const [academicPeriodId, setAcademicPeriodId] = useState('');
+  const [teacherUserId, setTeacherUserId] = useState('');
+  const [blockId, setBlockId] = useState('');
+  const [classroomId, setClassroomId] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState<DayOfWeek>('MONDAY');
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('09:00');
-  const [classroom, setClassroom] = useState('');
   const [status, setStatus] = useState<ScheduleStatus>('ACTIVE');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState('');
 
   const courses = coursesData?.data ?? [];
   const subjects = subjectsData?.data ?? [];
+  const academicPeriods = academicPeriodsData?.data ?? [];
+  const users = usersData?.data ?? [];
+  const blocks = blocksData?.data ?? [];
+  const classrooms = classroomsData?.data ?? [];
 
   useEffect(() => {
     if (existingSchedule) {
       setCourseId(existingSchedule.courseId);
       setSubjectId(existingSchedule.subjectId);
+      setAcademicPeriodId(existingSchedule.academicPeriodId ?? '');
+      setTeacherUserId(existingSchedule.teacherUserId ?? '');
+      setBlockId(existingSchedule.blockId ?? '');
+      setClassroomId(existingSchedule.classroomId ?? '');
       setDayOfWeek(existingSchedule.dayOfWeek);
       setStartTime(existingSchedule.startTime);
       setEndTime(existingSchedule.endTime);
-      setClassroom(existingSchedule.classroom ?? '');
       setStatus(existingSchedule.status);
     }
   }, [existingSchedule]);
@@ -55,6 +71,7 @@ export function ScheduleFormPage() {
     const newErrors: Record<string, string> = {};
     if (!courseId.trim()) newErrors.courseId = 'El curso es requerido';
     if (!subjectId.trim()) newErrors.subjectId = 'La asignatura es requerida';
+    if (!academicPeriodId.trim()) newErrors.academicPeriodId = 'El periodo académico es requerido';
     if (!dayOfWeek) newErrors.dayOfWeek = 'El día es requerido';
     if (!startTime.trim()) {
       newErrors.startTime = 'La hora de inicio es requerida';
@@ -71,7 +88,6 @@ export function ScheduleFormPage() {
         newErrors.endTime = 'La hora de fin debe ser posterior a la hora de inicio';
       }
     }
-    if (classroom.length > 100) newErrors.classroom = 'Máximo 100 caracteres';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,29 +98,23 @@ export function ScheduleFormPage() {
     if (!validate()) return;
 
     try {
+      const basePayload = {
+        courseId: courseId.trim(),
+        subjectId: subjectId.trim(),
+        academicPeriodId: academicPeriodId.trim(),
+        dayOfWeek,
+        startTime: startTime.trim(),
+        endTime: endTime.trim(),
+        status,
+        ...(teacherUserId.trim() ? { teacherUserId: teacherUserId.trim() } : {}),
+        ...(blockId.trim() ? { blockId: blockId.trim() } : {}),
+        ...(classroomId.trim() ? { classroomId: classroomId.trim() } : {}),
+      };
       if (isEditing && id) {
-        const payload: UpdateScheduleInput = {
-          courseId: courseId.trim(),
-          subjectId: subjectId.trim(),
-          dayOfWeek,
-          startTime: startTime.trim(),
-          endTime: endTime.trim(),
-          status,
-        };
-        if (classroom.trim()) payload.classroom = classroom.trim();
-        await updateMutation.mutateAsync({ id, data: payload });
+        await updateMutation.mutateAsync({ id, data: basePayload as UpdateScheduleInput });
         navigate(`/schedules/${id}`);
       } else {
-        const payload: CreateScheduleInput = {
-          courseId: courseId.trim(),
-          subjectId: subjectId.trim(),
-          dayOfWeek,
-          startTime: startTime.trim(),
-          endTime: endTime.trim(),
-          status,
-        };
-        if (classroom.trim()) payload.classroom = classroom.trim();
-        const created = await createMutation.mutateAsync(payload);
+        const created = await createMutation.mutateAsync(basePayload as CreateScheduleInput);
         navigate(`/schedules/${created.id}`);
       }
     } catch (err) {
@@ -226,15 +236,86 @@ export function ScheduleFormPage() {
             />
           </div>
 
-          <Input
-            label="Aula"
-            value={classroom}
-            onChange={(e) => setClassroom(e.target.value)}
-            error={errors.classroom}
-            disabled={isSubmitting}
-            maxLength={100}
-            placeholder="Ej: Aula 101"
-          />
+          <div>
+            <label htmlFor="academicPeriodId" className="block text-sm font-medium text-gray-700 mb-1">
+              Periodo académico *
+            </label>
+            <select
+              id="academicPeriodId"
+              value={academicPeriodId}
+              onChange={(e) => setAcademicPeriodId(e.target.value)}
+              disabled={isSubmitting}
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Seleccionar periodo</option>
+              {academicPeriods.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.code} — {p.name}
+                </option>
+              ))}
+            </select>
+            {errors.academicPeriodId && <p className="mt-1 text-sm text-red-600">{errors.academicPeriodId}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="teacherUserId" className="block text-sm font-medium text-gray-700 mb-1">
+              Profesor (opcional)
+            </label>
+            <select
+              id="teacherUserId"
+              value={teacherUserId}
+              onChange={(e) => setTeacherUserId(e.target.value)}
+              disabled={isSubmitting}
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Sin profesor asignado</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.firstName} {u.lastName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="blockId" className="block text-sm font-medium text-gray-700 mb-1">
+              Franja horaria (opcional)
+            </label>
+            <select
+              id="blockId"
+              value={blockId}
+              onChange={(e) => setBlockId(e.target.value)}
+              disabled={isSubmitting}
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Sin franja</option>
+              {blocks.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} — {b.dayOfWeek}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="classroomId" className="block text-sm font-medium text-gray-700 mb-1">
+              Aula (opcional)
+            </label>
+            <select
+              id="classroomId"
+              value={classroomId}
+              onChange={(e) => setClassroomId(e.target.value)}
+              disabled={isSubmitting}
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Sin aula</option>
+              {classrooms.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.code} — {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">

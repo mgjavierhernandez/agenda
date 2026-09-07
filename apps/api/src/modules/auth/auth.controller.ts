@@ -7,14 +7,19 @@
   UseGuards,
   Get,
   Request,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { ConfigService } from '@nestjs/config';
 import { AuthService, AuthUser, LoginResult } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SelectTenantDto } from './dto/select-tenant.dto';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-recovery.dto';
+import { SelfRegisterDto } from './dto/self-register.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+import { GoogleStrategy, GoogleProfile } from './strategies/google.strategy';
 import { TenantContextGuard, AuthenticatedRequest } from './tenant/tenant-context.guard';
 import { TenantContextService } from './tenant/tenant-context.service';
 import { AuthorizationService } from './authorization/authorization.service';
@@ -29,7 +34,14 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly tenantContextService: TenantContextService,
     private readonly authorizationService: AuthorizationService,
+    private readonly configService: ConfigService,
   ) {}
+
+  private assertGoogleConfigured(): void {
+    if (!GoogleStrategy.isConfigured(this.configService)) {
+      throw new ServiceUnavailableException('Google authentication is not configured');
+    }
+  }
 
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful - returns access and refresh tokens' })
@@ -42,8 +54,44 @@ export class AuthController {
     return this.authService.login(loginDto.email, loginDto.password);
   }
 
-  @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed' })
+  @ApiOperation({ summary: 'Public self-registration (creates a PENDING membership, no access granted)' })
+  @ApiResponse({ status: 201, description: 'Request received, pending approval' })
+  @ApiResponse({ status: 404, description: 'Institution not found' })
+  @ApiResponse({ status: 409, description: 'Request or membership already exists' })
+  @ApiResponse({ status: 429, description: 'Too many registration attempts' })
+  @Post('self-register')
+  @Throttle({ default: { limit: 5, ttl: 3600000 } })
+  @HttpCode(HttpStatus.CREATED)
+  async selfRegister(
+    @Body() dto: SelfRegisterDto,
+    @Request() req: { ip?: string },
+  ): Promise<{ message: string; status: 'PENDING' }> {
+    return this.authService.selfRegister(dto, req.ip);
+  }
+
+  @ApiOperation({ summary: 'Start Google OAuth login (redirects to Google)' })
+  @ApiResponse({ status: 302, description: 'Redirect to Google consent screen' })
+  @ApiResponse({ status: 503, description: 'Google authentication is not configured' })
+  @Get('google')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuth(): Promise<void> {
+    this.assertGoogleConfigured();
+  }
+
+  @ApiOperation({ summary: 'Google OAuth callback (issues the standard JWT scheme)' })
+  @ApiResponse({ status: 200, description: 'Login successful - returns access and refresh tokens' })
+  @ApiResponse({ status: 401, description: 'Account not active' })
+  @ApiResponse({ status: 403, description: 'No linked account - request access first' })
+  @ApiResponse({ status: 503, description: 'Google authentication is not configured' })
+  @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async googleCallback(@Request() req: { user: GoogleProfile; ip?: string }): Promise<LoginResult> {
+    this.assertGoogleConfigured();
+    return this.authService.loginWithGoogle(req.user, req.ip);
+  }
+
+  @ApiOperation({ summary: 'Refresh access token' })  @ApiResponse({ status: 200, description: 'Token refreshed' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   @Post('refresh')
   @Throttle({ default: { limit: 20, ttl: 60000 } })

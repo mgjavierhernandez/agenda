@@ -125,6 +125,18 @@ export function TeacherAssignmentDetailPage() {
               <dd className="text-gray-900">{academicPeriod ? `${academicPeriod.name} (${academicPeriod.code})` : assignment.academicPeriodId}</dd>
             </div>
             <div>
+              <dt className="text-sm text-gray-500">Fecha de inicio</dt>
+              <dd className="text-gray-900">
+                {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Fecha de fin</dt>
+              <dd className="text-gray-900">
+                {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+              </dd>
+            </div>
+            <div>
               <dt className="text-sm text-gray-500">Estado</dt>
               <dd>
                 <Badge variant={STATUS_BADGE_VARIANT[assignment.status]}>

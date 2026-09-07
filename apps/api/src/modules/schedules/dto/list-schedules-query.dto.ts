@@ -39,6 +39,26 @@ export class ListSchedulesQueryDto {
   @IsUUID()
   subjectId?: string;
 
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  teacherUserId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  blockId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  academicPeriodId?: string;
+
   @ApiPropertyOptional({ enum: DayOfWeek })
   @IsOptional()
   @IsEnum(DayOfWeek)

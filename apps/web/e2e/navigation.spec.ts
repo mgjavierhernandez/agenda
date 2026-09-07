@@ -71,15 +71,24 @@ test.describe('Navigation - Critical Routes', () => {
   test('should navigate between routes via sidebar', async ({ page }) => {
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
 
-    await nav.getByText('Cursos').click();
+    async function openCategoryAndClick(category: RegExp, item: string) {
+      const cat = nav.getByRole('button', { name: category });
+      if ((await cat.getAttribute('aria-expanded')) !== 'true') {
+        await cat.click();
+      }
+      await nav.getByRole('link', { name: item, exact: true }).waitFor({ state: 'visible', timeout: 10_000 });
+      await nav.getByRole('link', { name: item, exact: true }).click();
+    }
+
+    await openCategoryAndClick(/Categoría Gestión académica/i, 'Cursos');
     await page.waitForURL(/\/courses/);
     await expect(page.getByRole('heading', { name: 'Cursos' })).toBeVisible();
 
-    await nav.getByText('Tareas').click();
+    await openCategoryAndClick(/Categoría Trabajo académico/i, 'Tareas');
     await page.waitForURL(/\/tasks/);
     await expect(page.getByRole('heading', { name: 'Tareas' })).toBeVisible();
 
-    await nav.getByText('Notificaciones').click();
+    await openCategoryAndClick(/Categoría Comunicación/i, 'Notificaciones');
     await page.waitForURL(/\/notifications/);
     await expect(page.getByRole('heading', { name: 'Notificaciones' })).toBeVisible();
   });

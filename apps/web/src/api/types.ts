@@ -133,12 +133,67 @@ export interface ListCoursesParams {
 
 export type SubjectStatus = 'ACTIVE' | 'INACTIVE';
 
-export interface Subject {
+export type EducationLevel = 'PREESCOLAR' | 'PRIMARIA' | 'SECUNDARIA' | 'MEDIA';
+export type SubjectType = 'OBLIGATORIA' | 'OPTATIVA' | 'PROFUNDIZACION' | 'TRANSVERSAL' | 'DIMENSION';
+
+export const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
+  PREESCOLAR: 'Preescolar',
+  PRIMARIA: 'Primaria',
+  SECUNDARIA: 'Secundaria',
+  MEDIA: 'Media',
+};
+
+export const SUBJECT_TYPE_LABELS: Record<SubjectType, string> = {
+  OBLIGATORIA: 'Obligatoria',
+  OPTATIVA: 'Optativa',
+  PROFUNDIZACION: 'Profundización',
+  TRANSVERSAL: 'Transversal',
+  DIMENSION: 'Dimensión',
+};
+
+export interface Area {
   id: string;
   institutionId: string;
   code: string;
   name: string;
+  isOfficial: boolean;
+  sortOrder: number;
+  status: SubjectStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAreaInput {
+  code: string;
+  name: string;
+  isOfficial?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdateAreaInput {
+  code?: string;
+  name?: string;
+  isOfficial?: boolean;
+  sortOrder?: number;
+  status?: SubjectStatus;
+}
+
+export interface ListAreasParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface Subject {
+  id: string;
+  institutionId: string;
+  areaId: string | null;
+  code: string;
+  name: string;
   description: string | null;
+  subjectType: SubjectType;
+  minimumLevel: EducationLevel | null;
+  maximumLevel: EducationLevel | null;
   status: SubjectStatus;
   createdAt: string;
   updatedAt: string;
@@ -148,6 +203,10 @@ export interface CreateSubjectInput {
   code: string;
   name: string;
   description?: string;
+  areaId?: string;
+  subjectType?: SubjectType;
+  minimumLevel?: EducationLevel;
+  maximumLevel?: EducationLevel;
   status?: SubjectStatus;
 }
 
@@ -155,6 +214,10 @@ export interface UpdateSubjectInput {
   code?: string;
   name?: string;
   description?: string;
+  areaId?: string | null;
+  subjectType?: SubjectType;
+  minimumLevel?: EducationLevel | null;
+  maximumLevel?: EducationLevel | null;
   status?: SubjectStatus;
 }
 
@@ -163,6 +226,7 @@ export interface ListSubjectsParams {
   limit?: number;
   search?: string;
   status?: SubjectStatus;
+  areaId?: string;
 }
 
 export type GradeStatus = 'ACTIVE' | 'INACTIVE';
@@ -238,10 +302,13 @@ export interface Schedule {
   institutionId: string;
   courseId: string;
   subjectId: string;
+  academicPeriodId?: string | null;
+  teacherUserId?: string | null;
+  classroomId?: string | null;
+  blockId?: string | null;
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;
-  classroom: string | null;
   status: ScheduleStatus;
   createdAt: string;
   updatedAt: string;
@@ -250,20 +317,26 @@ export interface Schedule {
 export interface CreateScheduleInput {
   courseId: string;
   subjectId: string;
+  academicPeriodId: string;
+  teacherUserId?: string | null;
+  classroomId?: string | null;
+  blockId?: string | null;
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;
-  classroom?: string;
   status?: ScheduleStatus;
 }
 
 export interface UpdateScheduleInput {
   courseId?: string;
   subjectId?: string;
+  academicPeriodId?: string;
+  teacherUserId?: string | null;
+  classroomId?: string | null;
+  blockId?: string | null;
   dayOfWeek?: DayOfWeek;
   startTime?: string;
   endTime?: string;
-  classroom?: string;
   status?: ScheduleStatus;
 }
 
@@ -275,6 +348,57 @@ export interface ListSchedulesParams {
   courseId?: string;
   subjectId?: string;
   dayOfWeek?: DayOfWeek;
+}
+
+export interface ScheduleBlock {
+  id: string;
+  institutionId: string;
+  name: string;
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  status: ScheduleStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateScheduleBlockInput {
+  name: string;
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  status?: ScheduleStatus;
+}
+
+export type ClassroomType = 'AULA' | 'LAB_FISICA' | 'LAB_QUIMICA' | 'COMPUTO' | 'CANCHA' | 'AUDITORIO';
+
+export const CLASSROOM_TYPE_LABELS: Record<ClassroomType, string> = {
+  AULA: 'Aula',
+  LAB_FISICA: 'Laboratorio de física',
+  LAB_QUIMICA: 'Laboratorio de química',
+  COMPUTO: 'Sala de cómputo',
+  CANCHA: 'Cancha',
+  AUDITORIO: 'Auditorio',
+};
+
+export interface Classroom {
+  id: string;
+  institutionId: string;
+  code: string;
+  name: string;
+  capacity: number | null;
+  type: ClassroomType;
+  status: ScheduleStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateClassroomInput {
+  code: string;
+  name: string;
+  capacity?: number;
+  type?: ClassroomType;
+  status?: ScheduleStatus;
 }
 
 export type TaskStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'INACTIVE';
@@ -789,6 +913,7 @@ export interface LinkGuardianInput {
   studentId: string;
   relationshipType: RelationshipType;
   isPrimary?: boolean;
+  guardianUserId?: string;
 }
 
 // ── Enrollments ──────────────────────────────────────────────────────────────
@@ -906,6 +1031,38 @@ export interface CreateAttendanceBulkResult {
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 
+export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+  NATIONAL_ID: 'Cédula de ciudadanía',
+  DNI: 'Documento de identidad',
+  PASSPORT: 'Pasaporte',
+  OTHER: 'Otro',
+};
+
+export interface UserProfile {
+  id: string;
+  userId: string;
+  institutionId: string;
+  documentType: DocumentType | null;
+  documentNumber: string | null;
+  phone: string | null;
+  address: string | null;
+  birthDate: string | null;
+  profession: string | null;
+  bio: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertUserProfileInput {
+  documentType?: DocumentType;
+  documentNumber?: string;
+  phone?: string;
+  address?: string;
+  birthDate?: string;
+  profession?: string;
+  bio?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -914,6 +1071,7 @@ export interface User {
   status: UserStatus;
   createdAt: string;
   updatedAt: string;
+  profiles?: UserProfile[];
 }
 
 export interface ListUsersParams {
@@ -928,6 +1086,7 @@ export interface CreateUserInput {
   password: string;
   firstName: string;
   lastName: string;
+  profile?: UpsertUserProfileInput;
 }
 
 export interface UpdateUserInput {
@@ -947,6 +1106,20 @@ export interface Role {
 
 export type RoleName = 'INSTITUTION_ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT' | 'SUPER_ADMIN';
 
+export const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super administrador',
+  INSTITUTION_ADMIN: 'Administrador',
+  TEACHER: 'Docente',
+  PARENT: 'Acudiente',
+  STUDENT: 'Estudiante',
+  RECTOR: 'Rector',
+  COORDINADOR_ACADEMICO: 'Coordinador académico',
+  COORDINADOR_CONVIVENCIA: 'Coordinador de convivencia',
+  ORIENTADOR: 'Orientador',
+  PSICOLOGO: 'Psicólogo',
+  DIRECTOR_DE_GRUPO: 'Director de grupo',
+};
+
 export interface MembershipRole {
   id: string;
   name: string;
@@ -958,13 +1131,18 @@ export interface MembershipUser {
   firstName: string;
   lastName: string;
   status: UserStatus;
+  profiles?: UserProfile[];
 }
+
+export type MembershipStatus = 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'REJECTED';
 
 export interface UserMembership {
   id: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  status: MembershipStatus;
   userId: string;
   institutionId: string;
+  requestedRole: string | null;
+  createdAt: string;
   user: MembershipUser;
   roles: { id: string; role: MembershipRole }[];
 }
@@ -973,7 +1151,26 @@ export interface ListMembershipsParams {
   page?: number;
   limit?: number;
   search?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  status?: MembershipStatus;
+}
+
+export type SelfRegisterRole = 'TEACHER' | 'PARENT' | 'STUDENT';
+
+export const SELF_REGISTER_ROLE_LABELS: Record<SelfRegisterRole, string> = {
+  TEACHER: 'Docente',
+  PARENT: 'Acudiente',
+  STUDENT: 'Estudiante',
+};
+
+export interface SelfRegisterInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  institutionId?: string;
+  institutionSlug?: string;
+  requestedRole: SelfRegisterRole;
+  profile?: UpsertUserProfileInput;
 }
 
 export interface CreateMembershipInput {
@@ -986,13 +1183,26 @@ export interface AssignRoleInput {
 }
 
 export interface UpdateMembershipInput {
-  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  status?: MembershipStatus;
 }
 
 export interface InstitutionUpdateInput {
   name?: string;
   slug?: string;
   status?: Institution['status'];
+}
+
+export interface ImportRowError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+export interface ImportStudentsResult {
+  created: number;
+  updated: number;
+  enrollments: number;
+  errors: ImportRowError[];
 }
 
 // ── Teacher Assignments ──────────────────────────────────────────────────────
@@ -1012,6 +1222,8 @@ export interface TeacherAssignment {
   subjectId: string;
   academicPeriodId: string;
   status: TeacherAssignmentStatus;
+  startDate: string;
+  endDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -1025,15 +1237,102 @@ export interface ListTeacherAssignmentsParams {
   academicPeriodId?: string;
 }
 
+export interface TeacherCourseSummary {
+  courseId: string;
+  courseName: string;
+  subjectId: string;
+  subjectName: string;
+  academicPeriodId: string;
+  students: Array<{ studentId: string; firstName: string; lastName: string }>;
+}
+
+export interface TeacherSummary {
+  teacherUserId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  isDirector: boolean;
+  courses: TeacherCourseSummary[];
+}
+
+export interface GroupDirector {
+  teacherUserId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface CreateTeacherAssignmentInput {
   teacherUserId: string;
   courseId: string;
   subjectId: string;
   academicPeriodId: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface UpdateTeacherAssignmentInput {
   status?: TeacherAssignmentStatus;
+  startDate?: string;
+  endDate?: string | null;
+}
+
+export type CourseDirectorStatus = 'ACTIVE' | 'INACTIVE';
+
+export const COURSE_DIRECTOR_STATUS_LABELS: Record<CourseDirectorStatus, string> = {
+  ACTIVE: 'Activa',
+  INACTIVE: 'Inactiva',
+};
+
+export interface CourseDirectorAssignment {
+  id: string;
+  institutionId: string;
+  directorUserId: string;
+  courseId: string;
+  academicPeriodId: string;
+  startDate: string;
+  endDate: string | null;
+  status: CourseDirectorStatus;
+  createdAt: string;
+  updatedAt: string;
+  directorUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  course?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  academicPeriod?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+}
+
+export interface ListCourseDirectorAssignmentsParams {
+  page?: number;
+  limit?: number;
+  directorUserId?: string;
+  courseId?: string;
+  academicPeriodId?: string;
+}
+
+export interface CreateCourseDirectorAssignmentInput {
+  directorUserId: string;
+  courseId: string;
+  academicPeriodId: string;
+  startDate: string;
+  endDate?: string;
+  status?: CourseDirectorStatus;
+}
+
+export interface UpdateCourseDirectorAssignmentInput {
+  status?: CourseDirectorStatus;
+  endDate?: string | null;
 }
 
 export type AgendaView = 'day' | 'week' | 'month';

@@ -1,0 +1,1 @@
+ALTER TABLE subjects RENAME COLUMN subject_type TO "subjectType";

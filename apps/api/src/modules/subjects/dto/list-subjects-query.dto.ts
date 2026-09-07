@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsInt, Min, Max, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SubjectStatus } from '@prisma/client';
@@ -23,6 +23,11 @@ export class ListSubjectsQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  areaId?: string;
 
   @ApiPropertyOptional({ enum: SubjectStatus })
   @IsOptional()

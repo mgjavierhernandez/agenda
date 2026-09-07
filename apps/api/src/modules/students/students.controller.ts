@@ -7,27 +7,36 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   Request,
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { StudentsService } from './students.service';
+import { StudentsImportService } from './students-import.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { ListStudentsQueryDto } from './dto/list-students-query.dto';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ImportStudentsOptionsDto } from './dto/import-students.dto';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Students')
 @ApiBearerAuth('bearer')
 @Controller('students')
 @UseGuards(AccessTokenGuard, TenantContextGuard, PermissionGuard)
 export class StudentsController {
-  constructor(private readonly studentsService: StudentsService) {}
+  constructor(
+    private readonly studentsService: StudentsService,
+    private readonly studentsImportService: StudentsImportService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new student' })
   @ApiResponse({ status: 201, description: 'Student created' })
@@ -59,6 +68,43 @@ export class StudentsController {
       req.tenant!.institutionId,
       query,
       req.user.userId,
+    );
+  }
+
+  @ApiOperation({ summary: 'Bulk import students from CSV or XLSX (max 5MB)' })
+  @ApiResponse({ status: 201, description: 'Import summary with per-row errors' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary', description: 'CSV or XLSX file (max 5MB)' },
+        courseId: { type: 'string', format: 'uuid', description: 'Default course for rows without courseCode' },
+        academicPeriodId: { type: 'string', format: 'uuid', description: 'Academic period for enrollments' },
+      },
+      required: ['file'],
+    },
+  })
+  @Post('import')
+  @RequirePermission('students:manage')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  @HttpCode(HttpStatus.CREATED)
+  async import(
+    @Request() req: AuthenticatedRequest,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() options: ImportStudentsOptionsDto,
+  ) {
+    return this.studentsImportService.importFromFile(
+      req.tenant!.institutionId,
+      file,
+      options,
+      req.user.userId,
+      req.ip,
     );
   }
 

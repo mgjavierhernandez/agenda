@@ -13,7 +13,7 @@ describe('MembershipsService', () => {
 
   beforeEach(() => {
     prismaMock = {
-      user: { findUnique: jest.fn() },
+      user: { findUnique: jest.fn(), update: jest.fn() },
       institution: { findUnique: jest.fn() },
       userInstitution: {
         findUnique: jest.fn(), findFirst: jest.fn(), findMany: jest.fn(),
@@ -23,7 +23,7 @@ describe('MembershipsService', () => {
         findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(),
         delete: jest.fn(), deleteMany: jest.fn(), count: jest.fn(),
       },
-      role: { findMany: jest.fn(), findUnique: jest.fn() },
+      role: { findMany: jest.fn(), findUnique: jest.fn(), findFirst: jest.fn() },
       globalUserRole: { findFirst: jest.fn() },
     };
     auditServiceMock = { log: jest.fn() };
@@ -159,6 +159,75 @@ describe('MembershipsService', () => {
 
       const findManyArg = prismaMock.userInstitution.findMany.mock.calls[0][0];
       expect(findManyArg.where.status).toBe(MembershipStatus.ACTIVE);
+    });
+  });
+
+  describe('approve/reject (GAP-2)', () => {
+    const pendingMembership = {
+      id: 'm-pending', userId: 'u-1', institutionId, status: MembershipStatus.PENDING, requestedRole: 'TEACHER',
+    };
+
+    function mockSuperAdminActor() {
+      prismaMock.globalUserRole.findFirst.mockResolvedValue({ role: { name: 'SUPER_ADMIN' } });
+    }
+
+    it('should approve a PENDING request, activate user and assign requested role', async () => {
+      mockSuperAdminActor();
+      prismaMock.userInstitution.findFirst.mockResolvedValue(pendingMembership);
+      prismaMock.role.findFirst.mockResolvedValue({ id: 'role-teacher' });
+      prismaMock.userInstitution.update.mockResolvedValue({ ...pendingMembership, status: MembershipStatus.ACTIVE });
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1', status: 'INACTIVE' });
+      prismaMock.user.update.mockResolvedValue({ id: 'u-1', status: 'ACTIVE' });
+      prismaMock.userRole.findUnique.mockResolvedValue(null);
+      prismaMock.userRole.create.mockResolvedValue({ id: 'ur-1' });
+
+      const result = await service.approve(institutionId, 'm-pending', actorUserId);
+
+      expect(result.status).toBe(MembershipStatus.ACTIVE);
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ status: 'ACTIVE' }) }),
+      );
+      expect(prismaMock.userRole.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ roleId: 'role-teacher' }),
+        }),
+      );
+      expect(auditServiceMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MEMBERSHIP_APPROVED' }),
+      );
+    });
+
+    it('should reject approval when membership is not PENDING', async () => {
+      prismaMock.userInstitution.findFirst.mockResolvedValue({ ...pendingMembership, status: MembershipStatus.ACTIVE });
+
+      await expect(service.approve(institutionId, 'm-pending', actorUserId)).rejects.toThrow(ConflictException);
+      expect(prismaMock.userInstitution.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject a PENDING request without touching the user', async () => {
+      prismaMock.userInstitution.findFirst.mockResolvedValue(pendingMembership);
+      prismaMock.userInstitution.update.mockResolvedValue({ ...pendingMembership, status: MembershipStatus.REJECTED });
+
+      const result = await service.reject(institutionId, 'm-pending', actorUserId);
+
+      expect(result.status).toBe(MembershipStatus.REJECTED);
+      expect(prismaMock.user.update).not.toHaveBeenCalled();
+      expect(auditServiceMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MEMBERSHIP_REJECTED' }),
+      );
+    });
+
+    it('should reject rejection when membership is not PENDING', async () => {
+      prismaMock.userInstitution.findFirst.mockResolvedValue({ ...pendingMembership, status: MembershipStatus.REJECTED });
+
+      await expect(service.reject(institutionId, 'm-pending', actorUserId)).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw NotFound when membership does not exist', async () => {
+      prismaMock.userInstitution.findFirst.mockResolvedValue(null);
+
+      await expect(service.approve(institutionId, 'missing', actorUserId)).rejects.toThrow(NotFoundException);
+      await expect(service.reject(institutionId, 'missing', actorUserId)).rejects.toThrow(NotFoundException);
     });
   });
 });

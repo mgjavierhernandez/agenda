@@ -101,6 +101,52 @@ export class MembershipsController {
     );
   }
 
+  @ApiOperation({ summary: 'Approve a PENDING membership request' })
+  @ApiParam({ name: 'institutionId', format: 'uuid' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Membership approved' })
+  @ApiResponse({ status: 404, description: 'Membership not found' })
+  @ApiResponse({ status: 409, description: 'Membership is not PENDING' })
+  @Post(':id/approve')
+  @RequirePermission('memberships:manage')
+  @HttpCode(HttpStatus.OK)
+  async approve(
+    @Request() req: AuthenticatedRequest,
+    @Param('institutionId', ParseUUIDPipe) _institutionId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const institutionId = req.tenant!.institutionId;
+    return this.membershipsService.approve(
+      institutionId,
+      id,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @ApiOperation({ summary: 'Reject a PENDING membership request' })
+  @ApiParam({ name: 'institutionId', format: 'uuid' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Membership rejected' })
+  @ApiResponse({ status: 404, description: 'Membership not found' })
+  @ApiResponse({ status: 409, description: 'Membership is not PENDING' })
+  @Post(':id/reject')
+  @RequirePermission('memberships:manage')
+  @HttpCode(HttpStatus.OK)
+  async reject(
+    @Request() req: AuthenticatedRequest,
+    @Param('institutionId', ParseUUIDPipe) _institutionId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const institutionId = req.tenant!.institutionId;
+    return this.membershipsService.reject(
+      institutionId,
+      id,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
   @ApiOperation({ summary: 'Unlink user from institution' })
   @ApiParam({ name: 'institutionId', format: 'uuid' })
   @ApiParam({ name: 'userId', format: 'uuid' })

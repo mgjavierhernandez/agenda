@@ -45,19 +45,38 @@ test.describe('Dashboard', () => {
   test('should have sidebar navigation', async ({ page }) => {
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav).toBeVisible();
+
+    await expect(nav.getByRole('button', { name: /Categoría Inicio/i })).toBeVisible();
     await expect(nav.getByText('Dashboard')).toBeVisible();
     await expect(nav.getByText('Agenda')).toBeVisible();
+
+    const trabajoBtn = nav.getByRole('button', { name: /Categoría Trabajo académico/i });
+    if ((await trabajoBtn.getAttribute('aria-expanded')) !== 'true') {
+      await trabajoBtn.click();
+    }
     await expect(nav.getByText('Tareas')).toBeVisible();
   });
 
   test('should navigate to tasks from sidebar', async ({ page }) => {
-    await page.getByRole('navigation', { name: 'Main navigation' }).getByText('Tareas').click();
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+
+    async function openCategoryAndClick(category: RegExp, item: string) {
+      const cat = nav.getByRole('button', { name: category });
+      if ((await cat.getAttribute('aria-expanded')) !== 'true') {
+        await cat.click();
+      }
+      await nav.getByRole('link', { name: item, exact: true }).waitFor({ state: 'visible', timeout: 10_000 });
+      await nav.getByRole('link', { name: item, exact: true }).click();
+    }
+
+    await openCategoryAndClick(/Categoría Trabajo académico/i, 'Tareas');
     await page.waitForURL(/\/tasks/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Tareas' })).toBeVisible();
   });
 
   test('should navigate to agenda from sidebar', async ({ page }) => {
-    await page.getByRole('navigation', { name: 'Main navigation' }).getByText('Agenda').click();
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    await nav.getByText('Agenda').click();
     await page.waitForURL(/\/agenda/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible();
   });
