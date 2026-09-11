@@ -107,7 +107,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker compose -f docker-compose.prod.yml build api
+        env:
+          POSTGRES_PASSWORD: ci-build-only
+          JWT_ACCESS_SECRET: ci-build-only-not-a-real-secret-min-len
       - run: docker compose -f docker-compose.prod.yml build web
+        env:
+          POSTGRES_PASSWORD: ci-build-only
+          JWT_ACCESS_SECRET: ci-build-only-not-a-real-secret-min-len
       # Verify a valid compose config (no secret files leak into build context).
       # Provide the production-required vars (never shipped as defaults) just so
       # `docker compose config` can fully interpolate.
