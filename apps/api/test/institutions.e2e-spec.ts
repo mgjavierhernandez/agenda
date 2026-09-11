@@ -142,9 +142,7 @@ describe('Institutions Module (e2e)', () => {
     });
 
     it('TEST-08: Unauthenticated → 401', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/institutions')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/institutions').expect(401);
     });
   });
 

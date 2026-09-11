@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Attendance Module (e2e)', () => {
   let app: INestApplication;
@@ -56,7 +57,9 @@ describe('Attendance Module (e2e)', () => {
     demoInstitutionId = demoInstitution!.id;
 
     // ---- demo institution fixtures ----
-    const teacherUser = await prisma.user.findUnique({ where: { email: 'teacher@demo-school.dev' } });
+    const teacherUser = await prisma.user.findUnique({
+      where: { email: 'teacher@demo-school.dev' },
+    });
     const attStudent = await prisma.student.create({
       data: {
         institutionId: demoInstitutionId,
@@ -69,23 +72,51 @@ describe('Attendance Module (e2e)', () => {
     });
     attStudentId = attStudent.id;
     const attCourse = await prisma.course.create({
-      data: { institutionId: demoInstitutionId, code: 'AC' + Date.now().toString().slice(-6), name: 'E2E Attendance Course', status: 'ACTIVE' },
+      data: {
+        institutionId: demoInstitutionId,
+        code: 'AC' + Date.now().toString().slice(-6),
+        name: 'E2E Attendance Course',
+        status: 'ACTIVE',
+      },
     });
     attCourseId = attCourse.id;
     const attSubject = await prisma.subject.create({
-      data: { institutionId: demoInstitutionId, code: 'AS' + Date.now().toString().slice(-6), name: 'E2E Attendance Subject', status: 'ACTIVE' },
+      data: {
+        institutionId: demoInstitutionId,
+        code: 'AS' + Date.now().toString().slice(-6),
+        name: 'E2E Attendance Subject',
+        status: 'ACTIVE',
+      },
     });
     attSubjectId = attSubject.id;
     const attSchoolGrade = await prisma.schoolGrade.create({
-      data: { institutionId: demoInstitutionId, name: 'E2E Attendance Grade', code: 'AG' + Date.now().toString().slice(-6) },
+      data: {
+        institutionId: demoInstitutionId,
+        name: 'E2E Attendance Grade',
+        code: 'AG' + Date.now().toString().slice(-6),
+      },
     });
     attSchoolGradeId = attSchoolGrade.id;
     const attPeriod = await prisma.academicPeriod.create({
-      data: { institutionId: demoInstitutionId, name: 'E2E Attendance Period', code: 'APD' + Date.now().toString().slice(-6), startDate: new Date('2026-01-15'), endDate: new Date('2026-06-30'), status: 'ACTIVE' },
+      data: {
+        institutionId: demoInstitutionId,
+        name: 'E2E Attendance Period',
+        code: 'APD' + Date.now().toString().slice(-6),
+        startDate: new Date('2026-01-15'),
+        endDate: new Date('2026-06-30'),
+        status: 'ACTIVE',
+      },
     });
     attPeriodId = attPeriod.id;
     const closedPeriod = await prisma.academicPeriod.create({
-      data: { institutionId: demoInstitutionId, name: 'E2E Closed Period', code: 'ACP' + Date.now().toString().slice(-6), startDate: new Date('2026-07-01'), endDate: new Date('2026-12-31'), status: 'CLOSED' },
+      data: {
+        institutionId: demoInstitutionId,
+        name: 'E2E Closed Period',
+        code: 'ACP' + Date.now().toString().slice(-6),
+        startDate: new Date('2026-07-01'),
+        endDate: new Date('2026-12-31'),
+        status: 'CLOSED',
+      },
     });
     closedPeriodId = closedPeriod.id;
 
@@ -116,29 +147,59 @@ describe('Attendance Module (e2e)', () => {
     });
     secondInstitutionId = secondInstitution.id;
 
-    const secAdminRole = await prisma.role.create({ data: { name: 'INSTITUTION_ADMIN', roleType: 'TENANT', institutionId: secondInstitutionId } });
-    const secTeacherRole = await prisma.role.create({ data: { name: 'TEACHER', roleType: 'TENANT', institutionId: secondInstitutionId } });
-    const secStudentRole = await prisma.role.create({ data: { name: 'STUDENT', roleType: 'TENANT', institutionId: secondInstitutionId } });
-    const secParentRole = await prisma.role.create({ data: { name: 'PARENT', roleType: 'TENANT', institutionId: secondInstitutionId } });
+    const secAdminRole = await prisma.role.create({
+      data: { name: 'INSTITUTION_ADMIN', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
+    const secTeacherRole = await prisma.role.create({
+      data: { name: 'TEACHER', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
+    const secStudentRole = await prisma.role.create({
+      data: { name: 'STUDENT', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
+    const secParentRole = await prisma.role.create({
+      data: { name: 'PARENT', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
     const allPermissions = await prisma.permission.findMany();
     for (const perm of allPermissions) {
-      await prisma.rolePermission.create({ data: { roleId: secAdminRole.id, permissionId: perm.id } });
+      await prisma.rolePermission.create({
+        data: { roleId: secAdminRole.id, permissionId: perm.id },
+      });
     }
-    const attPerms = await prisma.permission.findMany({ where: { code: { startsWith: 'attendance:' } } });
+    const attPerms = await prisma.permission.findMany({
+      where: { code: { startsWith: 'attendance:' } },
+    });
     for (const perm of attPerms) {
       if (['attendance:read', 'attendance:create', 'attendance:update'].includes(perm.code)) {
-        await prisma.rolePermission.create({ data: { roleId: secTeacherRole.id, permissionId: perm.id } });
+        await prisma.rolePermission.create({
+          data: { roleId: secTeacherRole.id, permissionId: perm.id },
+        });
       }
       if (['attendance:read'].includes(perm.code)) {
-        await prisma.rolePermission.create({ data: { roleId: secParentRole.id, permissionId: perm.id } });
-        await prisma.rolePermission.create({ data: { roleId: secStudentRole.id, permissionId: perm.id } });
+        await prisma.rolePermission.create({
+          data: { roleId: secParentRole.id, permissionId: perm.id },
+        });
+        await prisma.rolePermission.create({
+          data: { roleId: secStudentRole.id, permissionId: perm.id },
+        });
       }
     }
 
     const mkUser = async (email: string, roleId: string) => {
-      const u = await prisma.user.create({ data: { email, passwordHash: VALID_PASSWORD_HASH, firstName: 'Second', lastName: email.split('@')[0], status: 'ACTIVE' } });
-      const mem = await prisma.userInstitution.create({ data: { userId: u.id, institutionId: secondInstitutionId, status: MembershipStatus.ACTIVE } });
-      await prisma.userRole.create({ data: { userInstitutionId: mem.id, roleId, institutionId: secondInstitutionId } });
+      const u = await prisma.user.create({
+        data: {
+          email,
+          passwordHash: VALID_PASSWORD_HASH,
+          firstName: 'Second',
+          lastName: email.split('@')[0],
+          status: 'ACTIVE',
+        },
+      });
+      const mem = await prisma.userInstitution.create({
+        data: { userId: u.id, institutionId: secondInstitutionId, status: MembershipStatus.ACTIVE },
+      });
+      await prisma.userRole.create({
+        data: { userInstitutionId: mem.id, roleId, institutionId: secondInstitutionId },
+      });
       return u;
     };
     const secAdmin = await mkUser('admin@second-schoolatt-e2e.dev', secAdminRole.id);
@@ -146,33 +207,135 @@ describe('Attendance Module (e2e)', () => {
     const secParent = await mkUser('parent@second-schoolatt-e2e.dev', secParentRole.id);
     const secStudentUser = await mkUser('student@second-schoolatt-e2e.dev', secStudentRole.id);
 
-    const secStudent = await prisma.student.create({ data: { institutionId: secondInstitutionId, userId: secStudentUser.id, firstName: 'Enrolled', lastName: 'Student', documentType: 'DNI', documentNumber: 'SS' + Date.now().toString().slice(-8), status: 'ACTIVE' } });
+    const secStudent = await prisma.student.create({
+      data: {
+        institutionId: secondInstitutionId,
+        userId: secStudentUser.id,
+        firstName: 'Enrolled',
+        lastName: 'Student',
+        documentType: 'DNI',
+        documentNumber: 'SS' + Date.now().toString().slice(-8),
+        status: 'ACTIVE',
+      },
+    });
     secStudentId = secStudent.id;
-    const secOtherStudent = await prisma.student.create({ data: { institutionId: secondInstitutionId, firstName: 'Other', lastName: 'Student', documentType: 'DNI', documentNumber: 'SO' + Date.now().toString().slice(-8), status: 'ACTIVE' } });
+    const secOtherStudent = await prisma.student.create({
+      data: {
+        institutionId: secondInstitutionId,
+        firstName: 'Other',
+        lastName: 'Student',
+        documentType: 'DNI',
+        documentNumber: 'SO' + Date.now().toString().slice(-8),
+        status: 'ACTIVE',
+      },
+    });
     secOwnedStudentId = secOtherStudent.id;
-    await prisma.guardianStudent.create({ data: { institutionId: secondInstitutionId, guardianUserId: secParent.id, studentId: secStudentId, relationshipType: 'FATHER', isPrimary: true, status: 'ACTIVE' } });
-    await prisma.guardianStudent.create({ data: { institutionId: secondInstitutionId, guardianUserId: secParent.id, studentId: secOwnedStudentId, relationshipType: 'OTHER', isPrimary: false, status: 'ACTIVE' } });
+    await prisma.guardianStudent.create({
+      data: {
+        institutionId: secondInstitutionId,
+        guardianUserId: secParent.id,
+        studentId: secStudentId,
+        relationshipType: 'FATHER',
+        isPrimary: true,
+        status: 'ACTIVE',
+      },
+    });
+    await prisma.guardianStudent.create({
+      data: {
+        institutionId: secondInstitutionId,
+        guardianUserId: secParent.id,
+        studentId: secOwnedStudentId,
+        relationshipType: 'OTHER',
+        isPrimary: false,
+        status: 'ACTIVE',
+      },
+    });
 
-    const secCourse = await prisma.course.create({ data: { institutionId: secondInstitutionId, code: 'SC' + Date.now().toString().slice(-6), name: 'Second Attendance Course', status: 'ACTIVE' } });
+    const secCourse = await prisma.course.create({
+      data: {
+        institutionId: secondInstitutionId,
+        code: 'SC' + Date.now().toString().slice(-6),
+        name: 'Second Attendance Course',
+        status: 'ACTIVE',
+      },
+    });
     secCourseId = secCourse.id;
-    const secSubject = await prisma.subject.create({ data: { institutionId: secondInstitutionId, code: 'SSU' + Date.now().toString().slice(-6), name: 'Second Attendance Subject', status: 'ACTIVE' } });
-    const secSchoolGrade = await prisma.schoolGrade.create({ data: { institutionId: secondInstitutionId, name: 'Second Attendance Grade', code: 'SSG' + Date.now().toString().slice(-6) } });
-    const secPeriod = await prisma.academicPeriod.create({ data: { institutionId: secondInstitutionId, name: 'Second Attendance Period', code: 'SPD' + Date.now().toString().slice(-6), startDate: new Date('2026-01-15'), endDate: new Date('2026-06-30'), status: 'ACTIVE' } });
+    const secSubject = await prisma.subject.create({
+      data: {
+        institutionId: secondInstitutionId,
+        code: 'SSU' + Date.now().toString().slice(-6),
+        name: 'Second Attendance Subject',
+        status: 'ACTIVE',
+      },
+    });
+    const secSchoolGrade = await prisma.schoolGrade.create({
+      data: {
+        institutionId: secondInstitutionId,
+        name: 'Second Attendance Grade',
+        code: 'SSG' + Date.now().toString().slice(-6),
+      },
+    });
+    const secPeriod = await prisma.academicPeriod.create({
+      data: {
+        institutionId: secondInstitutionId,
+        name: 'Second Attendance Period',
+        code: 'SPD' + Date.now().toString().slice(-6),
+        startDate: new Date('2026-01-15'),
+        endDate: new Date('2026-06-30'),
+        status: 'ACTIVE',
+      },
+    });
     secPeriodId = secPeriod.id;
-    await prisma.enrollment.create({ data: { institutionId: secondInstitutionId, studentId: secStudentId, courseId: secCourseId, schoolGradeId: secSchoolGrade.id, academicPeriodId: secPeriodId, status: 'ACTIVE' } });
-    await prisma.teacherAssignment.create({ data: { institutionId: secondInstitutionId, teacherUserId: secTeacher.id, courseId: secCourseId, subjectId: secSubject.id, academicPeriodId: secPeriodId, status: 'ACTIVE' } });
+    await prisma.enrollment.create({
+      data: {
+        institutionId: secondInstitutionId,
+        studentId: secStudentId,
+        courseId: secCourseId,
+        schoolGradeId: secSchoolGrade.id,
+        academicPeriodId: secPeriodId,
+        status: 'ACTIVE',
+      },
+    });
+    await prisma.teacherAssignment.create({
+      data: {
+        institutionId: secondInstitutionId,
+        teacherUserId: secTeacher.id,
+        courseId: secCourseId,
+        subjectId: secSubject.id,
+        academicPeriodId: secPeriodId,
+        status: 'ACTIVE',
+      },
+    });
 
     const secOwnAtt = await prisma.attendance.create({
-      data: { institutionId: secondInstitutionId, studentId: secStudentId, courseId: secCourseId, academicPeriodId: secPeriodId, date: new Date('2026-04-05'), status: 'PRESENT', recordedById: secAdmin.id },
+      data: {
+        institutionId: secondInstitutionId,
+        studentId: secStudentId,
+        courseId: secCourseId,
+        academicPeriodId: secPeriodId,
+        date: new Date('2026-04-05'),
+        status: 'PRESENT',
+        recordedById: secAdmin.id,
+      },
     });
     secOwnAttId = secOwnAtt.id;
     const secOtherAtt = await prisma.attendance.create({
-      data: { institutionId: secondInstitutionId, studentId: secOwnedStudentId, courseId: secCourseId, academicPeriodId: secPeriodId, date: new Date('2026-04-05'), status: 'ABSENT', recordedById: secAdmin.id },
+      data: {
+        institutionId: secondInstitutionId,
+        studentId: secOwnedStudentId,
+        courseId: secCourseId,
+        academicPeriodId: secPeriodId,
+        date: new Date('2026-04-05'),
+        status: 'ABSENT',
+        recordedById: secAdmin.id,
+      },
     });
     secOtherAttId = secOtherAtt.id;
 
     const login = async (email: string) => {
-      const res = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email, password: 'Demo1234!' });
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'Demo1234!' });
       return res.body.accessToken;
     };
     demoAdminToken = await login('admin@demo-school.dev');
@@ -183,7 +346,9 @@ describe('Attendance Module (e2e)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await prisma.attendance.deleteMany({ where: { institutionId: demoInstitutionId, courseId: attCourseId } });
+    await prisma.attendance.deleteMany({
+      where: { institutionId: demoInstitutionId, courseId: attCourseId },
+    });
     await prisma.teacherAssignment.deleteMany({ where: { courseId: attCourseId } });
     await prisma.enrollment.deleteMany({ where: { studentId: attStudentId } });
     await prisma.course.delete({ where: { id: attCourseId } }).catch(() => {});
@@ -198,7 +363,9 @@ describe('Attendance Module (e2e)', () => {
     await prisma.enrollment.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.guardianStudent.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.userRole.deleteMany({ where: { institutionId: secondInstitutionId } });
-    await prisma.rolePermission.deleteMany({ where: { role: { institutionId: secondInstitutionId } } });
+    await prisma.rolePermission.deleteMany({
+      where: { role: { institutionId: secondInstitutionId } },
+    });
     await prisma.attendance.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.userInstitution.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.role.deleteMany({ where: { institutionId: secondInstitutionId } });
@@ -222,7 +389,10 @@ describe('Attendance Module (e2e)', () => {
 
   describe('Authentication', () => {
     it('should return 401 without auth token', async () => {
-      await request(app.getHttpServer()).get('/api/v1/attendance').set('X-Institution-Id', demoInstitutionId).expect(401);
+      await request(app.getHttpServer())
+        .get('/api/v1/attendance')
+        .set('X-Institution-Id', demoInstitutionId)
+        .expect(401);
     });
   });
 
@@ -232,7 +402,14 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: attCourseId, academicPeriodId: attPeriodId, date: ATTEND_DATE, status: 'PRESENT', notes: null })
+        .send({
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: ATTEND_DATE,
+          status: 'PRESENT',
+          notes: null,
+        })
         .expect(201);
       expect(res.body).toHaveProperty('id');
       expect(res.body.institutionId).toBe(demoInstitutionId);
@@ -245,7 +422,14 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoTeacherToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: attCourseId, academicPeriodId: attPeriodId, date: '2026-04-06', status: 'ABSENT', notes: 'Inasistencia' })
+        .send({
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: '2026-04-06',
+          status: 'ABSENT',
+          notes: 'Inasistencia',
+        })
         .expect(201);
       expect(res.body.status).toBe('ABSENT');
     });
@@ -255,7 +439,14 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: attCourseId, academicPeriodId: attPeriodId, date: ATTEND_DATE, status: 'LATE', notes: null })
+        .send({
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: ATTEND_DATE,
+          status: 'LATE',
+          notes: null,
+        })
         .expect(400);
     });
 
@@ -264,13 +455,27 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${secParentToken}`)
         .set('X-Institution-Id', secondInstitutionId)
-        .send({ studentId: secStudentId, courseId: secCourseId, academicPeriodId: secPeriodId, date: ATTEND_DATE, status: 'PRESENT', notes: null })
+        .send({
+          studentId: secStudentId,
+          courseId: secCourseId,
+          academicPeriodId: secPeriodId,
+          date: ATTEND_DATE,
+          status: 'PRESENT',
+          notes: null,
+        })
         .expect(403);
       await request(app.getHttpServer())
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${secStudentToken}`)
         .set('X-Institution-Id', secondInstitutionId)
-        .send({ studentId: secStudentId, courseId: secCourseId, academicPeriodId: secPeriodId, date: ATTEND_DATE, status: 'PRESENT', notes: null })
+        .send({
+          studentId: secStudentId,
+          courseId: secCourseId,
+          academicPeriodId: secPeriodId,
+          date: ATTEND_DATE,
+          status: 'PRESENT',
+          notes: null,
+        })
         .expect(403);
     });
 
@@ -279,7 +484,14 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: attCourseId, academicPeriodId: attPeriodId, date: ATTEND_DATE, status: 'PRESENT', institutionId: secondInstitutionId })
+        .send({
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: ATTEND_DATE,
+          status: 'PRESENT',
+          institutionId: secondInstitutionId,
+        })
         .expect(400);
     });
 
@@ -288,7 +500,14 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: attCourseId, academicPeriodId: attPeriodId, date: ATTEND_DATE, status: 'PRESENT', recordedById: '00000000-0000-0000-0000-000000000000' })
+        .send({
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: ATTEND_DATE,
+          status: 'PRESENT',
+          recordedById: '00000000-0000-0000-0000-000000000000',
+        })
         .expect(400);
     });
 
@@ -306,19 +525,38 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: attCourseId, academicPeriodId: closedPeriodId, date: '2026-08-01', status: 'PRESENT', notes: null })
+        .send({
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: closedPeriodId,
+          date: '2026-08-01',
+          status: 'PRESENT',
+          notes: null,
+        })
         .expect(400);
     });
 
     it('should return 404 for a teacher on an unassigned course (cross-scope)', async () => {
       const unassignedCourse = await prisma.course.create({
-        data: { institutionId: demoInstitutionId, code: 'UN' + Date.now().toString().slice(-6), name: 'Unassigned Course', status: 'ACTIVE' },
+        data: {
+          institutionId: demoInstitutionId,
+          code: 'UN' + Date.now().toString().slice(-6),
+          name: 'Unassigned Course',
+          status: 'ACTIVE',
+        },
       });
       await request(app.getHttpServer())
         .post('/api/v1/attendance')
         .set('Authorization', `Bearer ${demoTeacherToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ studentId: attStudentId, courseId: unassignedCourse.id, academicPeriodId: attPeriodId, date: '2026-04-07', status: 'PRESENT', notes: null })
+        .send({
+          studentId: attStudentId,
+          courseId: unassignedCourse.id,
+          academicPeriodId: attPeriodId,
+          date: '2026-04-07',
+          status: 'PRESENT',
+          notes: null,
+        })
         .expect(404);
       await prisma.course.delete({ where: { id: unassignedCourse.id } });
     });
@@ -375,7 +613,12 @@ describe('Attendance Module (e2e)', () => {
         .post('/api/v1/attendance/bulk')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ courseId: attCourseId, academicPeriodId: attPeriodId, date: ATTEND_DATE, records: [] })
+        .send({
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: ATTEND_DATE,
+          records: [],
+        })
         .expect(400);
     });
   });
@@ -541,7 +784,16 @@ describe('Attendance Module (e2e)', () => {
 
     it('should return 400 in CLOSED period', async () => {
       const closedAtt = await prisma.attendance.create({
-        data: { institutionId: demoInstitutionId, studentId: attStudentId, courseId: attCourseId, academicPeriodId: closedPeriodId, date: new Date('2026-08-01'), status: 'PRESENT', recordedById: await (async () => (await prisma.user.findUnique({ where: { email: 'admin@demo-school.dev' } }))!.id)() },
+        data: {
+          institutionId: demoInstitutionId,
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: closedPeriodId,
+          date: new Date('2026-08-01'),
+          status: 'PRESENT',
+          recordedById: await (async () =>
+            (await prisma.user.findUnique({ where: { email: 'admin@demo-school.dev' } }))!.id)(),
+        },
       });
       await request(app.getHttpServer())
         .patch(`/api/v1/attendance/${closedAtt.id}`)
@@ -573,7 +825,17 @@ describe('Attendance Module (e2e)', () => {
 
     it('should return 403 for TEACHER (no attendance:delete)', async () => {
       const teacherAtt = await prisma.attendance.create({
-        data: { institutionId: demoInstitutionId, studentId: attStudentId, courseId: attCourseId, academicPeriodId: attPeriodId, date: new Date('2026-04-09'), status: 'LATE', recordedById: (await prisma.user.findUnique({ where: { email: 'admin@demo-school.dev' } }))!.id },
+        data: {
+          institutionId: demoInstitutionId,
+          studentId: attStudentId,
+          courseId: attCourseId,
+          academicPeriodId: attPeriodId,
+          date: new Date('2026-04-09'),
+          status: 'LATE',
+          recordedById: (await prisma.user.findUnique({
+            where: { email: 'admin@demo-school.dev' },
+          }))!.id,
+        },
       });
       await request(app.getHttpServer())
         .delete(`/api/v1/attendance/${teacherAtt.id}`)

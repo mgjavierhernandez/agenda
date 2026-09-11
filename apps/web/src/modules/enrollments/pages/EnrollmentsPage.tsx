@@ -102,7 +102,8 @@ export function EnrollmentsPage() {
   const enrollments = data?.data ?? [];
   const meta = data?.meta;
 
-  const hasActiveFilters = studentIdFilter || courseIdFilter || schoolGradeIdFilter || academicPeriodIdFilter || isParent;
+  const hasActiveFilters =
+    studentIdFilter || courseIdFilter || schoolGradeIdFilter || academicPeriodIdFilter || isParent;
 
   const handleClearFilters = () => {
     setStudentIdFilter('');
@@ -127,9 +128,7 @@ export function EnrollmentsPage() {
         }
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/enrollments/new')}>
-              Nueva matrícula
-            </Button>
+            <Button onClick={() => navigate('/enrollments/new')}>Nueva matrícula</Button>
           ) : undefined
         }
       />
@@ -137,22 +136,30 @@ export function EnrollmentsPage() {
       <Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {!isParent && (
-          <div>
-            <label htmlFor="filter-student" className="block text-sm font-medium text-gray-700 mb-1">
-              Estudiante
-            </label>
-            <select
-              id="filter-student"
-              value={studentIdFilter}
-              onChange={(e) => { setStudentIdFilter(e.target.value); setPage(1); }}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="">Todos</option>
-              {studentsData?.data.map((s) => (
-                <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label
+                htmlFor="filter-student"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Estudiante
+              </label>
+              <select
+                id="filter-student"
+                value={studentIdFilter}
+                onChange={(e) => {
+                  setStudentIdFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Todos</option>
+                {studentsData?.data.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.firstName} {s.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
           <div>
             <label htmlFor="filter-course" className="block text-sm font-medium text-gray-700 mb-1">
@@ -161,12 +168,17 @@ export function EnrollmentsPage() {
             <select
               id="filter-course"
               value={courseIdFilter}
-              onChange={(e) => { setCourseIdFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setCourseIdFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {coursesData?.data.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -177,12 +189,17 @@ export function EnrollmentsPage() {
             <select
               id="filter-grade"
               value={schoolGradeIdFilter}
-              onChange={(e) => { setSchoolGradeIdFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSchoolGradeIdFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {schoolGradesData?.data.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
               ))}
             </select>
           </div>
@@ -193,12 +210,17 @@ export function EnrollmentsPage() {
             <select
               id="filter-period"
               value={academicPeriodIdFilter}
-              onChange={(e) => { setAcademicPeriodIdFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setAcademicPeriodIdFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {periodsData?.data.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>

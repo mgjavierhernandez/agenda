@@ -26,7 +26,8 @@ export function useStudentBulletin(studentId?: string, academicPeriodId?: string
     queryKey: ['student-bulletin', studentId, academicPeriodId],
     enabled,
     placeholderData: keepPreviousData,
-    queryFn: () => apiClient.get(`/reports/students/${studentId}/bulletin${query ? `?${query}` : ''}`),
+    queryFn: () =>
+      apiClient.get(`/reports/students/${studentId}/bulletin${query ? `?${query}` : ''}`),
   });
 }
 

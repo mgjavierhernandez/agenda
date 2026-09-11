@@ -33,7 +33,10 @@ describe('InstitutionsService', () => {
     it('should create an institution', async () => {
       prismaMock.institution.findUnique.mockResolvedValue(null);
       prismaMock.institution.create.mockResolvedValue({
-        id: 'inst-1', name: 'Test School', slug: 'test-school', status: InstitutionStatus.ACTIVE,
+        id: 'inst-1',
+        name: 'Test School',
+        slug: 'test-school',
+        status: InstitutionStatus.ACTIVE,
       });
 
       const result = await service.create({ name: 'Test School', slug: 'test-school' }, 'user-1');
@@ -43,9 +46,9 @@ describe('InstitutionsService', () => {
 
     it('should reject duplicate slug', async () => {
       prismaMock.institution.findUnique.mockResolvedValue({ id: 'existing' });
-      await expect(
-        service.create({ name: 'Test', slug: 'existing' }, 'user-1'),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.create({ name: 'Test', slug: 'existing' }, 'user-1')).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -88,10 +91,16 @@ describe('InstitutionsService', () => {
   describe('update', () => {
     it('should update institution', async () => {
       prismaMock.institution.findUnique.mockResolvedValue({
-        id: 'inst-1', name: 'Old', slug: 'old', status: InstitutionStatus.ACTIVE,
+        id: 'inst-1',
+        name: 'Old',
+        slug: 'old',
+        status: InstitutionStatus.ACTIVE,
       });
       prismaMock.institution.update.mockResolvedValue({
-        id: 'inst-1', name: 'New', slug: 'old', status: InstitutionStatus.ACTIVE,
+        id: 'inst-1',
+        name: 'New',
+        slug: 'old',
+        status: InstitutionStatus.ACTIVE,
       });
 
       const result = await service.update('inst-1', { name: 'New' }, 'user-1');
@@ -100,12 +109,17 @@ describe('InstitutionsService', () => {
 
     it('should reject slug conflict', async () => {
       prismaMock.institution.findUnique
-        .mockResolvedValueOnce({ id: 'inst-1', name: 'X', slug: 'x', status: InstitutionStatus.ACTIVE })
+        .mockResolvedValueOnce({
+          id: 'inst-1',
+          name: 'X',
+          slug: 'x',
+          status: InstitutionStatus.ACTIVE,
+        })
         .mockResolvedValueOnce({ id: 'other' });
 
-      await expect(
-        service.update('inst-1', { slug: 'taken' }, 'user-1'),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.update('inst-1', { slug: 'taken' }, 'user-1')).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should reject updating an institution id that differs from the request tenant (IDOR)', async () => {
@@ -119,10 +133,12 @@ describe('InstitutionsService', () => {
   describe('deactivate', () => {
     it('should deactivate institution', async () => {
       prismaMock.institution.findUnique.mockResolvedValue({
-        id: 'inst-1', status: InstitutionStatus.ACTIVE,
+        id: 'inst-1',
+        status: InstitutionStatus.ACTIVE,
       });
       prismaMock.institution.update.mockResolvedValue({
-        id: 'inst-1', status: InstitutionStatus.INACTIVE,
+        id: 'inst-1',
+        status: InstitutionStatus.INACTIVE,
       });
 
       const result = await service.deactivate('inst-1', 'user-1');
@@ -131,7 +147,8 @@ describe('InstitutionsService', () => {
 
     it('should be idempotent if already inactive', async () => {
       prismaMock.institution.findUnique.mockResolvedValue({
-        id: 'inst-1', status: InstitutionStatus.INACTIVE,
+        id: 'inst-1',
+        status: InstitutionStatus.INACTIVE,
       });
 
       const result = await service.deactivate('inst-1', 'user-1');

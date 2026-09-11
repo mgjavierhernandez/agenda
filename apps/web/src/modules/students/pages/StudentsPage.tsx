@@ -67,9 +67,7 @@ export function StudentsPage() {
               <Button variant="secondary" onClick={() => navigate('/students/import')}>
                 Importar
               </Button>
-              <Button onClick={() => navigate('/students/new')}>
-                Nuevo estudiante
-              </Button>
+              <Button onClick={() => navigate('/students/new')}>Nuevo estudiante</Button>
             </div>
           ) : undefined
         }
@@ -101,7 +99,9 @@ export function StudentsPage() {
         </div>
       ) : students.length === 0 ? (
         <EmptyState
-          title={debouncedSearch ? 'No se encontraron estudiantes' : 'No hay estudiantes registrados'}
+          title={
+            debouncedSearch ? 'No se encontraron estudiantes' : 'No hay estudiantes registrados'
+          }
           description={
             debouncedSearch
               ? 'No encontramos estudiantes que coincidan con tu búsqueda.'

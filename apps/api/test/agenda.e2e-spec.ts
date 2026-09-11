@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Agenda Events Module (e2e)', () => {
   let app: INestApplication;
@@ -52,29 +53,59 @@ describe('Agenda Events Module (e2e)', () => {
     });
     secondInstitutionId = secondInstitution.id;
 
-    const secAdminRole = await prisma.role.create({ data: { name: 'INSTITUTION_ADMIN', roleType: 'TENANT', institutionId: secondInstitutionId } });
-    const secTeacherRole = await prisma.role.create({ data: { name: 'TEACHER', roleType: 'TENANT', institutionId: secondInstitutionId } });
-    const secStudentRole = await prisma.role.create({ data: { name: 'STUDENT', roleType: 'TENANT', institutionId: secondInstitutionId } });
-    const secParentRole = await prisma.role.create({ data: { name: 'PARENT', roleType: 'TENANT', institutionId: secondInstitutionId } });
+    const secAdminRole = await prisma.role.create({
+      data: { name: 'INSTITUTION_ADMIN', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
+    const secTeacherRole = await prisma.role.create({
+      data: { name: 'TEACHER', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
+    const secStudentRole = await prisma.role.create({
+      data: { name: 'STUDENT', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
+    const secParentRole = await prisma.role.create({
+      data: { name: 'PARENT', roleType: 'TENANT', institutionId: secondInstitutionId },
+    });
     const allPermissions = await prisma.permission.findMany();
     for (const perm of allPermissions) {
-      await prisma.rolePermission.create({ data: { roleId: secAdminRole.id, permissionId: perm.id } });
+      await prisma.rolePermission.create({
+        data: { roleId: secAdminRole.id, permissionId: perm.id },
+      });
     }
-    const agendaPerms = await prisma.permission.findMany({ where: { code: { startsWith: 'agenda:' } } });
+    const agendaPerms = await prisma.permission.findMany({
+      where: { code: { startsWith: 'agenda:' } },
+    });
     for (const perm of agendaPerms) {
       if (['agenda:read', 'agenda:create', 'agenda:update'].includes(perm.code)) {
-        await prisma.rolePermission.create({ data: { roleId: secTeacherRole.id, permissionId: perm.id } });
+        await prisma.rolePermission.create({
+          data: { roleId: secTeacherRole.id, permissionId: perm.id },
+        });
       }
       if (['agenda:read'].includes(perm.code)) {
-        await prisma.rolePermission.create({ data: { roleId: secParentRole.id, permissionId: perm.id } });
-        await prisma.rolePermission.create({ data: { roleId: secStudentRole.id, permissionId: perm.id } });
+        await prisma.rolePermission.create({
+          data: { roleId: secParentRole.id, permissionId: perm.id },
+        });
+        await prisma.rolePermission.create({
+          data: { roleId: secStudentRole.id, permissionId: perm.id },
+        });
       }
     }
 
     const mkUser = async (email: string, roleId: string) => {
-      const u = await prisma.user.create({ data: { email, passwordHash: VALID_PASSWORD_HASH, firstName: 'Second', lastName: email.split('@')[0], status: 'ACTIVE' } });
-      const mem = await prisma.userInstitution.create({ data: { userId: u.id, institutionId: secondInstitutionId, status: MembershipStatus.ACTIVE } });
-      await prisma.userRole.create({ data: { userInstitutionId: mem.id, roleId, institutionId: secondInstitutionId } });
+      const u = await prisma.user.create({
+        data: {
+          email,
+          passwordHash: VALID_PASSWORD_HASH,
+          firstName: 'Second',
+          lastName: email.split('@')[0],
+          status: 'ACTIVE',
+        },
+      });
+      const mem = await prisma.userInstitution.create({
+        data: { userId: u.id, institutionId: secondInstitutionId, status: MembershipStatus.ACTIVE },
+      });
+      await prisma.userRole.create({
+        data: { userInstitutionId: mem.id, roleId, institutionId: secondInstitutionId },
+      });
       return u;
     };
     const secAdminUser = await mkUser('admin@second-schoolevt-e2e.dev', secAdminRole.id);
@@ -82,17 +113,45 @@ describe('Agenda Events Module (e2e)', () => {
     const secParentUser = await mkUser('parent@second-schoolevt-e2e.dev', secParentRole.id);
     const secStudentUser = await mkUser('student@second-schoolevt-e2e.dev', secStudentRole.id);
 
-    const secStudent = await prisma.student.create({ data: { institutionId: secondInstitutionId, userId: secStudentUser.id, firstName: 'Enrolled', lastName: 'Student', documentType: 'DNI', documentNumber: 'EV' + Date.now().toString().slice(-8), status: 'ACTIVE' } });
+    const secStudent = await prisma.student.create({
+      data: {
+        institutionId: secondInstitutionId,
+        userId: secStudentUser.id,
+        firstName: 'Enrolled',
+        lastName: 'Student',
+        documentType: 'DNI',
+        documentNumber: 'EV' + Date.now().toString().slice(-8),
+        status: 'ACTIVE',
+      },
+    });
     secStudentId = secStudent.id;
-    await prisma.guardianStudent.create({ data: { institutionId: secondInstitutionId, guardianUserId: secParentUser.id, studentId: secStudentId, relationshipType: 'FATHER', isPrimary: true, status: 'ACTIVE' } });
+    await prisma.guardianStudent.create({
+      data: {
+        institutionId: secondInstitutionId,
+        guardianUserId: secParentUser.id,
+        studentId: secStudentId,
+        relationshipType: 'FATHER',
+        isPrimary: true,
+        status: 'ACTIVE',
+      },
+    });
 
     const secAdminEvent = await prisma.agendaEvent.create({
-      data: { institutionId: secondInstitutionId, createdById: secAdminUser.id, title: 'Sec Admin ALL Event', startAt: new Date('2026-09-10T10:00:00.000Z'), endAt: new Date('2026-09-10T11:00:00.000Z'), audience: 'ALL' },
+      data: {
+        institutionId: secondInstitutionId,
+        createdById: secAdminUser.id,
+        title: 'Sec Admin ALL Event',
+        startAt: new Date('2026-09-10T10:00:00.000Z'),
+        endAt: new Date('2026-09-10T11:00:00.000Z'),
+        audience: 'ALL',
+      },
     });
     secAdminEventId = secAdminEvent.id;
 
     const login = async (email: string) => {
-      const res = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email, password: 'Demo1234!' });
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'Demo1234!' });
       return res.body.accessToken;
     };
     demoAdminToken = await login('admin@demo-school.dev');
@@ -104,12 +163,25 @@ describe('Agenda Events Module (e2e)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await prisma.auditLog.deleteMany({ where: { entityType: 'AgendaEvent', OR: [{ institutionId: demoInstitutionId }, { institutionId: secondInstitutionId }] } }).catch(() => {});
-    await prisma.agendaEvent.deleteMany({ where: { institutionId: demoInstitutionId } }).catch(() => {});
-    await prisma.agendaEvent.deleteMany({ where: { institutionId: secondInstitutionId } }).catch(() => {});
+    await prisma.auditLog
+      .deleteMany({
+        where: {
+          entityType: 'AgendaEvent',
+          OR: [{ institutionId: demoInstitutionId }, { institutionId: secondInstitutionId }],
+        },
+      })
+      .catch(() => {});
+    await prisma.agendaEvent
+      .deleteMany({ where: { institutionId: demoInstitutionId } })
+      .catch(() => {});
+    await prisma.agendaEvent
+      .deleteMany({ where: { institutionId: secondInstitutionId } })
+      .catch(() => {});
     await prisma.guardianStudent.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.userRole.deleteMany({ where: { institutionId: secondInstitutionId } });
-    await prisma.rolePermission.deleteMany({ where: { role: { institutionId: secondInstitutionId } } });
+    await prisma.rolePermission.deleteMany({
+      where: { role: { institutionId: secondInstitutionId } },
+    });
     await prisma.userInstitution.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.role.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.student.deleteMany({ where: { institutionId: secondInstitutionId } });
@@ -128,7 +200,10 @@ describe('Agenda Events Module (e2e)', () => {
 
   describe('Authentication', () => {
     it('should return 401 without auth token', async () => {
-      await request(app.getHttpServer()).get('/api/v1/agenda/events').set('X-Institution-Id', demoInstitutionId).expect(401);
+      await request(app.getHttpServer())
+        .get('/api/v1/agenda/events')
+        .set('X-Institution-Id', demoInstitutionId)
+        .expect(401);
     });
   });
 
@@ -138,7 +213,14 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'Reunion de padres', description: 'Convocatoria general', startAt: '2026-09-10T14:00:00.000Z', endAt: '2026-09-10T16:00:00.000Z', location: 'Salon de actos', audience: 'ALL' })
+        .send({
+          title: 'Reunion de padres',
+          description: 'Convocatoria general',
+          startAt: '2026-09-10T14:00:00.000Z',
+          endAt: '2026-09-10T16:00:00.000Z',
+          location: 'Salon de actos',
+          audience: 'ALL',
+        })
         .expect(201);
       expect(res.body).toHaveProperty('id');
       expect(res.body.institutionId).toBe(demoInstitutionId);
@@ -157,7 +239,12 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoTeacherToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'Taller de padres', startAt: '2026-09-11T09:00:00.000Z', endAt: '2026-09-11T11:00:00.000Z', audience: 'TEACHERS' })
+        .send({
+          title: 'Taller de padres',
+          startAt: '2026-09-11T09:00:00.000Z',
+          endAt: '2026-09-11T11:00:00.000Z',
+          audience: 'TEACHERS',
+        })
         .expect(201);
       expect(res.body.status).toBe('ACTIVE');
       demoTeacherEventId = res.body.id;
@@ -168,7 +255,11 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'Sin audiencia', startAt: '2026-09-12T09:00:00.000Z', endAt: '2026-09-12T10:00:00.000Z' })
+        .send({
+          title: 'Sin audiencia',
+          startAt: '2026-09-12T09:00:00.000Z',
+          endAt: '2026-09-12T10:00:00.000Z',
+        })
         .expect(201);
       expect(res.body.audience).toBe('ALL');
     });
@@ -178,13 +269,21 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${secParentToken}`)
         .set('X-Institution-Id', secondInstitutionId)
-        .send({ title: 'X', startAt: '2026-09-10T14:00:00.000Z', endAt: '2026-09-10T15:00:00.000Z' })
+        .send({
+          title: 'X',
+          startAt: '2026-09-10T14:00:00.000Z',
+          endAt: '2026-09-10T15:00:00.000Z',
+        })
         .expect(403);
       await request(app.getHttpServer())
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${secStudentToken}`)
         .set('X-Institution-Id', secondInstitutionId)
-        .send({ title: 'X', startAt: '2026-09-10T14:00:00.000Z', endAt: '2026-09-10T15:00:00.000Z' })
+        .send({
+          title: 'X',
+          startAt: '2026-09-10T14:00:00.000Z',
+          endAt: '2026-09-10T15:00:00.000Z',
+        })
         .expect(403);
     });
 
@@ -193,7 +292,12 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'X', startAt: '2026-09-10T14:00:00.000Z', endAt: '2026-09-10T15:00:00.000Z', institutionId: secondInstitutionId })
+        .send({
+          title: 'X',
+          startAt: '2026-09-10T14:00:00.000Z',
+          endAt: '2026-09-10T15:00:00.000Z',
+          institutionId: secondInstitutionId,
+        })
         .expect(400);
     });
 
@@ -202,7 +306,12 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'X', startAt: '2026-09-10T14:00:00.000Z', endAt: '2026-09-10T15:00:00.000Z', createdById: '00000000-0000-0000-0000-000000000000' })
+        .send({
+          title: 'X',
+          startAt: '2026-09-10T14:00:00.000Z',
+          endAt: '2026-09-10T15:00:00.000Z',
+          createdById: '00000000-0000-0000-0000-000000000000',
+        })
         .expect(400);
     });
 
@@ -211,7 +320,12 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'X', startAt: '2026-09-10T14:00:00.000Z', endAt: '2026-09-10T15:00:00.000Z', status: 'CANCELLED' })
+        .send({
+          title: 'X',
+          startAt: '2026-09-10T14:00:00.000Z',
+          endAt: '2026-09-10T15:00:00.000Z',
+          status: 'CANCELLED',
+        })
         .expect(400);
     });
 
@@ -229,7 +343,11 @@ describe('Agenda Events Module (e2e)', () => {
         .post('/api/v1/agenda/events')
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'X', startAt: '2026-09-10T16:00:00.000Z', endAt: '2026-09-10T14:00:00.000Z' })
+        .send({
+          title: 'X',
+          startAt: '2026-09-10T16:00:00.000Z',
+          endAt: '2026-09-10T14:00:00.000Z',
+        })
         .expect(400);
     });
   });
@@ -278,7 +396,16 @@ describe('Agenda Events Module (e2e)', () => {
 
     it('should only expose ALL/STUDENTS events to a STUDENT', async () => {
       await prisma.agendaEvent.create({
-        data: { institutionId: secondInstitutionId, createdById: (await prisma.user.findUnique({ where: { email: 'admin@second-schoolevt-e2e.dev' } }))!.id, title: 'Sec Students-Only Event', startAt: new Date('2026-09-13T10:00:00.000Z'), endAt: new Date('2026-09-13T11:00:00.000Z'), audience: 'STUDENTS' },
+        data: {
+          institutionId: secondInstitutionId,
+          createdById: (await prisma.user.findUnique({
+            where: { email: 'admin@second-schoolevt-e2e.dev' },
+          }))!.id,
+          title: 'Sec Students-Only Event',
+          startAt: new Date('2026-09-13T10:00:00.000Z'),
+          endAt: new Date('2026-09-13T11:00:00.000Z'),
+          audience: 'STUDENTS',
+        },
       });
       const res = await request(app.getHttpServer())
         .get('/api/v1/agenda/events')
@@ -342,7 +469,16 @@ describe('Agenda Events Module (e2e)', () => {
 
     it('should hide TEACHERS-only events from a STUDENT (404)', async () => {
       const teachersOnly = await prisma.agendaEvent.create({
-        data: { institutionId: secondInstitutionId, createdById: (await prisma.user.findUnique({ where: { email: 'admin@second-schoolevt-e2e.dev' } }))!.id, title: 'Sec Teachers-Only', startAt: new Date('2026-09-14T10:00:00.000Z'), endAt: new Date('2026-09-14T11:00:00.000Z'), audience: 'TEACHERS' },
+        data: {
+          institutionId: secondInstitutionId,
+          createdById: (await prisma.user.findUnique({
+            where: { email: 'admin@second-schoolevt-e2e.dev' },
+          }))!.id,
+          title: 'Sec Teachers-Only',
+          startAt: new Date('2026-09-14T10:00:00.000Z'),
+          endAt: new Date('2026-09-14T11:00:00.000Z'),
+          audience: 'TEACHERS',
+        },
       });
       secTeachersOnlyEventId = teachersOnly.id;
 
@@ -378,7 +514,11 @@ describe('Agenda Events Module (e2e)', () => {
         .patch(`/api/v1/agenda/events/${demoEventId}`)
         .set('Authorization', `Bearer ${demoAdminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ title: 'Reunion de padres (confirmada)', location: 'Aula Magna', audience: 'PARENTS' })
+        .send({
+          title: 'Reunion de padres (confirmada)',
+          location: 'Aula Magna',
+          audience: 'PARENTS',
+        })
         .expect(200);
       expect(res.body.title).toBe('Reunion de padres (confirmada)');
       expect(res.body.location).toBe('Aula Magna');
@@ -523,7 +663,8 @@ describe('Agenda Events Module (e2e)', () => {
         .set('X-Institution-Id', secondInstitutionId)
         .expect(200);
       const eventItems = res.body.data.filter(
-        (e: { type: string; sourceType: string }) => e.type === 'EVENT' && e.sourceType === 'AgendaEvent',
+        (e: { type: string; sourceType: string }) =>
+          e.type === 'EVENT' && e.sourceType === 'AgendaEvent',
       );
       for (const e of eventItems) {
         expect(e.id).not.toBe(`event-${secTeachersOnlyEventId}`);

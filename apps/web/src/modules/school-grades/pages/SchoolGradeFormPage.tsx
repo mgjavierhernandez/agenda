@@ -66,7 +66,11 @@ export function SchoolGradeFormPage() {
   }
 
   if (isEditMode && !existingGrade) {
-    return <ErrorState error={{ statusCode: 404, message: 'Grado no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Grado no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const validate = (): boolean => {
@@ -126,7 +130,9 @@ export function SchoolGradeFormPage() {
     <div className="space-y-6">
       <PageHeader
         title={isEditMode ? 'Editar grado académico' : 'Nuevo grado académico'}
-        description={isEditMode ? 'Actualizar la información del grado' : 'Crear un nuevo grado académico'}
+        description={
+          isEditMode ? 'Actualizar la información del grado' : 'Crear un nuevo grado académico'
+        }
       />
 
       {apiError && (
@@ -168,7 +174,9 @@ export function SchoolGradeFormPage() {
                 className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.sortOrder && <p className="text-sm text-red-600 mt-1">{errors.sortOrder}</p>}
-              <p className="text-xs text-gray-500 mt-1">Determina el orden en que se muestran los grados. Menor número = mayor prioridad.</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Determina el orden en que se muestran los grados. Menor número = mayor prioridad.
+              </p>
             </div>
           </div>
         </Card>

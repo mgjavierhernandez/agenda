@@ -9,7 +9,8 @@ export enum ReportExportFormat {
 export class ReportsQueryDto {
   @ApiPropertyOptional({
     format: 'uuid',
-    description: 'Filter report data to an academic period. Omit to consolidate across all periods.',
+    description:
+      'Filter report data to an academic period. Omit to consolidate across all periods.',
   })
   @IsOptional()
   @IsUUID()

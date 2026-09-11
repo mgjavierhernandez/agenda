@@ -104,9 +104,7 @@ describe('TenantContext (e2e)', () => {
     });
 
     it('should return 401 without access token', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/auth/institutions')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/auth/institutions').expect(401);
     });
   });
 

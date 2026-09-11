@@ -50,10 +50,16 @@ describe('StudentImportPage (GAP-3)', () => {
     vi.clearAllMocks();
     vi.mocked(apiClient.get).mockImplementation((url: string) => {
       if (url.startsWith('/courses')) {
-        return Promise.resolve({ data: [{ id: 'c-1', code: '2A', name: 'Segundo A' }], meta: { total: 1, page: 1, limit: 100, totalPages: 1 } });
+        return Promise.resolve({
+          data: [{ id: 'c-1', code: '2A', name: 'Segundo A' }],
+          meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+        });
       }
       if (url.startsWith('/academic-periods')) {
-        return Promise.resolve({ data: [{ id: 'p-1', code: '2026-P1', name: 'Periodo 1' }], meta: { total: 1, page: 1, limit: 100, totalPages: 1 } });
+        return Promise.resolve({
+          data: [{ id: 'p-1', code: '2026-P1', name: 'Periodo 1' }],
+          meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+        });
       }
       return Promise.resolve(undefined as never);
     });

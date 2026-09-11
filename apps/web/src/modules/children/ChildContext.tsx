@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { useAuth } from '@/auth/auth.store';
@@ -93,7 +101,8 @@ export function ChildProvider({ children }: { children: ReactNode }) {
       if (selectedChildId !== null) setSelectedChildId(null);
       return;
     }
-    const isValid = selectedChildId !== null && childList.some((c) => c.studentId === selectedChildId);
+    const isValid =
+      selectedChildId !== null && childList.some((c) => c.studentId === selectedChildId);
     if (!isValid) {
       const stored = loadStoredChildId(selectedInstitutionId);
       const next =

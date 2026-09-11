@@ -12,13 +12,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
@@ -45,10 +39,7 @@ export class GradesController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 409, description: 'Conflict' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() createGradeDto: CreateGradeDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() createGradeDto: CreateGradeDto) {
     return this.gradesService.create(
       req.tenant!.institutionId,
       createGradeDto,
@@ -64,15 +55,8 @@ export class GradesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListGradesQueryDto,
-  ) {
-    return this.gradesService.findAll(
-      req.tenant!.institutionId,
-      query,
-      req.user.userId,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListGradesQueryDto) {
+    return this.gradesService.findAll(req.tenant!.institutionId, query, req.user.userId);
   }
 
   @Get(':id')
@@ -84,15 +68,8 @@ export class GradesController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Grade not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.gradesService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.gradesService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch(':id')
@@ -128,15 +105,7 @@ export class GradesController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Grade not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.gradesService.deactivate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.gradesService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

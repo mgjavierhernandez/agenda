@@ -24,7 +24,10 @@ export class ScheduleExportQueryDto {
   @IsUUID()
   courseId?: string;
 
-  @ApiPropertyOptional({ format: 'uuid', description: 'Restrict to courses of one accessible student' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Restrict to courses of one accessible student',
+  })
   @IsOptional()
   @IsUUID()
   studentId?: string;

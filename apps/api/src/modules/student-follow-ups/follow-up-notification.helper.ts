@@ -1,14 +1,8 @@
 import { PrismaService } from '../../common/prisma';
 import { findGuardianUserIds } from '../../common/auth/parent-context';
-import {
-  FollowUpConfidentiality,
-  NotificationType,
-} from '@prisma/client';
+import { FollowUpConfidentiality, NotificationType } from '@prisma/client';
 
-const CONFIDENTIALITY_NOTIFY_LEVELS: Record<
-  string,
-  FollowUpConfidentiality[]
-> = {
+const CONFIDENTIALITY_NOTIFY_LEVELS: Record<string, FollowUpConfidentiality[]> = {
   INSTITUTION_ADMIN: [
     FollowUpConfidentiality.PUBLIC,
     FollowUpConfidentiality.INTERNAL,
@@ -37,10 +31,7 @@ function canNotifyForConfidentiality(
   return allowed.includes(confidentiality);
 }
 
-function buildNotificationTitle(
-  action: string,
-  confidentiality: FollowUpConfidentiality,
-): string {
+function buildNotificationTitle(action: string, confidentiality: FollowUpConfidentiality): string {
   if (
     confidentiality === FollowUpConfidentiality.CONFIDENTIAL ||
     confidentiality === FollowUpConfidentiality.SENSITIVE
@@ -214,18 +205,12 @@ async function resolveFollowUpRecipients(
   }
 
   if (canNotifyForConfidentiality('TEACHER', confidentiality)) {
-    const teacherIds = await resolveTeacherUserIds(
-      prisma,
-      institutionId,
-      studentId,
-    );
+    const teacherIds = await resolveTeacherUserIds(prisma, institutionId, studentId);
     for (const id of teacherIds) recipientSet.add(id);
   }
 
   if (canNotifyForConfidentiality('PARENT', confidentiality)) {
-    const guardianIds = await findGuardianUserIds(prisma, institutionId, [
-      studentId,
-    ]);
+    const guardianIds = await findGuardianUserIds(prisma, institutionId, [studentId]);
     for (const id of guardianIds) recipientSet.add(id);
   }
 
@@ -279,9 +264,7 @@ export async function sendCommitmentNotification(
   recipientIds.add(responsibleUserId);
 
   if (canNotifyForConfidentiality('PARENT', ctx.confidentiality)) {
-    const guardianIds = await findGuardianUserIds(prisma, ctx.institutionId, [
-      ctx.studentId,
-    ]);
+    const guardianIds = await findGuardianUserIds(prisma, ctx.institutionId, [ctx.studentId]);
     for (const id of guardianIds) recipientIds.add(id);
   }
 

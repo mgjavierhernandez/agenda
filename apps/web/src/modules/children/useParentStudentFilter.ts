@@ -7,9 +7,7 @@ import { useChildContext } from './ChildContext';
  */
 export function useParentStudentFilter() {
   const { isParent, children, selectedChildId, selectedChild } = useChildContext();
-  const studentId = isParent
-    ? (selectedChildId ?? children[0]?.studentId ?? undefined)
-    : undefined;
+  const studentId = isParent ? (selectedChildId ?? children[0]?.studentId ?? undefined) : undefined;
   const resolvedChild = selectedChild ?? children[0] ?? null;
   return { isParent, studentId, selectedChild: resolvedChild, children };
 }

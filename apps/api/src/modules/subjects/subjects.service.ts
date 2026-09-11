@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { CreateSubjectDto } from './dto/create-subject.dto';
@@ -79,7 +75,10 @@ export class SubjectsService {
   async findAll(
     institutionId: string,
     query: ListSubjectsQueryDto,
-  ): Promise<{ data: Subject[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Subject[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -174,7 +173,8 @@ export class SubjectsService {
     if (dto.code !== undefined) updateData.code = dto.code;
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.description !== undefined) updateData.description = dto.description;
-    if (dto.areaId !== undefined) updateData.area = dto.areaId ? { connect: { id: dto.areaId } } : { disconnect: true };
+    if (dto.areaId !== undefined)
+      updateData.area = dto.areaId ? { connect: { id: dto.areaId } } : { disconnect: true };
     if (dto.subjectType !== undefined) updateData.subjectType = dto.subjectType;
     if (dto.minimumLevel !== undefined) updateData.minimumLevel = dto.minimumLevel;
     if (dto.maximumLevel !== undefined) updateData.maximumLevel = dto.maximumLevel;
@@ -188,9 +188,10 @@ export class SubjectsService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === SubjectStatus.INACTIVE
-        ? 'SUBJECT_DEACTIVATED'
-        : 'SUBJECT_UPDATED',
+      action:
+        dto.status && dto.status === SubjectStatus.INACTIVE
+          ? 'SUBJECT_DEACTIVATED'
+          : 'SUBJECT_UPDATED',
       entityType: 'Subject',
       entityId: subject.id,
       oldValues: {
@@ -234,7 +235,10 @@ export class SubjectsService {
     );
   }
 
-  private async assertAreaBelongsToInstitution(institutionId: string, areaId: string): Promise<void> {
+  private async assertAreaBelongsToInstitution(
+    institutionId: string,
+    areaId: string,
+  ): Promise<void> {
     const area = await this.prisma.area.findFirst({ where: { id: areaId, institutionId } });
     if (!area) {
       throw new NotFoundException('Area not found in this institution');

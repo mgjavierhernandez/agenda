@@ -51,7 +51,9 @@ describe('useRoleDashboard', () => {
 
   it('fetches the dashboard with periodId', async () => {
     vi.mocked(apiClient.get).mockResolvedValue(payload);
-    const { result } = renderHook(() => useRoleDashboard(true, 'period-123'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useRoleDashboard(true, 'period-123'), {
+      wrapper: createWrapper(),
+    });
     await waitFor(() => {
       expect(result.current.data).toEqual(payload);
     });

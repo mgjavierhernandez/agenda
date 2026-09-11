@@ -60,7 +60,10 @@ export function CommunicationInboxPage() {
 
       <div className="flex items-center gap-4">
         <div className="w-full sm:w-44">
-          <label htmlFor="recipientStatusFilter" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="recipientStatusFilter"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Estado
           </label>
           <select
@@ -94,7 +97,9 @@ export function CommunicationInboxPage() {
         </div>
       ) : recipients.length === 0 ? (
         <EmptyState
-          title={statusFilter ? 'No se encontraron comunicaciones' : 'No hay comunicaciones recibidas'}
+          title={
+            statusFilter ? 'No se encontraron comunicaciones' : 'No hay comunicaciones recibidas'
+          }
           description={
             statusFilter
               ? 'No hay comunicaciones que coincidan con el filtro.'
@@ -124,7 +129,8 @@ export function CommunicationInboxPage() {
                       onClick={() => navigate(`/communications/${recipient.communicationId}`)}
                     >
                       <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">
-                        {recipient.communication?.title ?? recipient.communicationId.slice(0, 8) + '…'}
+                        {recipient.communication?.title ??
+                          recipient.communicationId.slice(0, 8) + '…'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={STATUS_BADGE_VARIANT[recipient.status]}>
@@ -170,7 +176,8 @@ export function CommunicationInboxPage() {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-lg truncate">
-                      {recipient.communication?.title ?? recipient.communicationId.slice(0, 8) + '…'}
+                      {recipient.communication?.title ??
+                        recipient.communicationId.slice(0, 8) + '…'}
                     </p>
                     <p className="text-sm text-gray-500">
                       {new Date(recipient.createdAt).toLocaleDateString('es-CO')}

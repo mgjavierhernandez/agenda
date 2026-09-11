@@ -82,7 +82,15 @@ interface SectionProps {
   children: React.ReactNode;
 }
 
-function SectionHeader({ title, linkTo, linkLabel }: { title: string; linkTo?: string; linkLabel?: string }) {
+function SectionHeader({
+  title,
+  linkTo,
+  linkLabel,
+}: {
+  title: string;
+  linkTo?: string;
+  linkLabel?: string;
+}) {
   return (
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
@@ -95,7 +103,14 @@ function SectionHeader({ title, linkTo, linkLabel }: { title: string; linkTo?: s
   );
 }
 
-function DashboardSection({ title, linkTo, linkLabel, isEmpty, emptyMessage, children }: SectionProps & { linkTo?: string; linkLabel?: string }) {
+function DashboardSection({
+  title,
+  linkTo,
+  linkLabel,
+  isEmpty,
+  emptyMessage,
+  children,
+}: SectionProps & { linkTo?: string; linkLabel?: string }) {
   return (
     <Card>
       <SectionHeader title={title} linkTo={linkTo} linkLabel={linkLabel} />
@@ -154,7 +169,10 @@ export function DashboardPage() {
   if (isError || !data) {
     return (
       <div className="space-y-6">
-        <PageHeader title={`Bienvenido, ${greeting}`} description={selectedInstitution?.name ?? undefined} />
+        <PageHeader
+          title={`Bienvenido, ${greeting}`}
+          description={selectedInstitution?.name ?? undefined}
+        />
         <Card>
           <div className="py-8 text-center">
             <p className="text-sm text-gray-500 mb-4">No se pudo cargar el panel.</p>
@@ -209,7 +227,10 @@ export function DashboardPage() {
       {periods.length > 1 && (
         <Card>
           <div className="flex items-center gap-4">
-            <label htmlFor="dash-period-filter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            <label
+              htmlFor="dash-period-filter"
+              className="text-sm font-medium text-gray-700 whitespace-nowrap"
+            >
               Filtrar por periodo:
             </label>
             <select
@@ -252,7 +273,8 @@ export function DashboardPage() {
             <div>
               <p className="text-sm font-semibold text-gray-900">Período activo</p>
               <p className="text-xs text-gray-500">
-                {d.activePeriod.name} ({d.activePeriod.code}) · {formatDate(d.activePeriod.startDate)} – {formatDate(d.activePeriod.endDate)}
+                {d.activePeriod.name} ({d.activePeriod.code}) ·{' '}
+                {formatDate(d.activePeriod.startDate)} – {formatDate(d.activePeriod.endDate)}
               </p>
             </div>
             <Badge variant="info">{d.activePeriod.status}</Badge>
@@ -276,27 +298,82 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isAdmin && (
           <>
-            <StatCard title="Estudiantes" value={stats.students ?? 0} icon={<span className="text-2xl">👨‍🎓</span>} description="Estudiantes activos" />
-            <StatCard title="Docentes" value={stats.teachers ?? 0} icon={<span className="text-2xl">🧑‍🏫</span>} description="Docentes en la institución" />
-            <StatCard title="Cursos" value={stats.courses ?? 0} icon={<span className="text-2xl">📚</span>} description="Cursos activos" />
-            <StatCard title="Asignaturas" value={stats.subjects ?? 0} icon={<span className="text-2xl">📝</span>} description="Asignaturas registradas" />
-            <StatCard title="Seguimientos pendientes" value={stats.pendingFollowUps ?? 0} icon={<span className="text-2xl">📋</span>} description="Seguimientos abiertos" />
+            <StatCard
+              title="Estudiantes"
+              value={stats.students ?? 0}
+              icon={<span className="text-2xl">👨‍🎓</span>}
+              description="Estudiantes activos"
+            />
+            <StatCard
+              title="Docentes"
+              value={stats.teachers ?? 0}
+              icon={<span className="text-2xl">🧑‍🏫</span>}
+              description="Docentes en la institución"
+            />
+            <StatCard
+              title="Cursos"
+              value={stats.courses ?? 0}
+              icon={<span className="text-2xl">📚</span>}
+              description="Cursos activos"
+            />
+            <StatCard
+              title="Asignaturas"
+              value={stats.subjects ?? 0}
+              icon={<span className="text-2xl">📝</span>}
+              description="Asignaturas registradas"
+            />
+            <StatCard
+              title="Seguimientos pendientes"
+              value={stats.pendingFollowUps ?? 0}
+              icon={<span className="text-2xl">📋</span>}
+              description="Seguimientos abiertos"
+            />
           </>
         )}
         {(d.role === 'TEACHER' || d.role === 'DIRECTOR_DE_GRUPO') && (
           <>
-            <StatCard title="Cursos" value={stats.courses ?? 0} icon={<span className="text-2xl">📚</span>} description="Cursos asignados" />
-            <StatCard title="Estudiantes" value={stats.students ?? 0} icon={<span className="text-2xl">👨‍🎓</span>} description="Estudiantes en tus cursos" />
-            <StatCard title="Asignaturas" value={d.subjects.length} icon={<span className="text-2xl">📝</span>} description="Asignaturas asignadas" />
+            <StatCard
+              title="Cursos"
+              value={stats.courses ?? 0}
+              icon={<span className="text-2xl">📚</span>}
+              description="Cursos asignados"
+            />
+            <StatCard
+              title="Estudiantes"
+              value={stats.students ?? 0}
+              icon={<span className="text-2xl">👨‍🎓</span>}
+              description="Estudiantes en tus cursos"
+            />
+            <StatCard
+              title="Asignaturas"
+              value={d.subjects.length}
+              icon={<span className="text-2xl">📝</span>}
+              description="Asignaturas asignadas"
+            />
           </>
         )}
         {d.role === 'PARENT' && (
-          <StatCard title="Hijos" value={stats.children ?? 0} icon={<span className="text-2xl">👨‍👩‍👧</span>} description="Estudiantes a tu cargo" />
+          <StatCard
+            title="Hijos"
+            value={stats.children ?? 0}
+            icon={<span className="text-2xl">👨‍👩‍👧</span>}
+            description="Estudiantes a tu cargo"
+          />
         )}
         {d.role === 'STUDENT' && (
           <>
-            <StatCard title="Matrículas" value={stats.enrollments ?? 0} icon={<span className="text-2xl">📋</span>} description="Cursos matriculados" />
-            <StatCard title="Seguimientos" value={stats.followUps ?? 0} icon={<span className="text-2xl">📋</span>} description="Seguimientos tuyos" />
+            <StatCard
+              title="Matrículas"
+              value={stats.enrollments ?? 0}
+              icon={<span className="text-2xl">📋</span>}
+              description="Cursos matriculados"
+            />
+            <StatCard
+              title="Seguimientos"
+              value={stats.followUps ?? 0}
+              icon={<span className="text-2xl">📋</span>}
+              description="Seguimientos tuyos"
+            />
           </>
         )}
       </div>
@@ -331,13 +408,21 @@ export function DashboardPage() {
         {d.upcomingEvents.length > 0 && (
           <DashboardSection title="Próximos eventos" linkTo="/agenda" linkLabel="Ver agenda">
             {d.upcomingEvents.map((e) => (
-              <SimpleItem key={e.id} title={e.title} subtitle={`${formatDate(e.startAt)}${e.location ? ` · ${e.location}` : ''}`} />
+              <SimpleItem
+                key={e.id}
+                title={e.title}
+                subtitle={`${formatDate(e.startAt)}${e.location ? ` · ${e.location}` : ''}`}
+              />
             ))}
           </DashboardSection>
         )}
 
         {d.recentCommunications.length > 0 && (
-          <DashboardSection title="Comunicaciones recientes" linkTo="/communication-inbox" linkLabel="Bandeja">
+          <DashboardSection
+            title="Comunicaciones recientes"
+            linkTo="/communication-inbox"
+            linkLabel="Bandeja"
+          >
             {d.recentCommunications.map((c) => (
               <SimpleItem key={c.id} title={c.title} subtitle={formatDate(c.publishedAt)} />
             ))}
@@ -345,7 +430,11 @@ export function DashboardPage() {
         )}
 
         {d.followUps.length > 0 && (
-          <DashboardSection title="Seguimientos recientes" linkTo="/student-follow-ups" linkLabel="Ver seguimientos">
+          <DashboardSection
+            title="Seguimientos recientes"
+            linkTo="/student-follow-ups"
+            linkLabel="Ver seguimientos"
+          >
             {d.followUps.map((f) => (
               <div key={f.id} className="flex items-center justify-between p-3">
                 <SimpleItem title={f.title} />
@@ -358,7 +447,11 @@ export function DashboardPage() {
         )}
 
         {d.pendingCommitments.length > 0 && (
-          <DashboardSection title="Compromisos pendientes" linkTo="/student-follow-ups" linkLabel="Ver seguimientos">
+          <DashboardSection
+            title="Compromisos pendientes"
+            linkTo="/student-follow-ups"
+            linkLabel="Ver seguimientos"
+          >
             {d.pendingCommitments.map((c) => (
               <div key={c.id} className="flex items-center justify-between p-3">
                 <SimpleItem title={c.description} />
@@ -371,21 +464,35 @@ export function DashboardPage() {
         )}
 
         {d.pendingSignatures.length > 0 && (
-          <DashboardSection title="Firmas pendientes de ti" linkTo="/signatures" linkLabel="Ver firmas">
+          <DashboardSection
+            title="Firmas pendientes de ti"
+            linkTo="/signatures"
+            linkLabel="Ver firmas"
+          >
             {d.pendingSignatures.map((s) => (
               <Link key={s.id} to={`/signatures/${s.id}`} className="block hover:bg-gray-50">
-                <SimpleItem title={s.title} subtitle={s.dueDate ? `Vence: ${formatDate(s.dueDate)}` : undefined} />
+                <SimpleItem
+                  title={s.title}
+                  subtitle={s.dueDate ? `Vence: ${formatDate(s.dueDate)}` : undefined}
+                />
               </Link>
             ))}
           </DashboardSection>
         )}
 
         {d.recentNotifications.length > 0 && (
-          <DashboardSection title="Notificaciones recientes" linkTo="/notifications" linkLabel="Ver notificaciones">
+          <DashboardSection
+            title="Notificaciones recientes"
+            linkTo="/notifications"
+            linkLabel="Ver notificaciones"
+          >
             {d.recentNotifications.map((n) => (
               <div key={n.id} className="flex items-center justify-between p-3">
                 <SimpleItem title={n.title} subtitle={n.message} />
-                <Badge variant={n.status === 'UNREAD' ? 'warning' : 'default'} className="ml-2 shrink-0">
+                <Badge
+                  variant={n.status === 'UNREAD' ? 'warning' : 'default'}
+                  className="ml-2 shrink-0"
+                >
                   {n.status === 'UNREAD' ? 'No leída' : 'Leída'}
                 </Badge>
               </div>
@@ -399,22 +506,35 @@ export function DashboardPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Accesos rápidos</h3>
           <div className="grid grid-cols-2 gap-2">
             {hasPermission(PERMISSIONS.STUDENTS_READ) && (
-              <Link to="/students" aria-label="Ir a Estudiantes" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/students"
+                aria-label="Ir a Estudiantes"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>👨‍🎓</span> Estudiantes
               </Link>
             )}
             {hasPermission(PERMISSIONS.COURSES_READ) && (
-              <Link to="/courses" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/courses"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>📚</span> Cursos
               </Link>
             )}
             {hasPermission(PERMISSIONS.TASKS_READ) && (
-              <Link to="/tasks" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/tasks"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>✅</span> Tareas
               </Link>
             )}
             {hasPermission(PERMISSIONS.COMMUNICATIONS_READ) && (
-              <Link to="/communication-inbox" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/communication-inbox"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>📥</span> Bandeja
                 {unreadComms > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
@@ -424,22 +544,34 @@ export function DashboardPage() {
               </Link>
             )}
             {hasPermission(PERMISSIONS.SIGNATURES_READ) && (
-              <Link to="/signatures" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/signatures"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>✍️</span> Firmas
               </Link>
             )}
             {hasPermission(PERMISSIONS.GRADES_READ) && (
-              <Link to="/grades" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/grades"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>📈</span> Notas
               </Link>
             )}
             {hasPermission(PERMISSIONS.ENROLLMENTS_READ) && (
-              <Link to="/enrollments" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/enrollments"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>📋</span> Matrículas
               </Link>
             )}
             {hasPermission(PERMISSIONS.NOTIFICATIONS_READ) && (
-              <Link to="/notifications" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700">
+              <Link
+                to="/notifications"
+                className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+              >
                 <span>🔔</span> Notificaciones
               </Link>
             )}

@@ -169,7 +169,9 @@ export function CreateUserPage() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
-                {errors.firstName && <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>}
+                {errors.firstName && (
+                  <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>
+                )}
               </div>
               <div>
                 <Input
@@ -189,7 +191,10 @@ export function CreateUserPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="documentType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Tipo de documento
                 </label>
                 <select
@@ -200,7 +205,9 @@ export function CreateUserPage() {
                 >
                   <option value="">Seleccione…</option>
                   {(Object.keys(DOCUMENT_TYPE_LABELS) as DocumentType[]).map((dt) => (
-                    <option key={dt} value={dt}>{DOCUMENT_TYPE_LABELS[dt]}</option>
+                    <option key={dt} value={dt}>
+                      {DOCUMENT_TYPE_LABELS[dt]}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -266,7 +273,8 @@ export function CreateUserPage() {
 
         {canLink && assignableRoles.length > 0 && (
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Roles</h3>            <p className="text-sm text-gray-500 mb-3">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Roles</h3>{' '}
+            <p className="text-sm text-gray-500 mb-3">
               Asigna uno o más roles al usuario en esta institución.
             </p>
             <div className="space-y-2">

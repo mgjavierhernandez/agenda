@@ -76,19 +76,15 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return same error for non-existent email and wrong password', async () => {
-      const response1 = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'nonexistent@demo-school.dev',
-          password: 'Demo1234!',
-        });
+      const response1 = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'nonexistent@demo-school.dev',
+        password: 'Demo1234!',
+      });
 
-      const response2 = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'admin@demo-school.dev',
-          password: 'WrongPassword123!',
-        });
+      const response2 = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'admin@demo-school.dev',
+        password: 'WrongPassword123!',
+      });
 
       expect(response1.status).toBe(response2.status);
       expect(response1.body).toEqual(response2.body);
@@ -119,12 +115,10 @@ describe('Auth (e2e)', () => {
     let refreshToken: string;
 
     beforeAll(async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'admin@demo-school.dev',
-          password: 'Demo1234!',
-        });
+      const response = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'admin@demo-school.dev',
+        password: 'Demo1234!',
+      });
       refreshToken = response.body.refreshToken;
     });
 
@@ -153,12 +147,10 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 401 for revoked refresh token (rotation)', async () => {
-      const loginResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'teacher@demo-school.dev',
-          password: 'Demo1234!',
-        });
+      const loginResponse = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'teacher@demo-school.dev',
+        password: 'Demo1234!',
+      });
 
       const rt1 = loginResponse.body.refreshToken;
 
@@ -174,21 +166,16 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 401 for missing refreshToken', async () => {
-      await request(app.getHttpServer())
-        .post('/api/v1/auth/refresh')
-        .send({})
-        .expect(400);
+      await request(app.getHttpServer()).post('/api/v1/auth/refresh').send({}).expect(400);
     });
   });
 
   describe('POST /api/v1/auth/logout', () => {
     it('should revoke refresh token', async () => {
-      const loginResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'parent@demo-school.dev',
-          password: 'Demo1234!',
-        });
+      const loginResponse = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'parent@demo-school.dev',
+        password: 'Demo1234!',
+      });
 
       const refreshToken = loginResponse.body.refreshToken;
 
@@ -204,12 +191,10 @@ describe('Auth (e2e)', () => {
     });
 
     it('should handle logout with already revoked token', async () => {
-      const loginResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'student@demo-school.dev',
-          password: 'Demo1234!',
-        });
+      const loginResponse = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'student@demo-school.dev',
+        password: 'Demo1234!',
+      });
 
       const refreshToken = loginResponse.body.refreshToken;
 
@@ -227,12 +212,10 @@ describe('Auth (e2e)', () => {
 
   describe('GET /api/v1/auth/profile', () => {
     it('should return 200 with user profile for valid access token', async () => {
-      const loginResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'admin@demo-school.dev',
-          password: 'Demo1234!',
-        });
+      const loginResponse = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+        email: 'admin@demo-school.dev',
+        password: 'Demo1234!',
+      });
 
       const accessToken = loginResponse.body.accessToken;
 
@@ -246,9 +229,7 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 401 for missing access token', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/auth/profile')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/auth/profile').expect(401);
     });
 
     it('should return 401 for invalid access token', async () => {
@@ -261,7 +242,10 @@ describe('Auth (e2e)', () => {
     it('should return 401 for expired access token', async () => {
       await request(app.getHttpServer())
         .get('/api/v1/auth/profile')
-        .set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid')
+        .set(
+          'Authorization',
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid',
+        )
         .expect(401);
     });
   });

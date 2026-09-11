@@ -3,12 +3,18 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DocumentType } from '@prisma/client';
 
 export class UpsertUserProfileDto {
-  @ApiPropertyOptional({ enum: DocumentType, description: 'Document type (must be sent together with documentNumber)' })
+  @ApiPropertyOptional({
+    enum: DocumentType,
+    description: 'Document type (must be sent together with documentNumber)',
+  })
   @IsOptional()
   @IsEnum(DocumentType)
   documentType?: DocumentType;
 
-  @ApiPropertyOptional({ maxLength: 50, description: 'Document number (must be sent together with documentType)' })
+  @ApiPropertyOptional({
+    maxLength: 50,
+    description: 'Document number (must be sent together with documentType)',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(50)

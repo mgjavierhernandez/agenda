@@ -1,12 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import {
-  AgendaEvent,
-  AgendaEventStatus,
-  CommunicationAudience,
-  Prisma,
-} from '@prisma/client';
+import { AgendaEvent, AgendaEventStatus, CommunicationAudience, Prisma } from '@prisma/client';
 import { CreateAgendaEventDto } from './dto/create-agenda-event.dto';
 import { UpdateAgendaEventDto } from './dto/update-agenda-event.dto';
 import { ListAgendaEventsQueryDto } from './dto/list-agenda-events-query.dto';
@@ -125,11 +120,7 @@ export class AgendaEventsService {
     };
   }
 
-  async findOne(
-    institutionId: string,
-    eventId: string,
-    userId: string,
-  ): Promise<AgendaEvent> {
+  async findOne(institutionId: string, eventId: string, userId: string): Promise<AgendaEvent> {
     const role = await this.resolveRole(institutionId, userId);
     const where: Prisma.AgendaEventWhereInput = {
       id: eventId,

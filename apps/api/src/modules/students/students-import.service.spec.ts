@@ -78,7 +78,15 @@ describe('StudentsImportService (GAP-3)', () => {
 
   it('should import a valid XLSX file', async () => {
     const file = await xlsxFile([
-      ['firstName', 'lastName', 'documentType', 'documentNumber', 'dateOfBirth', 'courseCode', 'status'],
+      [
+        'firstName',
+        'lastName',
+        'documentType',
+        'documentNumber',
+        'dateOfBirth',
+        'courseCode',
+        'status',
+      ],
       ['Marta', 'Ríos', 'NATIONAL_ID', '333', '2014-05-05', '2A', 'ACTIVE'],
     ]);
 
@@ -94,12 +102,16 @@ describe('StudentsImportService (GAP-3)', () => {
       if (args.where.code === 'NOPE') return Promise.resolve(null);
       return Promise.resolve({ id: courseId, schoolGradeId: 'grade-1' });
     });
-    prismaMock.student.findUnique.mockImplementation((args: { where: { institutionId_documentType_documentNumber: { documentNumber: string } } }) => {
-      if (args.where.institutionId_documentType_documentNumber.documentNumber === '999') {
-        return Promise.resolve({ id: 'existing' });
-      }
-      return Promise.resolve(null);
-    });
+    prismaMock.student.findUnique.mockImplementation(
+      (args: {
+        where: { institutionId_documentType_documentNumber: { documentNumber: string } };
+      }) => {
+        if (args.where.institutionId_documentType_documentNumber.documentNumber === '999') {
+          return Promise.resolve({ id: 'existing' });
+        }
+        return Promise.resolve(null);
+      },
+    );
 
     const file = csvFile(
       `${header}\n` +
@@ -147,20 +159,26 @@ describe('StudentsImportService (GAP-3)', () => {
     const file = csvFile(`${header}\nAna,Torres,NATIONAL_ID,111,,2A,ACTIVE`);
     Object.defineProperty(file, 'size', { value: 6 * 1024 * 1024 });
 
-    await expect(service.importFromFile(institutionId, file, {}, 'admin-1')).rejects.toThrow(BadRequestException);
+    await expect(service.importFromFile(institutionId, file, {}, 'admin-1')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should reject unsupported file types', async () => {
     const file = csvFile('a,b', 'students.pdf');
     (file as { mimetype: string }).mimetype = 'application/pdf';
 
-    await expect(service.importFromFile(institutionId, file, {}, 'admin-1')).rejects.toThrow(BadRequestException);
+    await expect(service.importFromFile(institutionId, file, {}, 'admin-1')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should reject files without data rows', async () => {
     const file = csvFile(`${header}\n`);
 
-    await expect(service.importFromFile(institutionId, file, {}, 'admin-1')).rejects.toThrow(BadRequestException);
+    await expect(service.importFromFile(institutionId, file, {}, 'admin-1')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should report an error when the course has no school grade', async () => {

@@ -31,7 +31,8 @@ vi.mock('@/auth/auth.store', () => ({
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
     hasPermission: (code: string) => code === 'courses:read' || code === 'courses:manage',
-    hasAnyPermission: (...codes: string[]) => codes.some((c) => c === 'courses:read' || c === 'courses:manage'),
+    hasAnyPermission: (...codes: string[]) =>
+      codes.some((c) => c === 'courses:read' || c === 'courses:manage'),
     hasAllPermissions: () => true,
     permissionCodes: ['courses:read', 'courses:manage'],
   }),

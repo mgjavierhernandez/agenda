@@ -61,7 +61,10 @@ describe('School Grades hooks', () => {
     });
 
     it('sends search param', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useSchoolGrades({ page: 2, limit: 10, search: 'preescolar' }), {
         wrapper: createWrapper(),
@@ -136,7 +139,9 @@ describe('School Grades hooks', () => {
       });
 
       expect(res).toEqual(updated);
-      expect(apiClient.patch).toHaveBeenCalledWith('/school-grades/sg-1', { name: 'Preescolar Actualizado' });
+      expect(apiClient.patch).toHaveBeenCalledWith('/school-grades/sg-1', {
+        name: 'Preescolar Actualizado',
+      });
     });
   });
 

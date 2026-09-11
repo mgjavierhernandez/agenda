@@ -57,7 +57,13 @@ const mockInstitution: Institution = {
 };
 
 const mockRoles = [
-  { id: 'role-admin', name: 'INSTITUTION_ADMIN', description: null, isSystem: true, assignable: true },
+  {
+    id: 'role-admin',
+    name: 'INSTITUTION_ADMIN',
+    description: null,
+    isSystem: true,
+    assignable: true,
+  },
   { id: 'role-teacher', name: 'TEACHER', description: null, isSystem: true, assignable: true },
 ];
 
@@ -86,8 +92,10 @@ const mockMembershipsPage: PaginatedApiResponse<UserMembership> = {
 function mockGetByUrl(overrides: Record<string, unknown> = {}) {
   vi.mocked(apiClient.get).mockImplementation((url: string) => {
     if (overrides[url]) return Promise.resolve(overrides[url] as never);
-    if (url.startsWith('/institutions/inst-1/memberships/')) return Promise.resolve(mockMembership as never);
-    if (url.startsWith('/institutions/inst-1/memberships')) return Promise.resolve(mockMembershipsPage as never);
+    if (url.startsWith('/institutions/inst-1/memberships/'))
+      return Promise.resolve(mockMembership as never);
+    if (url.startsWith('/institutions/inst-1/memberships'))
+      return Promise.resolve(mockMembershipsPage as never);
     if (url.startsWith('/institutions/')) return Promise.resolve(mockInstitution as never);
     if (url === '/roles') return Promise.resolve(mockRoles as never);
     return Promise.resolve(undefined as never);
@@ -134,7 +142,9 @@ describe('InstitutionProfilePage', () => {
     fireEvent.change(nameInput, { target: { value: 'Nuevo Nombre' } });
 
     await waitFor(() => {
-      expect((screen.getByDisplayValue('Nuevo Nombre') as HTMLInputElement).value).toBe('Nuevo Nombre');
+      expect((screen.getByDisplayValue('Nuevo Nombre') as HTMLInputElement).value).toBe(
+        'Nuevo Nombre',
+      );
     });
 
     fireEvent.click(screen.getByText('Guardar cambios'));
@@ -200,10 +210,12 @@ describe('InstitutionUsersPage', () => {
   });
 
   it('renders empty state', async () => {
-    vi.mocked(apiClient.get).mockImplementation(() => Promise.resolve({
-      data: [],
-      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
-    } as PaginatedApiResponse<UserMembership> as never));
+    vi.mocked(apiClient.get).mockImplementation(() =>
+      Promise.resolve({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      } as PaginatedApiResponse<UserMembership> as never),
+    );
 
     render(<InstitutionUsersPage />, { wrapper: createWrapper() });
 
@@ -261,12 +273,18 @@ describe('CreateUserPage', () => {
 
     render(<CreateUserPage />, { wrapper: createWrapper() });
 
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'doc@colegio.edu.co' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'doc@colegio.edu.co' },
+    });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Andrea' } });
     fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Gómez' } });
-    fireEvent.change(screen.getByLabelText('Tipo de documento'), { target: { value: 'NATIONAL_ID' } });
-    fireEvent.change(screen.getByLabelText('Número de documento'), { target: { value: '12345678' } });
+    fireEvent.change(screen.getByLabelText('Tipo de documento'), {
+      target: { value: 'NATIONAL_ID' },
+    });
+    fireEvent.change(screen.getByLabelText('Número de documento'), {
+      target: { value: '12345678' },
+    });
     fireEvent.change(screen.getByLabelText('Profesión'), { target: { value: 'Docente' } });
 
     fireEvent.click(screen.getByText('Crear usuario'));
@@ -289,16 +307,22 @@ describe('CreateUserPage', () => {
   it('warns when document type and number are not provided together', async () => {
     render(<CreateUserPage />, { wrapper: createWrapper() });
 
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'doc@colegio.edu.co' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'doc@colegio.edu.co' },
+    });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Andrea' } });
     fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Gómez' } });
-    fireEvent.change(screen.getByLabelText('Número de documento'), { target: { value: '12345678' } });
+    fireEvent.change(screen.getByLabelText('Número de documento'), {
+      target: { value: '12345678' },
+    });
 
     fireEvent.click(screen.getByText('Crear usuario'));
 
     await waitFor(() => {
-      expect(screen.getByText(/tipo y el número de documento deben indicarse juntos/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/tipo y el número de documento deben indicarse juntos/),
+      ).toBeInTheDocument();
     });
     expect(apiClient.post).not.toHaveBeenCalled();
   });
@@ -343,7 +367,8 @@ describe('UserDetailPage', () => {
     expect(screen.queryByText('Desvincular usuario')).not.toBeInTheDocument();
   });
 
-  it('unlinks a user', async () => {    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('unlinks a user', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     render(<UserDetailPage />, { wrapper: createWrapper(['/admin/users/mem-1']) });
 
@@ -354,9 +379,7 @@ describe('UserDetailPage', () => {
     fireEvent.click(screen.getByText('Desvincular usuario'));
 
     await waitFor(() => {
-      expect(apiClient.delete).toHaveBeenCalledWith(
-        '/institutions/inst-1/memberships/user/user-1',
-      );
+      expect(apiClient.delete).toHaveBeenCalledWith('/institutions/inst-1/memberships/user/user-1');
     });
   });
 

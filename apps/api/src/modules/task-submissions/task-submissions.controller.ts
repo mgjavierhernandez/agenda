@@ -12,19 +12,17 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { TaskSubmissionsService } from './task-submissions.service';
-import { CreateSubmissionDto, UpdateSubmissionDto, GradeSubmissionDto } from './dto/task-submission.dto';
+import {
+  CreateSubmissionDto,
+  UpdateSubmissionDto,
+  GradeSubmissionDto,
+} from './dto/task-submission.dto';
 
 @ApiTags('Task Submissions')
 @ApiBearerAuth('bearer')
@@ -60,10 +58,7 @@ export class TaskSubmissionsController {
   @ApiParam({ name: 'id', description: 'Task assignment UUID' })
   @ApiResponse({ status: 200, description: 'Submission found' })
   @ApiResponse({ status: 404, description: 'Submission not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.taskSubmissionsService.findByAssignment(
       req.tenant!.institutionId,
       id,

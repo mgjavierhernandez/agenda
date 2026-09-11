@@ -30,7 +30,8 @@ vi.mock('@/modules/students/hooks', () => ({
 
 vi.mock('@/api/errors', () => ({
   getErrorMessage: (err: unknown) => {
-    if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+    if (err && typeof err === 'object' && 'message' in err)
+      return String((err as { message: unknown }).message);
     return 'Ocurrió un error inesperado';
   },
 }));
@@ -108,9 +109,9 @@ describe('TaskAssignmentFormPage', () => {
 
   it('creates assignment on valid submit', async () => {
     const user = userEvent.setup();
-    const mockMutateAsync = vi.fn().mockResolvedValue([
-      { id: 'new-ta1', taskId: 't1', studentId: 's1', status: 'ASSIGNED' },
-    ]);
+    const mockMutateAsync = vi
+      .fn()
+      .mockResolvedValue([{ id: 'new-ta1', taskId: 't1', studentId: 's1', status: 'ASSIGNED' }]);
     mockUseCreateTaskAssignment.mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,

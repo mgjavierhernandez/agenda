@@ -128,10 +128,16 @@ const mockAttendanceData = () => {
       } as PaginatedApiResponse<Attendance>);
     }
     if (u.startsWith('/students')) {
-      return Promise.resolve({ data: [mockStudent], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockStudent],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/courses')) {
-      return Promise.resolve({ data: [mockCourse], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockCourse],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/academic-periods')) {
       return Promise.resolve({
@@ -140,7 +146,10 @@ const mockAttendanceData = () => {
       });
     }
     if (u.startsWith('/enrollments')) {
-      return Promise.resolve({ data: [mockEnrollment], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockEnrollment],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
   });
@@ -260,19 +269,34 @@ describe('AttendanceRegisterPage', () => {
     vi.mocked(apiClient.get).mockImplementation((url: string) => {
       const u = String(url);
       if (u.startsWith('/students')) {
-        return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 300, totalPages: 0 } });
+        return Promise.resolve({
+          data: [],
+          meta: { total: 0, page: 1, limit: 300, totalPages: 0 },
+        });
       }
       if (u.startsWith('/enrollments')) {
-        return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 200, totalPages: 0 } });
+        return Promise.resolve({
+          data: [],
+          meta: { total: 0, page: 1, limit: 200, totalPages: 0 },
+        });
       }
       if (u.startsWith('/courses')) {
-        return Promise.resolve({ data: [mockCourse], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+        return Promise.resolve({
+          data: [mockCourse],
+          meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+        });
       }
       if (u.startsWith('/academic-periods')) {
-        return Promise.resolve({ data: [mockPeriod], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+        return Promise.resolve({
+          data: [mockPeriod],
+          meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+        });
       }
       if (u.startsWith('/attendance')) {
-        return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 200, totalPages: 0 } });
+        return Promise.resolve({
+          data: [],
+          meta: { total: 0, page: 1, limit: 200, totalPages: 0 },
+        });
       }
       return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
     });

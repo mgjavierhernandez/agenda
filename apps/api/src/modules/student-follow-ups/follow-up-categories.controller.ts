@@ -12,18 +12,9 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
-import {
-  TenantContextGuard,
-  AuthenticatedRequest,
-} from '../auth/tenant/tenant-context.guard';
+import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { FollowUpCategoriesService } from './follow-up-categories.service';
@@ -44,28 +35,16 @@ export class FollowUpCategoriesController {
   @ApiResponse({ status: 201, description: 'Category created successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 409, description: 'Category name already exists' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateFollowUpCategoryDto,
-  ) {
-    return this.categoriesService.create(
-      req.tenant!.institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateFollowUpCategoryDto) {
+    return this.categoriesService.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
   }
 
   @Get()
   @RequirePermission('student-follow-ups:categories')
   @ApiOperation({ summary: 'List follow-up categories' })
   @ApiResponse({ status: 200, description: 'Categories retrieved successfully' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-  ) {
-    return this.categoriesService.findAll(
-      req.tenant!.institutionId,
-    );
+  async findAll(@Request() req: AuthenticatedRequest) {
+    return this.categoriesService.findAll(req.tenant!.institutionId);
   }
 
   @Get(':id')
@@ -74,14 +53,8 @@ export class FollowUpCategoriesController {
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Category found' })
   @ApiResponse({ status: 404, description: 'Category not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.categoriesService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.categoriesService.findOne(req.tenant!.institutionId, id);
   }
 
   @Patch(':id')
@@ -113,15 +86,7 @@ export class FollowUpCategoriesController {
   @ApiResponse({ status: 200, description: 'Category deleted successfully' })
   @ApiResponse({ status: 404, description: 'Category not found' })
   @ApiResponse({ status: 400, description: 'Category is in use' })
-  async remove(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.categoriesService.remove(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async remove(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.categoriesService.remove(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

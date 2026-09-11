@@ -65,10 +65,10 @@ describe('PermissionGuard', () => {
     it('should throw UnauthorizedException when user is not authenticated', async () => {
       jest.spyOn(reflectorMock, 'getAllAndOverride').mockReturnValue(['students:read']);
 
-      const context = createMockContext(
-        undefined,
-        { institutionId: 'inst-1', userInstitutionId: 'ui-1' },
-      );
+      const context = createMockContext(undefined, {
+        institutionId: 'inst-1',
+        userInstitutionId: 'ui-1',
+      });
 
       await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
     });
@@ -77,10 +77,7 @@ describe('PermissionGuard', () => {
       jest.spyOn(reflectorMock, 'getAllAndOverride').mockReturnValue(['students:read']);
       authorizationServiceMock.getGlobalPermissionCodes.mockResolvedValue(['students:read']);
 
-      const context = createMockContext(
-        { userId: 'user-1' },
-        undefined,
-      );
+      const context = createMockContext({ userId: 'user-1' }, undefined);
 
       const result = await guard.canActivate(context);
       expect(result).toBe(true);
@@ -90,10 +87,7 @@ describe('PermissionGuard', () => {
       jest.spyOn(reflectorMock, 'getAllAndOverride').mockReturnValue(['students:read']);
       authorizationServiceMock.getGlobalPermissionCodes.mockResolvedValue([]);
 
-      const context = createMockContext(
-        { userId: 'user-1' },
-        undefined,
-      );
+      const context = createMockContext({ userId: 'user-1' }, undefined);
 
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
     });
@@ -111,11 +105,9 @@ describe('PermissionGuard', () => {
       const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
-      expect(authorizationServiceMock.hasAllPermissions).toHaveBeenCalledWith(
-        'user-1',
-        'inst-1',
-        ['students:read'],
-      );
+      expect(authorizationServiceMock.hasAllPermissions).toHaveBeenCalledWith('user-1', 'inst-1', [
+        'students:read',
+      ]);
     });
 
     it('should throw ForbiddenException when user lacks the required permission', async () => {
@@ -146,11 +138,10 @@ describe('PermissionGuard', () => {
       const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
-      expect(authorizationServiceMock.hasAllPermissions).toHaveBeenCalledWith(
-        'user-1',
-        'inst-1',
-        ['students:read', 'grades:read'],
-      );
+      expect(authorizationServiceMock.hasAllPermissions).toHaveBeenCalledWith('user-1', 'inst-1', [
+        'students:read',
+        'grades:read',
+      ]);
     });
 
     it('should deny when user has only some of multiple required permissions', async () => {

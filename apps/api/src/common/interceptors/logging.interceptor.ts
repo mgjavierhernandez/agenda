@@ -35,21 +35,22 @@ export class LoggingInterceptor implements NestInterceptor {
           const duration = Date.now() - now;
           this.logger.log(
             `${method} ${url} ${statusCode} ${duration}ms` +
-            (requestId ? ` [rid:${requestId}]` : '') +
-            (userId ? ` [uid:${userId}]` : '') +
-            (institutionId ? ` [tid:${institutionId}]` : ''),
+              (requestId ? ` [rid:${requestId}]` : '') +
+              (userId ? ` [uid:${userId}]` : '') +
+              (institutionId ? ` [tid:${institutionId}]` : ''),
           );
         },
         error: (err: unknown) => {
-          const statusCode = typeof err === 'object' && err !== null && 'status' in err
-            ? (err as { status: number }).status
-            : 500;
+          const statusCode =
+            typeof err === 'object' && err !== null && 'status' in err
+              ? (err as { status: number }).status
+              : 500;
           const duration = Date.now() - now;
           this.logger.error(
             `${method} ${url} ${statusCode} ${duration}ms` +
-            (requestId ? ` [rid:${requestId}]` : '') +
-            (userId ? ` [uid:${userId}]` : '') +
-            (institutionId ? ` [tid:${institutionId}]` : ''),
+              (requestId ? ` [rid:${requestId}]` : '') +
+              (userId ? ` [uid:${userId}]` : '') +
+              (institutionId ? ` [tid:${institutionId}]` : ''),
           );
         },
       }),

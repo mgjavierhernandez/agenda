@@ -22,16 +22,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  validate(
-    _accessToken: string,
-    _refreshToken: string,
-    profile: Profile,
-  ): GoogleProfile {
+  validate(_accessToken: string, _refreshToken: string, profile: Profile): GoogleProfile {
     const email = profile.emails?.[0]?.value?.toLowerCase().trim() ?? '';
     return {
       googleId: profile.id,
       email,
-      emailVerified: profile.emails?.[0]?.verified === true || profile._json?.email_verified === true,
+      emailVerified:
+        profile.emails?.[0]?.verified === true || profile._json?.email_verified === true,
       firstName: profile.name?.givenName ?? '',
       lastName: profile.name?.familyName ?? '',
     };
@@ -40,8 +37,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   static isConfigured(configService: ConfigService): boolean {
     return Boolean(
       configService.get<string>('GOOGLE_CLIENT_ID') &&
-        configService.get<string>('GOOGLE_CLIENT_SECRET') &&
-        configService.get<string>('GOOGLE_CALLBACK_URL'),
+      configService.get<string>('GOOGLE_CLIENT_SECRET') &&
+      configService.get<string>('GOOGLE_CALLBACK_URL'),
     );
   }
 }

@@ -4,7 +4,11 @@ import ExcelJS from 'exceljs';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { DocumentType, Prisma } from '@prisma/client';
-import { ImportStudentsOptionsDto, ImportRowError, ImportStudentsResult } from './dto/import-students.dto';
+import {
+  ImportStudentsOptionsDto,
+  ImportRowError,
+  ImportStudentsResult,
+} from './dto/import-students.dto';
 
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 
@@ -21,7 +25,15 @@ interface NormalizedRow {
   status: string;
 }
 
-const HEADERS = ['firstname', 'lastname', 'documenttype', 'documentnumber', 'dateofbirth', 'coursecode', 'status'] as const;
+const HEADERS = [
+  'firstname',
+  'lastname',
+  'documenttype',
+  'documentnumber',
+  'dateofbirth',
+  'coursecode',
+  'status',
+] as const;
 
 const HEADER_TO_KEY: Record<(typeof HEADERS)[number], keyof NormalizedRow> = {
   firstname: 'firstName',
@@ -51,7 +63,8 @@ export class StudentsImportService {
     if (value === null || value === undefined) return '';
     if (value instanceof Date) return value.toISOString().slice(0, 10);
     if (typeof value === 'object') {
-      const v = value as ExcelJS.CellRichTextValue | ExcelJS.CellFormulaValue | ExcelJS.CellErrorValue;
+      const v = value as
+        ExcelJS.CellRichTextValue | ExcelJS.CellFormulaValue | ExcelJS.CellErrorValue;
       if ('richText' in v) return v.richText.map((t) => t.text).join('');
       if ('result' in v) return this.cellToString(v.result as ExcelJS.CellValue);
       if ('error' in v) return '';
@@ -157,7 +170,11 @@ export class StudentsImportService {
             select: { id: true, schoolGradeId: true },
           });
           if (!course) {
-            errors.push({ row: rowIndex, field: 'course', message: 'The default course does not exist' });
+            errors.push({
+              row: rowIndex,
+              field: 'course',
+              message: 'The default course does not exist',
+            });
             return null;
           }
           courseCache.set(`id:${options.courseId}`, course);
@@ -165,7 +182,11 @@ export class StudentsImportService {
         return courseCache.get(`id:${options.courseId}`)!;
       }
       if (!code) {
-        errors.push({ row: rowIndex, field: 'course', message: 'Course is required (courseCode or default course)' });
+        errors.push({
+          row: rowIndex,
+          field: 'course',
+          message: 'Course is required (courseCode or default course)',
+        });
         return null;
       }
       const key = `code:${code.toLowerCase()}`;
@@ -190,20 +211,35 @@ export class StudentsImportService {
       const firstName = (row.firstName ?? '').trim();
       const lastName = (row.lastName ?? '').trim();
       if (!firstName || !lastName) {
-        errors.push({ row: rowNumber, field: !firstName ? 'firstName' : 'lastName', message: 'First and last names are required' });
+        errors.push({
+          row: rowNumber,
+          field: !firstName ? 'firstName' : 'lastName',
+          message: 'First and last names are required',
+        });
         continue;
       }
 
       const documentTypeRaw = (row.documentType ?? '').trim().toUpperCase();
-      if (!documentTypeRaw || !(Object.values(DocumentType) as string[]).includes(documentTypeRaw)) {
-        errors.push({ row: rowNumber, field: 'documentType', message: `Invalid documentType (valid: ${(Object.values(DocumentType) as string[]).join(', ')})` });
+      if (
+        !documentTypeRaw ||
+        !(Object.values(DocumentType) as string[]).includes(documentTypeRaw)
+      ) {
+        errors.push({
+          row: rowNumber,
+          field: 'documentType',
+          message: `Invalid documentType (valid: ${(Object.values(DocumentType) as string[]).join(', ')})`,
+        });
         continue;
       }
       const documentType = documentTypeRaw as DocumentType;
 
       const documentNumber = (row.documentNumber ?? '').trim();
       if (!documentNumber) {
-        errors.push({ row: rowNumber, field: 'documentNumber', message: 'documentNumber is required' });
+        errors.push({
+          row: rowNumber,
+          field: 'documentNumber',
+          message: 'documentNumber is required',
+        });
         continue;
       }
 
@@ -219,28 +255,51 @@ export class StudentsImportService {
 
       const statusRaw = (row.status ?? '').trim().toUpperCase() || 'ACTIVE';
       if (statusRaw !== 'ACTIVE' && statusRaw !== 'INACTIVE') {
-        errors.push({ row: rowNumber, field: 'status', message: 'Invalid status (valid: ACTIVE, INACTIVE)' });
+        errors.push({
+          row: rowNumber,
+          field: 'status',
+          message: 'Invalid status (valid: ACTIVE, INACTIVE)',
+        });
         continue;
       }
 
       if (!periodId) {
-        errors.push({ row: rowNumber, field: 'academicPeriod', message: 'Academic period is required (provide academicPeriodId or keep a single ACTIVE period)' });
+        errors.push({
+          row: rowNumber,
+          field: 'academicPeriod',
+          message:
+            'Academic period is required (provide academicPeriodId or keep a single ACTIVE period)',
+        });
         continue;
       }
 
       const course = await resolveCourse(rowNumber, row.courseCode);
       if (!course) continue;
       if (!course.schoolGradeId) {
-        errors.push({ row: rowNumber, field: 'course', message: 'The course has no school grade assigned' });
+        errors.push({
+          row: rowNumber,
+          field: 'course',
+          message: 'The course has no school grade assigned',
+        });
         continue;
       }
 
       const duplicate = await this.prisma.student.findUnique({
-        where: { institutionId_documentType_documentNumber: { institutionId, documentType, documentNumber } },
+        where: {
+          institutionId_documentType_documentNumber: {
+            institutionId,
+            documentType,
+            documentNumber,
+          },
+        },
         select: { id: true },
       });
       if (duplicate) {
-        errors.push({ row: rowNumber, field: 'documentNumber', message: 'A student with this document already exists' });
+        errors.push({
+          row: rowNumber,
+          field: 'documentNumber',
+          message: 'A student with this document already exists',
+        });
         continue;
       }
 
@@ -270,9 +329,17 @@ export class StudentsImportService {
         enrollments += 1;
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-          errors.push({ row: rowNumber, field: 'documentNumber', message: 'A student with this document already exists' });
+          errors.push({
+            row: rowNumber,
+            field: 'documentNumber',
+            message: 'A student with this document already exists',
+          });
         } else {
-          errors.push({ row: rowNumber, field: '-', message: 'Unexpected error processing the row' });
+          errors.push({
+            row: rowNumber,
+            field: '-',
+            message: 'Unexpected error processing the row',
+          });
         }
       }
     }
@@ -289,7 +356,10 @@ export class StudentsImportService {
     return { created, updated: 0, enrollments, errors };
   }
 
-  private async resolveAcademicPeriod(institutionId: string, explicitId?: string): Promise<string | null> {
+  private async resolveAcademicPeriod(
+    institutionId: string,
+    explicitId?: string,
+  ): Promise<string | null> {
     if (explicitId) {
       const period = await this.prisma.academicPeriod.findFirst({
         where: { id: explicitId, institutionId },

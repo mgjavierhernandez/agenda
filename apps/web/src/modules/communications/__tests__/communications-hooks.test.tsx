@@ -65,28 +65,31 @@ describe('Communications hooks', () => {
     });
 
     it('sends search and filter params', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
-
-      renderHook(() => useCommunications({ page: 2, limit: 10, search: 'test', status: 'PUBLISHED', audience: 'TEACHERS' }), {
-        wrapper: createWrapper(),
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
       });
 
+      renderHook(
+        () =>
+          useCommunications({
+            page: 2,
+            limit: 10,
+            search: 'test',
+            status: 'PUBLISHED',
+            audience: 'TEACHERS',
+          }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
+
       await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
-      expect(apiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('page=2')
-      );
-      expect(apiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('limit=10')
-      );
-      expect(apiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('search=test')
-      );
-      expect(apiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('status=PUBLISHED')
-      );
-      expect(apiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('audience=TEACHERS')
-      );
+      expect(apiClient.get).toHaveBeenCalledWith(expect.stringContaining('page=2'));
+      expect(apiClient.get).toHaveBeenCalledWith(expect.stringContaining('limit=10'));
+      expect(apiClient.get).toHaveBeenCalledWith(expect.stringContaining('search=test'));
+      expect(apiClient.get).toHaveBeenCalledWith(expect.stringContaining('status=PUBLISHED'));
+      expect(apiClient.get).toHaveBeenCalledWith(expect.stringContaining('audience=TEACHERS'));
     });
   });
 
@@ -151,13 +154,19 @@ describe('Communications hooks', () => {
       });
 
       expect(res).toEqual(updated);
-      expect(apiClient.patch).toHaveBeenCalledWith('/communications/comm-1', { title: 'Título actualizado' });
+      expect(apiClient.patch).toHaveBeenCalledWith('/communications/comm-1', {
+        title: 'Título actualizado',
+      });
     });
   });
 
   describe('usePublishCommunication', () => {
     it('publishes communication', async () => {
-      const published = { ...mockCommunication, status: 'PUBLISHED' as const, publishedAt: '2026-08-23T10:00:00Z' };
+      const published = {
+        ...mockCommunication,
+        status: 'PUBLISHED' as const,
+        publishedAt: '2026-08-23T10:00:00Z',
+      };
       vi.mocked(apiClient.patch).mockResolvedValue(published);
 
       const { result } = renderHook(() => usePublishCommunication(), {

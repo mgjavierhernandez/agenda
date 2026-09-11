@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TeacherAssignmentsService } from './teacher-assignments.service';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TeacherAssignmentStatus, CourseDirectorStatus } from '@prisma/client';
 
 describe('TeacherAssignmentsService', () => {
@@ -20,7 +25,12 @@ describe('TeacherAssignmentsService', () => {
     course: { findFirst: jest.Mock };
     subject: { findFirst: jest.Mock };
     academicPeriod: { findFirst: jest.Mock };
-    courseDirectorAssignment: { findFirst: jest.Mock; findMany: jest.Mock; create: jest.Mock; update: jest.Mock };
+    courseDirectorAssignment: {
+      findFirst: jest.Mock;
+      findMany: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+    };
     schedule: { findMany: jest.Mock; updateMany: jest.Mock };
     auditLog: { findMany: jest.Mock };
     $transaction: jest.Mock;
@@ -45,7 +55,12 @@ describe('TeacherAssignmentsService', () => {
       course: { findFirst: jest.fn() },
       subject: { findFirst: jest.fn() },
       academicPeriod: { findFirst: jest.fn() },
-      courseDirectorAssignment: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
+      courseDirectorAssignment: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
       schedule: { findMany: jest.fn(), updateMany: jest.fn() },
       auditLog: { findMany: jest.fn() },
       $transaction: jest.fn(),
@@ -82,25 +97,36 @@ describe('TeacherAssignmentsService', () => {
       prisma.academicPeriod.findFirst.mockResolvedValue({ id: 'period-1' });
       prisma.teacherAssignment.findUnique.mockResolvedValue(null);
       prisma.teacherAssignment.findMany.mockResolvedValue([]);
-      prisma.teacherAssignment.create.mockResolvedValue({ id: 'ta-1', ...dto, institutionId: mockInstitutionId, status: TeacherAssignmentStatus.ACTIVE });
+      prisma.teacherAssignment.create.mockResolvedValue({
+        id: 'ta-1',
+        ...dto,
+        institutionId: mockInstitutionId,
+        status: TeacherAssignmentStatus.ACTIVE,
+      });
 
       const result = await service.create(mockInstitutionId, dto, mockUserId, mockIp);
 
       expect(result.id).toBe('ta-1');
-      expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'TEACHER_ASSIGNMENT_CREATED' }));
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'TEACHER_ASSIGNMENT_CREATED' }),
+      );
     });
 
     it('should throw ForbiddenException if teacher not in tenant', async () => {
       prisma.userInstitution.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(ForbiddenException);
+      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw NotFoundException if course not found', async () => {
       prisma.userInstitution.findFirst.mockResolvedValue({ id: 'ui-1' });
       prisma.course.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(NotFoundException);
+      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if subject not found', async () => {
@@ -108,7 +134,9 @@ describe('TeacherAssignmentsService', () => {
       prisma.course.findFirst.mockResolvedValue({ id: 'course-1' });
       prisma.subject.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(NotFoundException);
+      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if academicPeriod not found', async () => {
@@ -117,7 +145,9 @@ describe('TeacherAssignmentsService', () => {
       prisma.subject.findFirst.mockResolvedValue({ id: 'subject-1' });
       prisma.academicPeriod.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(NotFoundException);
+      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ConflictException for duplicate assignment', async () => {
@@ -127,7 +157,9 @@ describe('TeacherAssignmentsService', () => {
       prisma.academicPeriod.findFirst.mockResolvedValue({ id: 'period-1' });
       prisma.teacherAssignment.findUnique.mockResolvedValue({ id: 'existing' });
 
-      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(ConflictException);
+      await expect(service.create(mockInstitutionId, dto, mockUserId, mockIp)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should reject workload exceeding max weekly hours', async () => {
@@ -142,14 +174,22 @@ describe('TeacherAssignmentsService', () => {
       ]);
 
       await expect(
-        service.create(mockInstitutionId, { ...dto, weeklyHours: 3, maxWeeklyHours: 26 }, mockUserId, mockIp),
+        service.create(
+          mockInstitutionId,
+          { ...dto, weeklyHours: 3, maxWeeklyHours: 26 },
+          mockUserId,
+          mockIp,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('findOne', () => {
     it('should return a teacher assignment', async () => {
-      prisma.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId: mockInstitutionId });
+      prisma.teacherAssignment.findFirst.mockResolvedValue({
+        id: 'ta-1',
+        institutionId: mockInstitutionId,
+      });
 
       const result = await service.findOne(mockInstitutionId, 'ta-1');
       expect(result.id).toBe('ta-1');
@@ -158,7 +198,9 @@ describe('TeacherAssignmentsService', () => {
     it('should throw NotFoundException if not found', async () => {
       prisma.teacherAssignment.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(mockInstitutionId, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(mockInstitutionId, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for cross-tenant access', async () => {
@@ -247,31 +289,63 @@ describe('TeacherAssignmentsService', () => {
 
   describe('update', () => {
     it('should update the status', async () => {
-      prisma.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId: mockInstitutionId, status: TeacherAssignmentStatus.ACTIVE });
-      prisma.teacherAssignment.update.mockResolvedValue({ id: 'ta-1', status: TeacherAssignmentStatus.INACTIVE });
+      prisma.teacherAssignment.findFirst.mockResolvedValue({
+        id: 'ta-1',
+        institutionId: mockInstitutionId,
+        status: TeacherAssignmentStatus.ACTIVE,
+      });
+      prisma.teacherAssignment.update.mockResolvedValue({
+        id: 'ta-1',
+        status: TeacherAssignmentStatus.INACTIVE,
+      });
 
-      const result = await service.update(mockInstitutionId, 'ta-1', { status: TeacherAssignmentStatus.INACTIVE }, mockUserId, mockIp);
+      const result = await service.update(
+        mockInstitutionId,
+        'ta-1',
+        { status: TeacherAssignmentStatus.INACTIVE },
+        mockUserId,
+        mockIp,
+      );
 
       expect(result.status).toBe(TeacherAssignmentStatus.INACTIVE);
-      expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'TEACHER_ASSIGNMENT_UPDATED' }));
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'TEACHER_ASSIGNMENT_UPDATED' }),
+      );
     });
 
     it('should throw NotFoundException if assignment not found', async () => {
       prisma.teacherAssignment.findFirst.mockResolvedValue(null);
 
-      await expect(service.update(mockInstitutionId, 'nonexistent', { status: TeacherAssignmentStatus.INACTIVE }, mockUserId, mockIp)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.update(
+          mockInstitutionId,
+          'nonexistent',
+          { status: TeacherAssignmentStatus.INACTIVE },
+          mockUserId,
+          mockIp,
+        ),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('deactivate', () => {
     it('should set status to INACTIVE', async () => {
-      prisma.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId: mockInstitutionId, status: TeacherAssignmentStatus.ACTIVE });
-      prisma.teacherAssignment.update.mockResolvedValue({ id: 'ta-1', status: TeacherAssignmentStatus.INACTIVE });
+      prisma.teacherAssignment.findFirst.mockResolvedValue({
+        id: 'ta-1',
+        institutionId: mockInstitutionId,
+        status: TeacherAssignmentStatus.ACTIVE,
+      });
+      prisma.teacherAssignment.update.mockResolvedValue({
+        id: 'ta-1',
+        status: TeacherAssignmentStatus.INACTIVE,
+      });
 
       const result = await service.deactivate(mockInstitutionId, 'ta-1', mockUserId, mockIp);
 
       expect(result.status).toBe(TeacherAssignmentStatus.INACTIVE);
-      expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'TEACHER_ASSIGNMENT_DEACTIVATED' }));
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'TEACHER_ASSIGNMENT_DEACTIVATED' }),
+      );
     });
   });
 
@@ -338,14 +412,19 @@ describe('TeacherAssignmentsService', () => {
       await service.create(mockInstitutionId, dto, mockUserId, mockIp);
 
       expect(prisma.schedule.updateMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ id: { in: ['s-1', 's-2', 's-3'] } }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ id: { in: ['s-1', 's-2', 's-3'] } }),
+        }),
       );
     });
 
     it('should skip pending schedules conflicting with the teacher load', async () => {
       mockAssignmentInfra();
       prisma.schedule.findMany
-        .mockResolvedValueOnce([slot('s-ok', 'TUESDAY', '08:00', '09:00'), slot('s-clash', 'MONDAY', '08:30', '09:30')])
+        .mockResolvedValueOnce([
+          slot('s-ok', 'TUESDAY', '08:00', '09:00'),
+          slot('s-clash', 'MONDAY', '08:30', '09:30'),
+        ])
         .mockResolvedValueOnce([slot('t-busy', 'MONDAY', '08:00', '09:00')]); // teacher busy same slot
       prisma.schedule.updateMany.mockResolvedValue({ count: 1 });
 
@@ -363,7 +442,8 @@ describe('TeacherAssignmentsService', () => {
     });
   });
 
-  describe('course director replacement (GAP-8)', () => {    const directorDto = {
+  describe('course director replacement (GAP-8)', () => {
+    const directorDto = {
       directorUserId: 'director-A',
       courseId: 'course-1',
       academicPeriodId: 'period-1',
@@ -381,7 +461,12 @@ describe('TeacherAssignmentsService', () => {
       prisma.courseDirectorAssignment.findFirst.mockResolvedValue(null);
       prisma.courseDirectorAssignment.create.mockResolvedValue({ id: 'cd-A', status: 'ACTIVE' });
 
-      const result = await service.createCourseDirector(mockInstitutionId, directorDto, mockUserId, mockIp);
+      const result = await service.createCourseDirector(
+        mockInstitutionId,
+        directorDto,
+        mockUserId,
+        mockIp,
+      );
 
       expect(result.status).toBe('ACTIVE');
     });
@@ -391,7 +476,12 @@ describe('TeacherAssignmentsService', () => {
       prisma.courseDirectorAssignment.findFirst.mockResolvedValue({ id: 'cd-A', status: 'ACTIVE' });
 
       await expect(
-        service.createCourseDirector(mockInstitutionId, { ...directorDto, directorUserId: 'director-B' }, mockUserId, mockIp),
+        service.createCourseDirector(
+          mockInstitutionId,
+          { ...directorDto, directorUserId: 'director-B' },
+          mockUserId,
+          mockIp,
+        ),
       ).rejects.toThrow(ConflictException);
       expect(prisma.courseDirectorAssignment.create).not.toHaveBeenCalled();
     });
@@ -406,20 +496,30 @@ describe('TeacherAssignmentsService', () => {
 
       // Step 2: deactivate A, create B
       prisma.courseDirectorAssignment.findFirst.mockResolvedValue({
-        id: 'cd-A', institutionId: mockInstitutionId, status: CourseDirectorStatus.ACTIVE,
+        id: 'cd-A',
+        institutionId: mockInstitutionId,
+        status: CourseDirectorStatus.ACTIVE,
       });
-      prisma.courseDirectorAssignment.update.mockResolvedValue({ id: 'cd-A', status: CourseDirectorStatus.INACTIVE });
+      prisma.courseDirectorAssignment.update.mockResolvedValue({
+        id: 'cd-A',
+        status: CourseDirectorStatus.INACTIVE,
+      });
       await service.deactivateCourseDirector(mockInstitutionId, 'cd-A', mockUserId, mockIp);
 
       prisma.courseDirectorAssignment.findFirst.mockResolvedValue(null); // no ACTIVE left
       prisma.courseDirectorAssignment.create.mockResolvedValue({ id: 'cd-B', status: 'ACTIVE' });
       await service.createCourseDirector(
-        mockInstitutionId, { ...directorDto, directorUserId: 'director-B' }, mockUserId, mockIp,
+        mockInstitutionId,
+        { ...directorDto, directorUserId: 'director-B' },
+        mockUserId,
+        mockIp,
       );
 
       // Step 3: deactivate B, create C (second replacement: two INACTIVE rows coexist)
       prisma.courseDirectorAssignment.findFirst.mockResolvedValue({
-        id: 'cd-B', institutionId: mockInstitutionId, status: 'ACTIVE',
+        id: 'cd-B',
+        institutionId: mockInstitutionId,
+        status: 'ACTIVE',
       });
       prisma.courseDirectorAssignment.update.mockResolvedValue({ id: 'cd-B', status: 'INACTIVE' });
       await service.deactivateCourseDirector(mockInstitutionId, 'cd-B', mockUserId, mockIp);
@@ -427,7 +527,10 @@ describe('TeacherAssignmentsService', () => {
       prisma.courseDirectorAssignment.findFirst.mockResolvedValue(null);
       prisma.courseDirectorAssignment.create.mockResolvedValue({ id: 'cd-C', status: 'ACTIVE' });
       const result = await service.createCourseDirector(
-        mockInstitutionId, { ...directorDto, directorUserId: 'director-C' }, mockUserId, mockIp,
+        mockInstitutionId,
+        { ...directorDto, directorUserId: 'director-C' },
+        mockUserId,
+        mockIp,
       );
 
       expect(result.id).toBe('cd-C');
@@ -437,14 +540,25 @@ describe('TeacherAssignmentsService', () => {
 
     it('should reject reactivating an INACTIVE director while another is ACTIVE', async () => {
       prisma.courseDirectorAssignment.findFirst
-        .mockResolvedValueOnce({ // findOneCourseDirector
-          id: 'cd-A', institutionId: mockInstitutionId, courseId: 'course-1',
-          academicPeriodId: 'period-1', status: 'INACTIVE', startDate: new Date('2026-01-01'),
+        .mockResolvedValueOnce({
+          // findOneCourseDirector
+          id: 'cd-A',
+          institutionId: mockInstitutionId,
+          courseId: 'course-1',
+          academicPeriodId: 'period-1',
+          status: 'INACTIVE',
+          startDate: new Date('2026-01-01'),
         })
         .mockResolvedValueOnce({ id: 'cd-B', status: 'ACTIVE' }); // other ACTIVE exists
 
       await expect(
-        service.updateCourseDirector(mockInstitutionId, 'cd-A', { status: CourseDirectorStatus.ACTIVE }, mockUserId, mockIp),
+        service.updateCourseDirector(
+          mockInstitutionId,
+          'cd-A',
+          { status: CourseDirectorStatus.ACTIVE },
+          mockUserId,
+          mockIp,
+        ),
       ).rejects.toThrow(ConflictException);
       expect(prisma.courseDirectorAssignment.update).not.toHaveBeenCalled();
     });

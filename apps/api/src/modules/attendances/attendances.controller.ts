@@ -13,13 +13,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
@@ -85,15 +79,8 @@ export class AttendancesController {
   @ApiResponse({ status: 200, description: 'Attendance records retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListAttendancesQueryDto,
-  ) {
-    return this.attendancesService.findAll(
-      req.tenant!.institutionId,
-      query,
-      req.user.userId,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListAttendancesQueryDto) {
+    return this.attendancesService.findAll(req.tenant!.institutionId, query, req.user.userId);
   }
 
   @Get(':id')
@@ -104,15 +91,8 @@ export class AttendancesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Attendance not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.attendancesService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.attendancesService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch(':id')
@@ -148,15 +128,7 @@ export class AttendancesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Attendance not found' })
-  async remove(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.attendancesService.remove(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async remove(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.attendancesService.remove(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

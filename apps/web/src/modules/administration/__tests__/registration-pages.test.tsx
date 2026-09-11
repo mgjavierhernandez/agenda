@@ -67,7 +67,9 @@ describe('RegisterPage (GAP-2)', () => {
 
     fireEvent.change(screen.getByLabelText(/Nombre/), { target: { value: 'Nuevo' } });
     fireEvent.change(screen.getByLabelText(/Apellido/), { target: { value: 'Docente' } });
-    fireEvent.change(screen.getByLabelText(/Correo/), { target: { value: 'nuevo@colegio.edu.co' } });
+    fireEvent.change(screen.getByLabelText(/Correo/), {
+      target: { value: 'nuevo@colegio.edu.co' },
+    });
     fireEvent.change(screen.getByLabelText(/Contraseña/), { target: { value: 'Password123' } });
     fireEvent.change(screen.getByLabelText(/Soy/), { target: { value: 'TEACHER' } });
 

@@ -16,13 +16,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { PERMISSIONS } from '@/permissions/permission.constants';
-import {
-  SIGNATURE_REQUEST_STATUS_LABELS,
-  SIGNATURE_RECIPIENT_STATUS_LABELS,
-} from '@/api/types';
+import { SIGNATURE_REQUEST_STATUS_LABELS, SIGNATURE_RECIPIENT_STATUS_LABELS } from '@/api/types';
 import type { SignatureRequestStatus, SignatureRecipientStatus } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<SignatureRequestStatus, 'success' | 'warning' | 'default' | 'danger' | 'info'> = {
+const STATUS_BADGE_VARIANT: Record<
+  SignatureRequestStatus,
+  'success' | 'warning' | 'default' | 'danger' | 'info'
+> = {
   DRAFT: 'default',
   PUBLISHED: 'info',
   COMPLETED: 'success',
@@ -30,7 +30,10 @@ const STATUS_BADGE_VARIANT: Record<SignatureRequestStatus, 'success' | 'warning'
   INACTIVE: 'warning',
 };
 
-const RECIPIENT_STATUS_BADGE_VARIANT: Record<SignatureRecipientStatus, 'success' | 'default' | 'danger'> = {
+const RECIPIENT_STATUS_BADGE_VARIANT: Record<
+  SignatureRecipientStatus,
+  'success' | 'default' | 'danger'
+> = {
   PENDING: 'default',
   SIGNED: 'success',
   DECLINED: 'danger',
@@ -50,7 +53,9 @@ export function SignatureDetailPage() {
   const publishMutation = usePublishSignature();
   const deactivateMutation = useDeactivateSignature();
 
-  const [confirmAction, setConfirmAction] = useState<'sign' | 'decline' | 'publish' | 'deactivate' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    'sign' | 'decline' | 'publish' | 'deactivate' | null
+  >(null);
 
   const handleConfirmAction = async () => {
     if (!id || !confirmAction) return;
@@ -91,7 +96,11 @@ export function SignatureDetailPage() {
   }
 
   if (!signature) {
-    return <ErrorState error={{ statusCode: 404, message: 'Solicitud no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Solicitud no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isCurrentUserRecipient = signature.recipients?.some((r) => r.userId === user?.id);
@@ -99,8 +108,16 @@ export function SignatureDetailPage() {
   const canEdit = canRequest && signature.status === 'DRAFT';
   const canPublish = canRequest && signature.status === 'DRAFT';
   const canDeactivate = canRequest && signature.status !== 'INACTIVE';
-  const canSignNow = canSign && isCurrentUserRecipient && signature.status === 'PUBLISHED' && currentRecipient?.status === 'PENDING';
-  const canDeclineNow = canSign && isCurrentUserRecipient && signature.status === 'PUBLISHED' && currentRecipient?.status === 'PENDING';
+  const canSignNow =
+    canSign &&
+    isCurrentUserRecipient &&
+    signature.status === 'PUBLISHED' &&
+    currentRecipient?.status === 'PENDING';
+  const canDeclineNow =
+    canSign &&
+    isCurrentUserRecipient &&
+    signature.status === 'PUBLISHED' &&
+    currentRecipient?.status === 'PENDING';
   const isExpired = signature.status === 'EXPIRED';
 
   const confirmMessages: Record<string, { title: string; body: string }> = {
@@ -134,16 +151,8 @@ export function SignatureDetailPage() {
                 Editar
               </Button>
             )}
-            {canPublish && (
-              <Button onClick={() => setConfirmAction('publish')}>
-                Publicar
-              </Button>
-            )}
-            {canSignNow && (
-              <Button onClick={() => setConfirmAction('sign')}>
-                Firmar
-              </Button>
-            )}
+            {canPublish && <Button onClick={() => setConfirmAction('publish')}>Publicar</Button>}
+            {canSignNow && <Button onClick={() => setConfirmAction('sign')}>Firmar</Button>}
             {canDeclineNow && (
               <Button variant="secondary" onClick={() => setConfirmAction('decline')}>
                 Rechazar
@@ -183,9 +192,7 @@ export function SignatureDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Fecha límite</dt>
               <dd className="text-gray-900">
-                {signature.dueDate
-                  ? new Date(signature.dueDate).toLocaleString('es-CO')
-                  : '—'}
+                {signature.dueDate ? new Date(signature.dueDate).toLocaleString('es-CO') : '—'}
               </dd>
             </div>
           </dl>
@@ -200,7 +207,9 @@ export function SignatureDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Institución</dt>
-              <dd className="text-gray-900 font-mono text-xs break-all">{signature.institutionId}</dd>
+              <dd className="text-gray-900 font-mono text-xs break-all">
+                {signature.institutionId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Creado</dt>
@@ -222,7 +231,7 @@ export function SignatureDetailPage() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Firmantes ({signature.recipients?.length ?? 0})
         </h3>
-        {(!signature.recipients || signature.recipients.length === 0) ? (
+        {!signature.recipients || signature.recipients.length === 0 ? (
           <p className="text-sm text-gray-500">No hay firmantes asignados.</p>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -282,15 +291,17 @@ export function SignatureDetailPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {confirmMessages[confirmAction].title}
             </h3>
-            <p className="text-gray-600 mb-6">
-              {confirmMessages[confirmAction].body}
-            </p>
+            <p className="text-gray-600 mb-6">{confirmMessages[confirmAction].body}</p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setConfirmAction(null)}>
                 Cancelar
               </Button>
               <Button
-                variant={confirmAction === 'deactivate' || confirmAction === 'decline' ? 'danger' : 'primary'}
+                variant={
+                  confirmAction === 'deactivate' || confirmAction === 'decline'
+                    ? 'danger'
+                    : 'primary'
+                }
                 isLoading={isTransitionPending}
                 onClick={handleConfirmAction}
               >

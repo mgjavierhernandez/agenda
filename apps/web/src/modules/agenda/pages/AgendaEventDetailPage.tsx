@@ -55,7 +55,11 @@ export function AgendaEventDetailPage() {
   }
 
   if (!event) {
-    return <ErrorState error={{ statusCode: 404, message: 'Evento no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Evento no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isCancelled = event.status === 'CANCELLED';
@@ -172,9 +176,7 @@ export function AgendaEventDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Creado</dt>
-              <dd className="text-gray-900">
-                {new Date(event.createdAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(event.createdAt).toLocaleString('es-CO')}</dd>
             </div>
           </dl>
         </Card>
@@ -189,9 +191,7 @@ export function AgendaEventDetailPage() {
       {confirmCancel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Card className="w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Confirmar cancelación
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar cancelación</h3>
             <p className="text-gray-600 mb-6">
               ¿Deseas cancelar el evento "{event.title}"? Este cambiará su estado a Cancelado y
               dejará de mostrarse en la agenda.
@@ -200,11 +200,7 @@ export function AgendaEventDetailPage() {
               <Button variant="secondary" onClick={() => setConfirmCancel(false)}>
                 Volver
               </Button>
-              <Button
-                variant="danger"
-                isLoading={cancelMutation.isPending}
-                onClick={handleCancel}
-              >
+              <Button variant="danger" isLoading={cancelMutation.isPending} onClick={handleCancel}>
                 Cancelar evento
               </Button>
             </div>

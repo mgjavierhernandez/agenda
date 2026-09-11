@@ -52,7 +52,10 @@ import {
   FOLLOW_UP_CITATION_STATUS_LABELS,
 } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<FollowUpStatus, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+const STATUS_BADGE_VARIANT: Record<
+  FollowUpStatus,
+  'default' | 'success' | 'warning' | 'danger' | 'info'
+> = {
   OPEN: 'info',
   IN_PROGRESS: 'success',
   ESCALATED: 'danger',
@@ -61,7 +64,10 @@ const STATUS_BADGE_VARIANT: Record<FollowUpStatus, 'default' | 'success' | 'warn
   CLOSED: 'default',
 };
 
-const COMMITMENT_STATUS_BADGE: Record<CommitmentStatus, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+const COMMITMENT_STATUS_BADGE: Record<
+  CommitmentStatus,
+  'default' | 'success' | 'warning' | 'danger' | 'info'
+> = {
   PENDING: 'info',
   IN_PROGRESS: 'warning',
   COMPLETED: 'success',
@@ -105,7 +111,9 @@ export function StudentFollowUpDetailPage() {
   const createEntryMutation = useCreateFollowUpEntry();
   const updateEntryMutation = useUpdateFollowUpEntry();
 
-  const { data: commitmentsData, isLoading: isLoadingCommitments } = useFollowUpCommitments(id ?? '');
+  const { data: commitmentsData, isLoading: isLoadingCommitments } = useFollowUpCommitments(
+    id ?? '',
+  );
   const commitments = commitmentsData?.data ?? [];
   const createCommitmentMutation = useCreateCommitment();
   const updateCommitmentMutation = useUpdateCommitment();
@@ -122,13 +130,17 @@ export function StudentFollowUpDetailPage() {
   const followUpSignatures = signaturesData ?? [];
   const requestSignatureMutation = useRequestSignatureFromFollowUp();
 
-  const { data: attachments = [], isLoading: isLoadingAttachments } = useFollowUpAttachments(id ?? '');
+  const { data: attachments = [], isLoading: isLoadingAttachments } = useFollowUpAttachments(
+    id ?? '',
+  );
   const createAttachmentMutation = useCreateFollowUpAttachment();
   const removeAttachmentMutation = useRemoveFollowUpAttachment();
   const uploadMutation = useUploadFile();
 
   const [activeTab, setActiveTab] = useState<TabKey>('timeline');
-  const [confirmAction, setConfirmAction] = useState<'close' | 'escalate' | 'followUp' | 'resolve' | 'reopen' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    'close' | 'escalate' | 'followUp' | 'resolve' | 'reopen' | null
+  >(null);
 
   // Signature request form state
   const [showSignatureForm, setShowSignatureForm] = useState(false);
@@ -177,7 +189,11 @@ export function StudentFollowUpDetailPage() {
   }
 
   if (!followUp) {
-    return <ErrorState error={{ statusCode: 404, message: 'Seguimiento no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Seguimiento no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isClosed = followUp.status === 'CLOSED';
@@ -244,7 +260,10 @@ export function StudentFollowUpDetailPage() {
     }
   };
 
-  const handleToggleCommitmentStatus = async (commitmentId: string, currentStatus: CommitmentStatus) => {
+  const handleToggleCommitmentStatus = async (
+    commitmentId: string,
+    currentStatus: CommitmentStatus,
+  ) => {
     if (!id) return;
     const newStatus = currentStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
     try {
@@ -258,7 +277,11 @@ export function StudentFollowUpDetailPage() {
     }
   };
 
-  const handleStartEditEntry = (entry: { id: string; entryType: FollowUpEntryType; content: string }) => {
+  const handleStartEditEntry = (entry: {
+    id: string;
+    entryType: FollowUpEntryType;
+    content: string;
+  }) => {
     setEditingEntryId(entry.id);
     setEditEntryType(entry.entryType);
     setEditEntryContent(entry.content);
@@ -393,10 +416,16 @@ export function StudentFollowUpDetailPage() {
     }
   };
 
-  const isTransitionPending = closeMutation.isPending || escalateMutation.isPending || followUpMutation.isPending || resolveMutation.isPending || reopenMutation.isPending;
+  const isTransitionPending =
+    closeMutation.isPending ||
+    escalateMutation.isPending ||
+    followUpMutation.isPending ||
+    resolveMutation.isPending ||
+    reopenMutation.isPending;
 
   const getConfirmMessage = () => {
-    if (confirmAction === 'close') return '¿Deseas cerrar este seguimiento? No se podrán agregar más entradas.';
+    if (confirmAction === 'close')
+      return '¿Deseas cerrar este seguimiento? No se podrán agregar más entradas.';
     if (confirmAction === 'escalate') return '¿Deseas escalar este seguimiento?';
     if (confirmAction === 'followUp') return '¿Deseas marcar este seguimiento como "En progreso"?';
     if (confirmAction === 'resolve') return '¿Deseas marcar este seguimiento como resuelto?';
@@ -412,7 +441,10 @@ export function StudentFollowUpDetailPage() {
         actions={
           <div className="flex flex-wrap gap-2">
             {canUpdate && !isClosed && (
-              <Button variant="secondary" onClick={() => navigate(`/student-follow-ups/${id}/edit`)}>
+              <Button
+                variant="secondary"
+                onClick={() => navigate(`/student-follow-ups/${id}/edit`)}
+              >
                 Editar
               </Button>
             )}
@@ -422,9 +454,7 @@ export function StudentFollowUpDetailPage() {
               </Button>
             )}
             {canFollowUp && transitions.includes('IN_PROGRESS') && (
-              <Button onClick={() => setConfirmAction('followUp')}>
-                Seguimiento
-              </Button>
+              <Button onClick={() => setConfirmAction('followUp')}>Seguimiento</Button>
             )}
             {canUpdate && transitions.includes('RESOLVED') && (
               <Button variant="secondary" onClick={() => setConfirmAction('resolve')}>
@@ -437,9 +467,7 @@ export function StudentFollowUpDetailPage() {
               </Button>
             )}
             {canManage && followUp.status === 'CLOSED' && (
-              <Button onClick={() => setConfirmAction('reopen')}>
-                Reabrir
-              </Button>
+              <Button onClick={() => setConfirmAction('reopen')}>Reabrir</Button>
             )}
           </div>
         }
@@ -452,7 +480,9 @@ export function StudentFollowUpDetailPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Estudiante</dt>
-              <dd className="text-gray-900">{followUp.student.firstName} {followUp.student.lastName}</dd>
+              <dd className="text-gray-900">
+                {followUp.student.firstName} {followUp.student.lastName}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Tipo</dt>
@@ -472,7 +502,9 @@ export function StudentFollowUpDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Confidencialidad</dt>
-              <dd className="text-gray-900">{FOLLOW_UP_CONFIDENTIALITY_LABELS[followUp.confidentiality]}</dd>
+              <dd className="text-gray-900">
+                {FOLLOW_UP_CONFIDENTIALITY_LABELS[followUp.confidentiality]}
+              </dd>
             </div>
             {followUp.category && (
               <div>
@@ -500,25 +532,35 @@ export function StudentFollowUpDetailPage() {
             )}
             <div>
               <dt className="text-sm text-gray-500">Creado por</dt>
-              <dd className="text-gray-900">{followUp.createdBy.firstName} {followUp.createdBy.lastName}</dd>
+              <dd className="text-gray-900">
+                {followUp.createdBy.firstName} {followUp.createdBy.lastName}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de creación</dt>
-              <dd className="text-gray-900">{new Date(followUp.createdAt).toLocaleString('es-CO')}</dd>
+              <dd className="text-gray-900">
+                {new Date(followUp.createdAt).toLocaleString('es-CO')}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Última actualización</dt>
-              <dd className="text-gray-900">{new Date(followUp.updatedAt).toLocaleString('es-CO')}</dd>
+              <dd className="text-gray-900">
+                {new Date(followUp.updatedAt).toLocaleString('es-CO')}
+              </dd>
             </div>
             {followUp.closedAt && followUp.closedBy && (
               <>
                 <div>
                   <dt className="text-sm text-gray-500">Cerrado por</dt>
-                  <dd className="text-gray-900">{followUp.closedBy.firstName} {followUp.closedBy.lastName}</dd>
+                  <dd className="text-gray-900">
+                    {followUp.closedBy.firstName} {followUp.closedBy.lastName}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-sm text-gray-500">Fecha de cierre</dt>
-                  <dd className="text-gray-900">{new Date(followUp.closedAt).toLocaleString('es-CO')}</dd>
+                  <dd className="text-gray-900">
+                    {new Date(followUp.closedAt).toLocaleString('es-CO')}
+                  </dd>
                 </div>
               </>
             )}
@@ -529,25 +571,27 @@ export function StudentFollowUpDetailPage() {
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="flex gap-4" aria-label="Tabs">
-          {(['timeline', 'commitments', 'attachments', 'signatures', 'citations'] as TabKey[]).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-              aria-current={activeTab === tab ? 'page' : undefined}
-            >
-              {tab === 'timeline' && 'Cronología'}
-              {tab === 'commitments' && `Compromisos (${commitments.length})`}
-              {tab === 'attachments' && `Archivos (${attachments.length})`}
-              {tab === 'signatures' && `Firmas (${followUpSignatures.length})`}
-              {tab === 'citations' && `Citaciones (${citations.length})`}
-            </button>
-          ))}
+          {(['timeline', 'commitments', 'attachments', 'signatures', 'citations'] as TabKey[]).map(
+            (tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                aria-current={activeTab === tab ? 'page' : undefined}
+              >
+                {tab === 'timeline' && 'Cronología'}
+                {tab === 'commitments' && `Compromisos (${commitments.length})`}
+                {tab === 'attachments' && `Archivos (${attachments.length})`}
+                {tab === 'signatures' && `Firmas (${followUpSignatures.length})`}
+                {tab === 'citations' && `Citaciones (${citations.length})`}
+              </button>
+            ),
+          )}
         </nav>
       </div>
 
@@ -559,7 +603,10 @@ export function StudentFollowUpDetailPage() {
               <h4 className="text-sm font-medium text-gray-900 mb-3">Agregar entrada</h4>
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="entryType" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="entryType"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Tipo de entrada
                   </label>
                   <select
@@ -576,7 +623,10 @@ export function StudentFollowUpDetailPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="entryContent" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="entryContent"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Contenido *
                   </label>
                   <textarea
@@ -609,7 +659,9 @@ export function StudentFollowUpDetailPage() {
             </div>
           ) : entries.length === 0 ? (
             <Card>
-              <p className="text-sm text-gray-500 text-center py-4">No hay entradas en la cronología.</p>
+              <p className="text-sm text-gray-500 text-center py-4">
+                No hay entradas en la cronología.
+              </p>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -618,7 +670,10 @@ export function StudentFollowUpDetailPage() {
                   {editingEntryId === entry.id ? (
                     <div className="space-y-3">
                       <div>
-                        <label htmlFor={`editEntryType-${entry.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                          htmlFor={`editEntryType-${entry.id}`}
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
                           Tipo de entrada
                         </label>
                         <select
@@ -635,7 +690,10 @@ export function StudentFollowUpDetailPage() {
                         </select>
                       </div>
                       <div>
-                        <label htmlFor={`editEntryContent-${entry.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                          htmlFor={`editEntryContent-${entry.id}`}
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
                           Contenido *
                         </label>
                         <textarea
@@ -646,7 +704,9 @@ export function StudentFollowUpDetailPage() {
                           maxLength={5000}
                           className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
-                        {editEntryError && <p className="mt-1 text-sm text-red-600">{editEntryError}</p>}
+                        {editEntryError && (
+                          <p className="mt-1 text-sm text-red-600">{editEntryError}</p>
+                        )}
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="secondary" size="sm" onClick={handleCancelEditEntry}>
@@ -665,7 +725,9 @@ export function StudentFollowUpDetailPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="default">{FOLLOW_UP_ENTRY_TYPE_LABELS[entry.entryType]}</Badge>
+                          <Badge variant="default">
+                            {FOLLOW_UP_ENTRY_TYPE_LABELS[entry.entryType]}
+                          </Badge>
                           <span className="text-xs text-gray-500">
                             {new Date(entry.createdAt).toLocaleString('es-CO')}
                           </span>
@@ -711,7 +773,10 @@ export function StudentFollowUpDetailPage() {
               <h4 className="text-sm font-medium text-gray-900 mb-3">Crear compromiso</h4>
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="commitmentRole" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="commitmentRole"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Rol del responsable
                   </label>
                   <select
@@ -727,7 +792,10 @@ export function StudentFollowUpDetailPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="commitmentResponsible" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="commitmentResponsible"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Usuario responsable
                   </label>
                   <select
@@ -745,7 +813,10 @@ export function StudentFollowUpDetailPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="commitmentDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="commitmentDescription"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Descripción *
                   </label>
                   <textarea
@@ -757,7 +828,9 @@ export function StudentFollowUpDetailPage() {
                     className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Describe el compromiso..."
                   />
-                  {commitmentError && <p className="mt-1 text-sm text-red-600">{commitmentError}</p>}
+                  {commitmentError && (
+                    <p className="mt-1 text-sm text-red-600">{commitmentError}</p>
+                  )}
                 </div>
                 <Input
                   label="Fecha objetivo"
@@ -784,51 +857,61 @@ export function StudentFollowUpDetailPage() {
             </div>
           ) : commitments.length === 0 ? (
             <Card>
-              <p className="text-sm text-gray-500 text-center py-4">No hay compromisos registrados.</p>
+              <p className="text-sm text-gray-500 text-center py-4">
+                No hay compromisos registrados.
+              </p>
             </Card>
           ) : (
             <div className="space-y-3">
               {commitments.map((commitment) => {
                 const displayStatus = commitment.effectiveStatus || commitment.status;
                 return (
-                <Card key={commitment.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant={COMMITMENT_STATUS_BADGE[displayStatus]}>
-                          {COMMITMENT_STATUS_LABELS[displayStatus]}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          {COMMITMENT_ROLE_LABELS[commitment.responsibleRole]}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-900">{commitment.description}</p>
-                      <div className="flex gap-4 mt-1 text-xs text-gray-500">
-                        {commitment.dueDate && (
-                          <span>Vence: {new Date(commitment.dueDate).toLocaleDateString('es-CO')}</span>
+                  <Card key={commitment.id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant={COMMITMENT_STATUS_BADGE[displayStatus]}>
+                            {COMMITMENT_STATUS_LABELS[displayStatus]}
+                          </Badge>
+                          <span className="text-xs text-gray-500">
+                            {COMMITMENT_ROLE_LABELS[commitment.responsibleRole]}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-900">{commitment.description}</p>
+                        <div className="flex gap-4 mt-1 text-xs text-gray-500">
+                          {commitment.dueDate && (
+                            <span>
+                              Vence: {new Date(commitment.dueDate).toLocaleDateString('es-CO')}
+                            </span>
+                          )}
+                          {commitment.completedAt && (
+                            <span>
+                              Completado:{' '}
+                              {new Date(commitment.completedAt).toLocaleDateString('es-CO')}
+                            </span>
+                          )}
+                        </div>
+                        {commitment.responsibleUser && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Responsable: {commitment.responsibleUser.firstName}{' '}
+                            {commitment.responsibleUser.lastName}
+                          </p>
                         )}
-                        {commitment.completedAt && (
-                          <span>Completado: {new Date(commitment.completedAt).toLocaleDateString('es-CO')}</span>
-                        )}
                       </div>
-                      {commitment.responsibleUser && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Responsable: {commitment.responsibleUser.firstName} {commitment.responsibleUser.lastName}
-                        </p>
+                      {canCommit && !isClosed && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            handleToggleCommitmentStatus(commitment.id, commitment.status)
+                          }
+                          disabled={updateCommitmentMutation.isPending}
+                        >
+                          {commitment.status === 'COMPLETED' ? 'Reabrir' : 'Completar'}
+                        </Button>
                       )}
                     </div>
-                    {canCommit && !isClosed && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleCommitmentStatus(commitment.id, commitment.status)}
-                        disabled={updateCommitmentMutation.isPending}
-                      >
-                        {commitment.status === 'COMPLETED' ? 'Reabrir' : 'Completar'}
-                      </Button>
-                    )}
-                  </div>
-                </Card>
+                  </Card>
                 );
               })}
             </div>
@@ -944,7 +1027,10 @@ export function StudentFollowUpDetailPage() {
               <h4 className="text-sm font-medium text-gray-900 mb-3">Solicitar firma / recibido</h4>
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="signatureTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="signatureTitle"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Título *
                   </label>
                   <Input
@@ -955,7 +1041,10 @@ export function StudentFollowUpDetailPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="signatureDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="signatureDescription"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Descripción
                   </label>
                   <textarea
@@ -1010,7 +1099,9 @@ export function StudentFollowUpDetailPage() {
             </div>
           ) : followUpSignatures.length === 0 ? (
             <Card>
-              <p className="text-sm text-gray-500 text-center py-4">No hay solicitudes de firma para este seguimiento.</p>
+              <p className="text-sm text-gray-500 text-center py-4">
+                No hay solicitudes de firma para este seguimiento.
+              </p>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -1068,7 +1159,10 @@ export function StudentFollowUpDetailPage() {
                   onChange={(e) => setCitationScheduledAt(e.target.value)}
                 />
                 <div>
-                  <label htmlFor="citationReason" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="citationReason"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Motivo *
                   </label>
                   <textarea
@@ -1081,7 +1175,10 @@ export function StudentFollowUpDetailPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="citationObjective" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="citationObjective"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Objetivo
                   </label>
                   <textarea
@@ -1113,7 +1210,9 @@ export function StudentFollowUpDetailPage() {
             </div>
           ) : citations.length === 0 ? (
             <Card>
-              <p className="text-sm text-gray-500 text-center py-4">No hay citaciones registradas.</p>
+              <p className="text-sm text-gray-500 text-center py-4">
+                No hay citaciones registradas.
+              </p>
             </Card>
           ) : (
             <div className="space-y-3">

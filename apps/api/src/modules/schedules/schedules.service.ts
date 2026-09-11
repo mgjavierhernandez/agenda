@@ -1,11 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { resolveAccessibleCourseIds, resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
+import {
+  resolveAccessibleCourseIds,
+  resolveAccessibleStudentIds,
+} from '../../common/auth/academic-scope';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ListSchedulesQueryDto } from './dto/list-schedules-query.dto';
@@ -29,10 +28,10 @@ import {
 // here (or without a specific requirement) can use AULA/AUDITORIO as fallback.
 const SUBJECT_TO_REQUIRED_ROOM: Record<string, ClassroomType[]> = {
   'Ciencias Naturales': [ClassroomType.LAB_FISICA, ClassroomType.LAB_QUIMICA],
-  'Física': [ClassroomType.LAB_FISICA],
-  'Química': [ClassroomType.LAB_QUIMICA],
+  Física: [ClassroomType.LAB_FISICA],
+  Química: [ClassroomType.LAB_QUIMICA],
   'Tecnología e Informática': [ClassroomType.COMPUTO],
-  'Sistemas': [ClassroomType.COMPUTO],
+  Sistemas: [ClassroomType.COMPUTO],
   'Educación Física': [ClassroomType.CANCHA],
 };
 
@@ -198,12 +197,7 @@ export class SchedulesService {
     userId: string,
     ipAddress?: string,
   ): Promise<Schedule> {
-    await this.validateRelations(
-      institutionId,
-      dto.courseId,
-      dto.subjectId,
-      dto.academicPeriodId,
-    );
+    await this.validateRelations(institutionId, dto.courseId, dto.subjectId, dto.academicPeriodId);
     this.validateTimeRange(dto.startTime, dto.endTime);
 
     const subject = await this.prisma.subject.findFirst({
@@ -231,9 +225,30 @@ export class SchedulesService {
       );
     }
 
-    await this.checkOverlap(institutionId, 'courseId', dto.courseId, dto.dayOfWeek, dto.startTime, dto.endTime);
-    await this.checkOverlap(institutionId, 'teacherUserId', dto.teacherUserId, dto.dayOfWeek, dto.startTime, dto.endTime);
-    await this.checkOverlap(institutionId, 'classroomId', dto.classroomId, dto.dayOfWeek, dto.startTime, dto.endTime);
+    await this.checkOverlap(
+      institutionId,
+      'courseId',
+      dto.courseId,
+      dto.dayOfWeek,
+      dto.startTime,
+      dto.endTime,
+    );
+    await this.checkOverlap(
+      institutionId,
+      'teacherUserId',
+      dto.teacherUserId,
+      dto.dayOfWeek,
+      dto.startTime,
+      dto.endTime,
+    );
+    await this.checkOverlap(
+      institutionId,
+      'classroomId',
+      dto.classroomId,
+      dto.dayOfWeek,
+      dto.startTime,
+      dto.endTime,
+    );
 
     const schedule = await this.prisma.schedule.create({
       data: {
@@ -278,7 +293,10 @@ export class SchedulesService {
     institutionId: string,
     query: ListSchedulesQueryDto,
     userId?: string,
-  ): Promise<{ data: Schedule[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Schedule[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -305,7 +323,11 @@ export class SchedulesService {
       if (accessible !== null) {
         let effectiveCourses = accessible;
         if (query.studentId) {
-          const accessibleStudents = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+          const accessibleStudents = await resolveAccessibleStudentIds(
+            this.prisma,
+            institutionId,
+            userId,
+          );
           if (accessibleStudents === null || !accessibleStudents.includes(query.studentId)) {
             throw new NotFoundException('Schedule not found');
           }
@@ -417,7 +439,11 @@ export class SchedulesService {
     if (newBlockId && dto.blockId) {
       await this.validateBlockId(institutionId, newBlockId);
     }
-    if (newTeacherUserId && academicPeriodId && (dto.teacherUserId || dto.subjectId || dto.courseId || dto.academicPeriodId)) {
+    if (
+      newTeacherUserId &&
+      academicPeriodId &&
+      (dto.teacherUserId || dto.subjectId || dto.courseId || dto.academicPeriodId)
+    ) {
       await this.validateTeacher(
         institutionId,
         newTeacherUserId,
@@ -431,18 +457,48 @@ export class SchedulesService {
         where: { id: subjectId, institutionId },
       });
       if (subject) {
-        await this.validateClassroom(institutionId, newClassroomId!, subject.name, subject.subjectType);
+        await this.validateClassroom(
+          institutionId,
+          newClassroomId!,
+          subject.name,
+          subject.subjectType,
+        );
       }
     }
 
-    await this.checkOverlap(institutionId, 'courseId', courseId, String(newDayOfWeek), newStartTimeStr, newEndTimeStr, scheduleId);
-    await this.checkOverlap(institutionId, 'teacherUserId', newTeacherUserId, String(newDayOfWeek), newStartTimeStr, newEndTimeStr, scheduleId);
-    await this.checkOverlap(institutionId, 'classroomId', newClassroomId, String(newDayOfWeek), newStartTimeStr, newEndTimeStr, scheduleId);
+    await this.checkOverlap(
+      institutionId,
+      'courseId',
+      courseId,
+      String(newDayOfWeek),
+      newStartTimeStr,
+      newEndTimeStr,
+      scheduleId,
+    );
+    await this.checkOverlap(
+      institutionId,
+      'teacherUserId',
+      newTeacherUserId,
+      String(newDayOfWeek),
+      newStartTimeStr,
+      newEndTimeStr,
+      scheduleId,
+    );
+    await this.checkOverlap(
+      institutionId,
+      'classroomId',
+      newClassroomId,
+      String(newDayOfWeek),
+      newStartTimeStr,
+      newEndTimeStr,
+      scheduleId,
+    );
 
     const updateData: Prisma.ScheduleUpdateInput = {};
     if (dto.courseId !== undefined) updateData.course = { connect: { id: dto.courseId } };
     if (dto.subjectId !== undefined) updateData.subject = { connect: { id: dto.subjectId } };
-    if (dto.academicPeriodId !== undefined) updateData.academicPeriod = { connect: { id: dto.academicPeriodId } };
+    if (dto.academicPeriodId !== undefined)
+      updateData.academicPeriod = { connect: { id: dto.academicPeriodId } };
     if (dto.teacherUserId !== undefined) {
       updateData.teacherUser = dto.teacherUserId
         ? { connect: { id: dto.teacherUserId } }
@@ -469,9 +525,10 @@ export class SchedulesService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === ScheduleStatus.INACTIVE
-        ? 'SCHEDULE_DEACTIVATED'
-        : 'SCHEDULE_UPDATED',
+      action:
+        dto.status && dto.status === ScheduleStatus.INACTIVE
+          ? 'SCHEDULE_DEACTIVATED'
+          : 'SCHEDULE_UPDATED',
       entityType: 'Schedule',
       entityId: schedule.id,
       oldValues: {
@@ -553,11 +610,16 @@ export class SchedulesService {
         select: { id: true, name: true },
       }),
       this.prisma.classroom.findMany({
-        where: { institutionId, id: { in: [...new Set(data.map((s) => s.classroomId).filter(Boolean) as string[])] } },
+        where: {
+          institutionId,
+          id: { in: [...new Set(data.map((s) => s.classroomId).filter(Boolean) as string[])] },
+        },
         select: { id: true, name: true },
       }),
       this.prisma.user.findMany({
-        where: { id: { in: [...new Set(data.map((s) => s.teacherUserId).filter(Boolean) as string[])] } },
+        where: {
+          id: { in: [...new Set(data.map((s) => s.teacherUserId).filter(Boolean) as string[])] },
+        },
         select: { id: true, firstName: true, lastName: true },
       }),
       this.prisma.institution.findUnique({ where: { id: institutionId }, select: { name: true } }),

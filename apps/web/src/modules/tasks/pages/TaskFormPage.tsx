@@ -114,11 +114,24 @@ export function TaskFormPage() {
   }
 
   if (isEditing && !existingTask) {
-    return <ErrorState error={{ statusCode: 404, message: 'Tarea no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Tarea no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (isEditing && existingTask && existingTask.status !== 'DRAFT') {
-    return <ErrorState error={{ statusCode: 400, message: 'Solo las tareas en borrador pueden editarse', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 400,
+          message: 'Solo las tareas en borrador pueden editarse',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -127,7 +140,9 @@ export function TaskFormPage() {
     <div className="space-y-6 max-w-2xl">
       <PageHeader
         title={isEditing ? 'Editar tarea' : 'Nueva tarea'}
-        description={isEditing ? 'Actualizar información de la tarea' : 'Registrar una nueva tarea académica'}
+        description={
+          isEditing ? 'Actualizar información de la tarea' : 'Registrar una nueva tarea académica'
+        }
       />
 
       <Card>
@@ -161,7 +176,9 @@ export function TaskFormPage() {
               rows={4}
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
             />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
           </div>
 
           <div>

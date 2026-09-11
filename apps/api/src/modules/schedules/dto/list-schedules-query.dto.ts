@@ -64,7 +64,10 @@ export class ListSchedulesQueryDto {
   @IsEnum(DayOfWeek)
   dayOfWeek?: DayOfWeek;
 
-  @ApiPropertyOptional({ format: 'uuid', description: 'Restrict to courses of one accessible student' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Restrict to courses of one accessible student',
+  })
   @IsOptional()
   @IsUUID()
   studentId?: string;

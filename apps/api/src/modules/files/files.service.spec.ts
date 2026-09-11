@@ -44,7 +44,13 @@ describe('FilesService', () => {
     };
     auditMock = { log: jest.fn(), prisma: jest.fn() };
     storageMock = {
-      upload: jest.fn().mockResolvedValue({ storageKey: 'tenant/inst-1/files/abc.pdf', sizeBytes: 1024, checksum: 'abc123' }),
+      upload: jest
+        .fn()
+        .mockResolvedValue({
+          storageKey: 'tenant/inst-1/files/abc.pdf',
+          sizeBytes: 1024,
+          checksum: 'abc123',
+        }),
       delete: jest.fn(),
       read: jest.fn(),
       exists: jest.fn(),
@@ -52,12 +58,22 @@ describe('FilesService', () => {
     configMock = {
       get: jest.fn((_key: string, defaultVal: unknown) => defaultVal),
     };
-    service = new FilesService(prismaMock as never, auditMock as never, storageMock as never, configMock as never);
+    service = new FilesService(
+      prismaMock as never,
+      auditMock as never,
+      storageMock as never,
+      configMock as never,
+    );
   });
 
   describe('uploadFile', () => {
     it('should upload a valid file', async () => {
-      const file = { originalname: 'test.pdf', mimetype: 'application/pdf', buffer: Buffer.from('test'), size: 4 } as Express.Multer.File;
+      const file = {
+        originalname: 'test.pdf',
+        mimetype: 'application/pdf',
+        buffer: Buffer.from('test'),
+        size: 4,
+      } as Express.Multer.File;
       prismaMock.fileAsset.create.mockResolvedValue({ id: 'file-1', originalName: 'test.pdf' });
       const result = await service.uploadFile('inst-1', 'user-1', file);
       expect(result.id).toBe('file-1');
@@ -66,18 +82,39 @@ describe('FilesService', () => {
     });
 
     it('should reject empty files', async () => {
-      const file = { originalname: 'empty.pdf', mimetype: 'application/pdf', buffer: Buffer.from(''), size: 0 } as unknown as Express.Multer.File;
-      await expect(service.uploadFile('inst-1', 'user-1', file)).rejects.toThrow(BadRequestException);
+      const file = {
+        originalname: 'empty.pdf',
+        mimetype: 'application/pdf',
+        buffer: Buffer.from(''),
+        size: 0,
+      } as unknown as Express.Multer.File;
+      await expect(service.uploadFile('inst-1', 'user-1', file)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject oversized files', async () => {
-      const file = { originalname: 'big.pdf', mimetype: 'application/pdf', buffer: Buffer.alloc(11 * 1024 * 1024), size: 11 * 1024 * 1024 } as unknown as Express.Multer.File;
-      await expect(service.uploadFile('inst-1', 'user-1', file)).rejects.toThrow(BadRequestException);
+      const file = {
+        originalname: 'big.pdf',
+        mimetype: 'application/pdf',
+        buffer: Buffer.alloc(11 * 1024 * 1024),
+        size: 11 * 1024 * 1024,
+      } as unknown as Express.Multer.File;
+      await expect(service.uploadFile('inst-1', 'user-1', file)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject disallowed MIME types', async () => {
-      const file = { originalname: 'evil.exe', mimetype: 'application/x-executable', buffer: Buffer.from('x'), size: 1 } as unknown as Express.Multer.File;
-      await expect(service.uploadFile('inst-1', 'user-1', file)).rejects.toThrow(BadRequestException);
+      const file = {
+        originalname: 'evil.exe',
+        mimetype: 'application/x-executable',
+        buffer: Buffer.from('x'),
+        size: 1,
+      } as unknown as Express.Multer.File;
+      await expect(service.uploadFile('inst-1', 'user-1', file)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -96,7 +133,11 @@ describe('FilesService', () => {
 
   describe('deleteFile', () => {
     it('should soft-delete when file has task attachments', async () => {
-      prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1', originalName: 'test.pdf', storageKey: 'key' });
+      prismaMock.fileAsset.findFirst.mockResolvedValue({
+        id: 'file-1',
+        originalName: 'test.pdf',
+        storageKey: 'key',
+      });
       prismaMock.taskAttachment.findFirst.mockResolvedValue({ id: 'att-1' });
       prismaMock.communicationAttachment.findFirst.mockResolvedValue(null);
       await service.deleteFile('inst-1', 'file-1', 'user-1');
@@ -108,7 +149,11 @@ describe('FilesService', () => {
     });
 
     it('should hard-delete when file has no attachments', async () => {
-      prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1', originalName: 'test.pdf', storageKey: 'key' });
+      prismaMock.fileAsset.findFirst.mockResolvedValue({
+        id: 'file-1',
+        originalName: 'test.pdf',
+        storageKey: 'key',
+      });
       prismaMock.taskAttachment.findFirst.mockResolvedValue(null);
       prismaMock.communicationAttachment.findFirst.mockResolvedValue(null);
       await service.deleteFile('inst-1', 'file-1', 'user-1');
@@ -123,14 +168,19 @@ describe('FilesService', () => {
       prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1' });
       prismaMock.taskAttachment.count.mockResolvedValue(0);
       prismaMock.taskAttachment.findUnique.mockResolvedValue(null);
-      prismaMock.taskAttachment.create.mockResolvedValue({ id: 'att-1', fileAsset: { originalName: 'test.pdf' } });
+      prismaMock.taskAttachment.create.mockResolvedValue({
+        id: 'att-1',
+        fileAsset: { originalName: 'test.pdf' },
+      });
       const result = await service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1');
       expect(result.id).toBe('att-1');
     });
 
     it('should throw if task not found', async () => {
       prismaMock.task.findFirst.mockResolvedValue(null);
-      await expect(service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw on duplicate attachment', async () => {
@@ -138,20 +188,28 @@ describe('FilesService', () => {
       prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1' });
       prismaMock.taskAttachment.count.mockResolvedValue(0);
       prismaMock.taskAttachment.findUnique.mockResolvedValue({ id: 'existing' });
-      await expect(service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw when attachment limit exceeded', async () => {
       prismaMock.task.findFirst.mockResolvedValue({ id: 'task-1' });
       prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1' });
       prismaMock.taskAttachment.count.mockResolvedValue(MAX_TASK_ATTACHMENTS);
-      await expect(service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createTaskAttachment('inst-1', 'task-1', 'file-1', 'user-1'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('deleteTaskAttachment', () => {
     it('should delete attachment and clean up orphan file', async () => {
-      prismaMock.taskAttachment.findFirst.mockResolvedValue({ id: 'att-1', fileAssetId: 'file-1', fileAsset: { storageKey: 'key', originalName: 'test.pdf' } });
+      prismaMock.taskAttachment.findFirst.mockResolvedValue({
+        id: 'att-1',
+        fileAssetId: 'file-1',
+        fileAsset: { storageKey: 'key', originalName: 'test.pdf' },
+      });
       prismaMock.taskAttachment.delete.mockResolvedValue({});
       prismaMock.taskAttachment.count.mockResolvedValue(0);
       prismaMock.communicationAttachment.count.mockResolvedValue(0);
@@ -161,7 +219,11 @@ describe('FilesService', () => {
     });
 
     it('should not delete file when other references exist', async () => {
-      prismaMock.taskAttachment.findFirst.mockResolvedValue({ id: 'att-1', fileAssetId: 'file-1', fileAsset: { storageKey: 'key', originalName: 'test.pdf' } });
+      prismaMock.taskAttachment.findFirst.mockResolvedValue({
+        id: 'att-1',
+        fileAssetId: 'file-1',
+        fileAsset: { storageKey: 'key', originalName: 'test.pdf' },
+      });
       prismaMock.taskAttachment.delete.mockResolvedValue({});
       prismaMock.taskAttachment.count.mockResolvedValue(1);
       prismaMock.communicationAttachment.count.mockResolvedValue(0);
@@ -176,14 +238,24 @@ describe('FilesService', () => {
       prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1' });
       prismaMock.communicationAttachment.count.mockResolvedValue(0);
       prismaMock.communicationAttachment.findUnique.mockResolvedValue(null);
-      prismaMock.communicationAttachment.create.mockResolvedValue({ id: 'att-1', fileAsset: { originalName: 'test.pdf' } });
-      const result = await service.createCommunicationAttachment('inst-1', 'comm-1', 'file-1', 'user-1');
+      prismaMock.communicationAttachment.create.mockResolvedValue({
+        id: 'att-1',
+        fileAsset: { originalName: 'test.pdf' },
+      });
+      const result = await service.createCommunicationAttachment(
+        'inst-1',
+        'comm-1',
+        'file-1',
+        'user-1',
+      );
       expect(result.id).toBe('att-1');
     });
 
     it('should throw if communication not found', async () => {
       prismaMock.communication.findFirst.mockResolvedValue(null);
-      await expect(service.createCommunicationAttachment('inst-1', 'comm-1', 'file-1', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.createCommunicationAttachment('inst-1', 'comm-1', 'file-1', 'user-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw on duplicate', async () => {
@@ -191,7 +263,9 @@ describe('FilesService', () => {
       prismaMock.fileAsset.findFirst.mockResolvedValue({ id: 'file-1' });
       prismaMock.communicationAttachment.count.mockResolvedValue(0);
       prismaMock.communicationAttachment.findUnique.mockResolvedValue({ id: 'existing' });
-      await expect(service.createCommunicationAttachment('inst-1', 'comm-1', 'file-1', 'user-1')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createCommunicationAttachment('inst-1', 'comm-1', 'file-1', 'user-1'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

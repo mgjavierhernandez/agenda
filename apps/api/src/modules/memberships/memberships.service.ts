@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { LinkUserDto, UpdateMembershipDto, AssignRoleDto, ListMembershipsQueryDto } from './dto/membership.dto';
+import {
+  LinkUserDto,
+  UpdateMembershipDto,
+  AssignRoleDto,
+  ListMembershipsQueryDto,
+} from './dto/membership.dto';
 import { UserInstitution, UserRole, MembershipStatus, UserStatus, Prisma } from '@prisma/client';
 import { ASSIGNABLE_TENANT_ROLES } from '../../common/rbac/assignable-roles';
 
@@ -130,7 +135,10 @@ export class MembershipsService {
   async findAll(
     institutionId: string,
     query: ListMembershipsQueryDto,
-  ): Promise<{ data: UserInstitution[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: UserInstitution[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -177,10 +185,7 @@ export class MembershipsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(
-    institutionId: string,
-    membershipId: string,
-  ): Promise<UserInstitution> {
+  async findOne(institutionId: string, membershipId: string): Promise<UserInstitution> {
     const membership = await this.prisma.userInstitution.findFirst({
       where: { id: membershipId, institutionId },
       include: {
@@ -203,10 +208,7 @@ export class MembershipsService {
     return membership;
   }
 
-  async findByUserId(
-    institutionId: string,
-    userId: string,
-  ): Promise<UserInstitution> {
+  async findByUserId(institutionId: string, userId: string): Promise<UserInstitution> {
     const membership = await this.prisma.userInstitution.findUnique({
       where: { userId_institutionId: { userId, institutionId } },
       include: {
@@ -372,7 +374,8 @@ export class MembershipsService {
     userId: string,
     actorUserId: string,
     ipAddress?: string,
-  ): Promise<void> {    const membership = await this.prisma.userInstitution.findUnique({
+  ): Promise<void> {
+    const membership = await this.prisma.userInstitution.findUnique({
       where: { userId_institutionId: { userId, institutionId } },
     });
     if (!membership) {

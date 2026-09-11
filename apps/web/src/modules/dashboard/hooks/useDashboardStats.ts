@@ -24,22 +24,64 @@ export interface DashboardStatsPermissions {
   communications?: boolean;
 }
 
-export function useDashboardStats(isReady: boolean, permissions?: DashboardStatsPermissions, studentId?: string | null) {
-  const show = permissions ?? { students: true, courses: true, subjects: true, tasks: true, enrollments: true, signatures: true, communications: true };
+export function useDashboardStats(
+  isReady: boolean,
+  permissions?: DashboardStatsPermissions,
+  studentId?: string | null,
+) {
+  const show = permissions ?? {
+    students: true,
+    courses: true,
+    subjects: true,
+    tasks: true,
+    enrollments: true,
+    signatures: true,
+    communications: true,
+  };
 
-  const students = useCount('dashboard-students', '/students', isReady && !!show.students, studentId);
+  const students = useCount(
+    'dashboard-students',
+    '/students',
+    isReady && !!show.students,
+    studentId,
+  );
   const courses = useCount('dashboard-courses', '/courses', isReady && !!show.courses);
   const subjects = useCount('dashboard-subjects', '/subjects', isReady && !!show.subjects);
   const tasks = useCount('dashboard-tasks', '/tasks', isReady && !!show.tasks, studentId);
-  const enrollments = useCount('dashboard-enrollments', '/enrollments', isReady && !!show.enrollments, studentId);
-  const signatures = useCount('dashboard-signatures', '/signature-requests', isReady && !!show.signatures);
-  const communications = useCount('dashboard-communications', '/communications', isReady && !!show.communications);
+  const enrollments = useCount(
+    'dashboard-enrollments',
+    '/enrollments',
+    isReady && !!show.enrollments,
+    studentId,
+  );
+  const signatures = useCount(
+    'dashboard-signatures',
+    '/signature-requests',
+    isReady && !!show.signatures,
+  );
+  const communications = useCount(
+    'dashboard-communications',
+    '/communications',
+    isReady && !!show.communications,
+  );
 
-  const isLoading = students.isLoading || courses.isLoading || subjects.isLoading ||
-    tasks.isLoading || enrollments.isLoading || signatures.isLoading || communications.isLoading;
+  const isLoading =
+    students.isLoading ||
+    courses.isLoading ||
+    subjects.isLoading ||
+    tasks.isLoading ||
+    enrollments.isLoading ||
+    signatures.isLoading ||
+    communications.isLoading;
 
-  const hasError = students.isError || courses.isError || subjects.isError ||
-    tasks.isError || enrollments.isError || signatures.isError || communications.isError;
+  const hasError =
+    students.isError ||
+    courses.isError ||
+    subjects.isError ||
+    tasks.isError ||
+    enrollments.isError ||
+    signatures.isError ||
+    communications.isError;
 
   return {
     stats: {

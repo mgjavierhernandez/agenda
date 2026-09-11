@@ -21,9 +21,7 @@ describe('App (e2e)', () => {
   });
 
   it('GET /api/v1/health returns status ok', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/health')
-      .expect(200);
+    const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
 
     expect(res.body.status).toBe('ok');
     expect(res.body).toHaveProperty('timestamp');

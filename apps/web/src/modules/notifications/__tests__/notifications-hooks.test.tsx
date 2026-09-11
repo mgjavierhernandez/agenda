@@ -69,11 +69,25 @@ describe('Notifications hooks', () => {
     });
 
     it('sends search and filter params', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 }, unreadCount: 0 });
-
-      renderHook(() => useNotifications({ page: 2, limit: 10, search: 'firma', status: 'UNREAD', type: 'SIGNATURE_REQUEST' }), {
-        wrapper: createWrapper(),
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+        unreadCount: 0,
       });
+
+      renderHook(
+        () =>
+          useNotifications({
+            page: 2,
+            limit: 10,
+            search: 'firma',
+            status: 'UNREAD',
+            type: 'SIGNATURE_REQUEST',
+          }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
       const callUrl = vi.mocked(apiClient.get).mock.calls[0][0] as string;
@@ -110,7 +124,11 @@ describe('Notifications hooks', () => {
 
   describe('useMarkNotificationRead', () => {
     it('marks a notification as read', async () => {
-      const readNotif = { ...mockNotification, status: 'READ' as const, readAt: '2026-08-20T11:00:00Z' };
+      const readNotif = {
+        ...mockNotification,
+        status: 'READ' as const,
+        readAt: '2026-08-20T11:00:00Z',
+      };
       vi.mocked(apiClient.patch).mockResolvedValue(readNotif);
 
       const { result } = renderHook(() => useMarkNotificationRead(), {

@@ -49,7 +49,8 @@ describe('API Client', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
-      json: () => Promise.resolve({ statusCode: 404, message: 'Not found', timestamp: '', path: '/test' }),
+      json: () =>
+        Promise.resolve({ statusCode: 404, message: 'Not found', timestamp: '', path: '/test' }),
     });
     await expect(apiClient.get('/test')).rejects.toMatchObject({ statusCode: 404 });
   });

@@ -6,10 +6,7 @@ import type {
   ListFollowUpCitationsParams,
 } from '@/api/types';
 
-export function useFollowUpCitations(
-  followUpId: string,
-  params?: ListFollowUpCitationsParams,
-) {
+export function useFollowUpCitations(followUpId: string, params?: ListFollowUpCitationsParams) {
   return useQuery<PaginatedApiResponse<FollowUpCitation>>({
     queryKey: ['student-follow-up-citations', followUpId, params],
     queryFn: () => {

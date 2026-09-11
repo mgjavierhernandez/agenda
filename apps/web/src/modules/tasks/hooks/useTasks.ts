@@ -3,7 +3,17 @@ import { apiClient } from '@/api/client';
 import type { PaginatedApiResponse, Task, ListTasksParams } from '@/api/types';
 
 export function useTasks(params: ListTasksParams = {}) {
-  const { page = 1, limit = 20, search, status, courseId, subjectId, studentId, dueDateFrom, dueDateTo } = params;
+  const {
+    page = 1,
+    limit = 20,
+    search,
+    status,
+    courseId,
+    subjectId,
+    studentId,
+    dueDateFrom,
+    dueDateTo,
+  } = params;
 
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(page));
@@ -17,7 +27,10 @@ export function useTasks(params: ListTasksParams = {}) {
   if (dueDateTo) searchParams.set('dueDateTo', dueDateTo);
 
   return useQuery<PaginatedApiResponse<Task>>({
-    queryKey: ['tasks', { page, limit, search, status, courseId, subjectId, studentId, dueDateFrom, dueDateTo }],
+    queryKey: [
+      'tasks',
+      { page, limit, search, status, courseId, subjectId, studentId, dueDateFrom, dueDateTo },
+    ],
     queryFn: () => apiClient.get(`/tasks?${searchParams.toString()}`),
   });
 }

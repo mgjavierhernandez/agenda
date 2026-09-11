@@ -126,15 +126,37 @@ export function SignatureFormPage() {
   }
 
   if (isEditing && !existingSignature) {
-    return <ErrorState error={{ statusCode: 404, message: 'Solicitud no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Solicitud no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (isEditing && existingSignature && existingSignature.status !== 'DRAFT') {
-    return <ErrorState error={{ statusCode: 400, message: 'Solo las solicitudes en borrador pueden editarse', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 400,
+          message: 'Solo las solicitudes en borrador pueden editarse',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   if (!canRequest) {
-    return <ErrorState error={{ statusCode: 403, message: 'No tienes permisos para gestionar solicitudes de firma', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 403,
+          message: 'No tienes permisos para gestionar solicitudes de firma',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -143,7 +165,11 @@ export function SignatureFormPage() {
     <div className="space-y-6 max-w-2xl">
       <PageHeader
         title={isEditing ? 'Editar solicitud' : 'Nueva solicitud de firma'}
-        description={isEditing ? 'Actualizar información de la solicitud' : 'Crear una nueva solicitud de firma digital'}
+        description={
+          isEditing
+            ? 'Actualizar información de la solicitud'
+            : 'Crear una nueva solicitud de firma digital'
+        }
       />
 
       <Card>
@@ -177,7 +203,9 @@ export function SignatureFormPage() {
               rows={4}
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
             />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
           </div>
 
           <Input
@@ -190,7 +218,10 @@ export function SignatureFormPage() {
 
           {!isEditing && (
             <div>
-              <label htmlFor="recipientUserIds" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="recipientUserIds"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Firmantes (UUIDs separados por coma) *
               </label>
               <textarea
@@ -202,7 +233,9 @@ export function SignatureFormPage() {
                 placeholder="uuid-1, uuid-2, uuid-3"
                 className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 font-mono"
               />
-              {errors.recipientUserIds && <p className="mt-1 text-sm text-red-600">{errors.recipientUserIds}</p>}
+              {errors.recipientUserIds && (
+                <p className="mt-1 text-sm text-red-600">{errors.recipientUserIds}</p>
+              )}
               <p className="mt-1 text-sm text-gray-500">
                 IDs de usuario UUID separados por coma. Mínimo 1, máximo 100.
               </p>

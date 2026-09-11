@@ -33,10 +33,7 @@ describe('SubjectsService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new SubjectsService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new SubjectsService(prismaMock as never, auditServiceMock as never);
   });
 
   describe('create', () => {
@@ -81,11 +78,7 @@ describe('SubjectsService', () => {
       });
 
       await expect(
-        service.create(
-          institutionId,
-          { code: 'MAT-S', name: 'Matemáticas' },
-          userId,
-        ),
+        service.create(institutionId, { code: 'MAT-S', name: 'Matemáticas' }, userId),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -101,11 +94,7 @@ describe('SubjectsService', () => {
         updatedAt: new Date(),
       });
 
-      const result = await service.create(
-        'inst-2',
-        { code: 'MAT-S', name: 'Matemáticas' },
-        userId,
-      );
+      const result = await service.create('inst-2', { code: 'MAT-S', name: 'Matemáticas' }, userId);
 
       expect(result.institutionId).toBe('inst-2');
     });
@@ -129,9 +118,9 @@ describe('SubjectsService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.subject.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'subject-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'subject-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -267,12 +256,7 @@ describe('SubjectsService', () => {
         });
 
       await expect(
-        service.update(
-          institutionId,
-          'subject-1',
-          { code: 'CIE-S' },
-          userId,
-        ),
+        service.update(institutionId, 'subject-1', { code: 'CIE-S' }, userId),
       ).rejects.toThrow(ConflictException);
     });
   });

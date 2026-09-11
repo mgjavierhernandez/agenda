@@ -5,8 +5,13 @@ import type { CourseDirectorAssignment, UpdateCourseDirectorAssignmentInput } fr
 export function useUpdateCourseDirectorAssignment() {
   const queryClient = useQueryClient();
 
-  return useMutation<CourseDirectorAssignment, Error, { id: string; data: UpdateCourseDirectorAssignmentInput }>({
-    mutationFn: ({ id, data }) => apiClient.patch(`/teacher-assignments/course-directors/${id}`, data),
+  return useMutation<
+    CourseDirectorAssignment,
+    Error,
+    { id: string; data: UpdateCourseDirectorAssignmentInput }
+  >({
+    mutationFn: ({ id, data }) =>
+      apiClient.patch(`/teacher-assignments/course-directors/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-director-assignments'] });
     },

@@ -1,4 +1,14 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, Matches, IsInt, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  MaxLength,
+  Matches,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { InstitutionStatus } from '@prisma/client';
@@ -19,19 +29,31 @@ export class CreateInstitutionDto {
 }
 
 export class UpdateInstitutionDto {
-  @ApiPropertyOptional({ description: 'Institution name', example: 'Acme University', maxLength: 255 })
+  @ApiPropertyOptional({
+    description: 'Institution name',
+    example: 'Acme University',
+    maxLength: 255,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'URL-friendly slug', example: 'acme-university', maxLength: 100 })
+  @ApiPropertyOptional({
+    description: 'URL-friendly slug',
+    example: 'acme-university',
+    maxLength: 100,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   slug?: string;
 
-  @ApiPropertyOptional({ description: 'Institution status', enum: InstitutionStatus, example: InstitutionStatus.ACTIVE })
+  @ApiPropertyOptional({
+    description: 'Institution status',
+    enum: InstitutionStatus,
+    example: InstitutionStatus.ACTIVE,
+  })
   @IsOptional()
   @IsEnum(InstitutionStatus)
   status?: InstitutionStatus;
@@ -58,7 +80,11 @@ export class ListInstitutionsQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by status', enum: InstitutionStatus, example: InstitutionStatus.ACTIVE })
+  @ApiPropertyOptional({
+    description: 'Filter by status',
+    enum: InstitutionStatus,
+    example: InstitutionStatus.ACTIVE,
+  })
   @IsOptional()
   @IsEnum(InstitutionStatus)
   status?: InstitutionStatus;

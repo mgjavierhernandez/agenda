@@ -35,10 +35,7 @@ export class ScheduleBlocksController {
   @Post()
   @RequirePermission('schedules:manage')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateScheduleBlockDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateScheduleBlockDto) {
     return this.scheduleBlocksService.create(
       req.tenant!.institutionId,
       dto,
@@ -51,14 +48,8 @@ export class ScheduleBlocksController {
   @ApiResponse({ status: 200, description: 'Paginated list of schedule blocks' })
   @Get()
   @RequirePermission('schedules:read')
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListScheduleBlocksQueryDto,
-  ) {
-    return this.scheduleBlocksService.findAll(
-      req.tenant!.institutionId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListScheduleBlocksQueryDto) {
+    return this.scheduleBlocksService.findAll(req.tenant!.institutionId, query);
   }
 
   @ApiOperation({ summary: 'Get schedule block by ID' })
@@ -67,14 +58,8 @@ export class ScheduleBlocksController {
   @ApiResponse({ status: 404, description: 'Schedule block not found' })
   @Get(':id')
   @RequirePermission('schedules:read')
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.scheduleBlocksService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.scheduleBlocksService.findOne(req.tenant!.institutionId, id);
   }
 
   @ApiOperation({ summary: 'Update schedule block' })
@@ -103,10 +88,7 @@ export class ScheduleBlocksController {
   @ApiResponse({ status: 404, description: 'Schedule block not found' })
   @Patch(':id/deactivate')
   @RequirePermission('schedules:manage')
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.scheduleBlocksService.deactivate(
       req.tenant!.institutionId,
       id,

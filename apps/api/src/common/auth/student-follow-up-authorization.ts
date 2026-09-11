@@ -193,10 +193,7 @@ export class StudentFollowUpAuthorizationService {
     return { allowed: true };
   }
 
-  async canManage(
-    userId: string,
-    institutionId: string,
-  ): Promise<FollowUpAccessResult> {
+  async canManage(userId: string, institutionId: string): Promise<FollowUpAccessResult> {
     const role = await this.getUserRole(userId, institutionId);
     if (!role) {
       return { allowed: false, reason: 'NO_ROLE' };
@@ -213,10 +210,7 @@ export class StudentFollowUpAuthorizationService {
     return { allowed: true };
   }
 
-  canViewConfidentiality(
-    role: string,
-    confidentiality: FollowUpConfidentiality,
-  ): boolean {
+  canViewConfidentiality(role: string, confidentiality: FollowUpConfidentiality): boolean {
     const allowed = CONFIDENTIALITY_VISIBILITY[role];
     if (!allowed) return false;
     return allowed.includes(confidentiality);
@@ -279,10 +273,7 @@ export class StudentFollowUpAuthorizationService {
     return { id: '__NEVER_MATCH__' };
   }
 
-  private async getUserRole(
-    userId: string,
-    institutionId: string,
-  ): Promise<string | null> {
+  private async getUserRole(userId: string, institutionId: string): Promise<string | null> {
     const globalRoles = await this.authorizationService.getGlobalPermissionCodes(userId);
     if (globalRoles.length > 0) {
       const userRoles = await this.authorizationService.getUserRoles(userId, institutionId);

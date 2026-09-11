@@ -54,7 +54,9 @@ export class AuthController {
     return this.authService.login(loginDto.email, loginDto.password);
   }
 
-  @ApiOperation({ summary: 'Public self-registration (creates a PENDING membership, no access granted)' })
+  @ApiOperation({
+    summary: 'Public self-registration (creates a PENDING membership, no access granted)',
+  })
   @ApiResponse({ status: 201, description: 'Request received, pending approval' })
   @ApiResponse({ status: 404, description: 'Institution not found' })
   @ApiResponse({ status: 409, description: 'Request or membership already exists' })
@@ -91,12 +93,15 @@ export class AuthController {
     return this.authService.loginWithGoogle(req.user, req.ip);
   }
 
-  @ApiOperation({ summary: 'Refresh access token' })  @ApiResponse({ status: 200, description: 'Token refreshed' })
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   @Post('refresh')
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body() refreshDto: RefreshTokenDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async refresh(
+    @Body() refreshDto: RefreshTokenDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     return this.authService.refresh(refreshDto.refreshToken);
   }
 

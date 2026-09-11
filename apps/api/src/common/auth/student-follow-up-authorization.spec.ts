@@ -426,38 +426,72 @@ describe('StudentFollowUpAuthorizationService', () => {
 
   describe('canViewConfidentiality', () => {
     it('should allow INSTITUTION_ADMIN all levels', () => {
-      expect(service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.PUBLIC)).toBe(true);
-      expect(service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.INTERNAL)).toBe(true);
-      expect(service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.CONFIDENTIAL)).toBe(true);
-      expect(service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.SENSITIVE)).toBe(true);
+      expect(
+        service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.PUBLIC),
+      ).toBe(true);
+      expect(
+        service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.INTERNAL),
+      ).toBe(true);
+      expect(
+        service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.CONFIDENTIAL),
+      ).toBe(true);
+      expect(
+        service.canViewConfidentiality('INSTITUTION_ADMIN', FollowUpConfidentiality.SENSITIVE),
+      ).toBe(true);
     });
 
     it('should allow TEACHER only PUBLIC and INTERNAL', () => {
       expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.PUBLIC)).toBe(true);
-      expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.INTERNAL)).toBe(true);
-      expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.CONFIDENTIAL)).toBe(false);
-      expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.SENSITIVE)).toBe(false);
+      expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.INTERNAL)).toBe(
+        true,
+      );
+      expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.CONFIDENTIAL)).toBe(
+        false,
+      );
+      expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.SENSITIVE)).toBe(
+        false,
+      );
     });
 
     it('should allow PARENT only PUBLIC (INTERNAL is staff-only)', () => {
       expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.PUBLIC)).toBe(true);
-      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.INTERNAL)).toBe(false);
-      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.CONFIDENTIAL)).toBe(false);
-      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.SENSITIVE)).toBe(false);
+      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.INTERNAL)).toBe(
+        false,
+      );
+      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.CONFIDENTIAL)).toBe(
+        false,
+      );
+      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.SENSITIVE)).toBe(
+        false,
+      );
     });
 
     it('should allow STUDENT only PUBLIC and INTERNAL', () => {
       expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.PUBLIC)).toBe(true);
-      expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.INTERNAL)).toBe(true);
-      expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.CONFIDENTIAL)).toBe(false);
-      expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.SENSITIVE)).toBe(false);
+      expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.INTERNAL)).toBe(
+        true,
+      );
+      expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.CONFIDENTIAL)).toBe(
+        false,
+      );
+      expect(service.canViewConfidentiality('STUDENT', FollowUpConfidentiality.SENSITIVE)).toBe(
+        false,
+      );
     });
 
     it('should deny SUPER_ADMIN all levels', () => {
-      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.PUBLIC)).toBe(false);
-      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.INTERNAL)).toBe(false);
-      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.CONFIDENTIAL)).toBe(false);
-      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.SENSITIVE)).toBe(false);
+      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.PUBLIC)).toBe(
+        false,
+      );
+      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.INTERNAL)).toBe(
+        false,
+      );
+      expect(
+        service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.CONFIDENTIAL),
+      ).toBe(false);
+      expect(service.canViewConfidentiality('SUPER_ADMIN', FollowUpConfidentiality.SENSITIVE)).toBe(
+        false,
+      );
     });
 
     it('should deny unknown role', () => {
@@ -478,10 +512,7 @@ describe('StudentFollowUpAuthorizationService', () => {
 
     it('should return PUBLIC and INTERNAL for TEACHER', () => {
       const levels = service.getVisibleConfidentialityLevels('TEACHER');
-      expect(levels).toEqual([
-        FollowUpConfidentiality.PUBLIC,
-        FollowUpConfidentiality.INTERNAL,
-      ]);
+      expect(levels).toEqual([FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL]);
     });
 
     it('should return empty array for SUPER_ADMIN', () => {

@@ -18,7 +18,9 @@ export class ListAgendaEventsQueryDto {
   @IsDateString()
   start?: string;
 
-  @ApiPropertyOptional({ description: 'Only events that start at or before this datetime (ISO 8601)' })
+  @ApiPropertyOptional({
+    description: 'Only events that start at or before this datetime (ISO 8601)',
+  })
   @IsOptional()
   @IsDateString()
   end?: string;

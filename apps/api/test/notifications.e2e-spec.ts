@@ -5,7 +5,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Notifications Module (e2e)', () => {
   let app: INestApplication;
@@ -57,21 +58,39 @@ describe('Notifications Module (e2e)', () => {
     });
     const allPerms = await prisma.permission.findMany();
     for (const perm of allPerms) {
-      await prisma.rolePermission.create({ data: { roleId: secondAdminRole.id, permissionId: perm.id } });
+      await prisma.rolePermission.create({
+        data: { roleId: secondAdminRole.id, permissionId: perm.id },
+      });
     }
 
     const secondAdmin = await prisma.user.create({
-      data: { email: 'admin@second-notif-e2e.dev', passwordHash: VALID_PASSWORD_HASH, firstName: 'Second', lastName: 'Admin', status: 'ACTIVE' },
+      data: {
+        email: 'admin@second-notif-e2e.dev',
+        passwordHash: VALID_PASSWORD_HASH,
+        firstName: 'Second',
+        lastName: 'Admin',
+        status: 'ACTIVE',
+      },
     });
     const secondAdminMem = await prisma.userInstitution.create({
-      data: { userId: secondAdmin.id, institutionId: secondInstitutionId, status: MembershipStatus.ACTIVE },
+      data: {
+        userId: secondAdmin.id,
+        institutionId: secondInstitutionId,
+        status: MembershipStatus.ACTIVE,
+      },
     });
     await prisma.userRole.create({
-      data: { userInstitutionId: secondAdminMem.id, roleId: secondAdminRole.id, institutionId: secondInstitutionId },
+      data: {
+        userInstitutionId: secondAdminMem.id,
+        roleId: secondAdminRole.id,
+        institutionId: secondInstitutionId,
+      },
     });
 
     const login = async (email: string) => {
-      const res = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email, password: 'Demo1234!' });
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'Demo1234!' });
       return res.body.accessToken;
     };
 
@@ -93,7 +112,9 @@ describe('Notifications Module (e2e)', () => {
 
   afterAll(async () => {
     if (secondInstitutionId) {
-      await prisma.rolePermission.deleteMany({ where: { role: { institutionId: secondInstitutionId } } });
+      await prisma.rolePermission.deleteMany({
+        where: { role: { institutionId: secondInstitutionId } },
+      });
       await prisma.userRole.deleteMany({ where: { institutionId: secondInstitutionId } });
       await prisma.userInstitution.deleteMany({ where: { institutionId: secondInstitutionId } });
       await prisma.role.deleteMany({ where: { institutionId: secondInstitutionId } });
@@ -106,8 +127,14 @@ describe('Notifications Module (e2e)', () => {
     await prisma.$disconnect();
   });
 
-  const instHeader = (token: string) => ({ Authorization: `Bearer ${token}`, 'X-Institution-Id': demoInstitutionId });
-  const secondInstHeader = (token: string) => ({ Authorization: `Bearer ${token}`, 'X-Institution-Id': secondInstitutionId });
+  const instHeader = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    'X-Institution-Id': demoInstitutionId,
+  });
+  const secondInstHeader = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    'X-Institution-Id': secondInstitutionId,
+  });
 
   describe('POST /api/v1/notifications', () => {
     it('should create a notification as INSTITUTION_ADMIN', async () => {
@@ -144,7 +171,13 @@ describe('Notifications Module (e2e)', () => {
 
     it('should reject if target user is not in institution', async () => {
       const outsideUser = await prisma.user.create({
-        data: { email: `outside-notif-e2e-${Date.now()}@test.com`, passwordHash: VALID_PASSWORD_HASH, firstName: 'Out', lastName: 'Side', status: 'ACTIVE' },
+        data: {
+          email: `outside-notif-e2e-${Date.now()}@test.com`,
+          passwordHash: VALID_PASSWORD_HASH,
+          firstName: 'Out',
+          lastName: 'Side',
+          status: 'ACTIVE',
+        },
       });
       const res = await request(app.getHttpServer())
         .post('/api/v1/notifications')
@@ -292,7 +325,7 @@ describe('Notifications Module (e2e)', () => {
       expect(res.body.id).toBe(createdNotificationId);
     });
 
-    it('should return 404 for another user\'s notification', async () => {
+    it("should return 404 for another user's notification", async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/v1/notifications/${createdNotificationId}`)
         .set(instHeader(teacherToken));
@@ -414,12 +447,17 @@ describe('Notifications Module (e2e)', () => {
   });
 
   describe('Visibility isolation', () => {
-    it('should not allow user to see another user\'s notification via list', async () => {
+    it("should not allow user to see another user's notification via list", async () => {
       // Create notification for teacher
       const createRes = await request(app.getHttpServer())
         .post('/api/v1/notifications')
         .set(instHeader(adminToken))
-        .send({ type: 'GENERAL', title: 'Teacher Only', message: 'For teacher', userId: teacherUserId });
+        .send({
+          type: 'GENERAL',
+          title: 'Teacher Only',
+          message: 'For teacher',
+          userId: teacherUserId,
+        });
       const teacherNotifId = createRes.body.id;
 
       // Parent should not see it

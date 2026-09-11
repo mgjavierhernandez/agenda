@@ -14,7 +14,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
             {label}
-            {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+            {required && (
+              <span className="text-red-500 ml-1" aria-hidden="true">
+                *
+              </span>
+            )}
           </label>
         )}
         <input
@@ -28,7 +32,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           } ${className}`}
           {...props}
         />
-        {error && <p id={errorId} className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p id={errorId} className="mt-1 text-sm text-red-600">
+            {error}
+          </p>
+        )}
       </div>
     );
   },

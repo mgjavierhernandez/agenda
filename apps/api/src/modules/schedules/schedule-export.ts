@@ -37,8 +37,7 @@ function rowToArray(r: ScheduleExportRow): string[] {
 }
 
 export function buildScheduleCsv(rows: ScheduleExportRow[]): Buffer {
-  const escape = (v: string): string =>
-    /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  const escape = (v: string): string => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
   const lines = [HEADERS.map(escape).join(',')];
   for (const r of rows) lines.push(rowToArray(r).map(escape).join(','));
   return Buffer.from('\uFEFF' + lines.join('\r\n'), 'utf8');
@@ -78,13 +77,21 @@ export function buildSchedulePdf(
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    doc.font('Helvetica-Bold').fontSize(16).fillColor('#1e293b').text(institutionName, { align: 'center' });
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(16)
+      .fillColor('#1e293b')
+      .text(institutionName, { align: 'center' });
     doc.moveDown(0.3);
     doc.font('Helvetica-Bold').fontSize(12).fillColor('#0f172a').text(title, { align: 'center' });
     doc.moveDown(0.5);
 
     if (rows.length === 0) {
-      doc.font('Helvetica').fontSize(10).fillColor('#334155').text('No hay horarios en el alcance seleccionado.');
+      doc
+        .font('Helvetica')
+        .fontSize(10)
+        .fillColor('#334155')
+        .text('No hay horarios en el alcance seleccionado.');
       doc.end();
       return;
     }
@@ -92,7 +99,10 @@ export function buildSchedulePdf(
     const widths = [70, 55, 55, 140, 140, 100, 160];
     const startX = 40;
     const renderRow = (cells: string[], bold: boolean, y: number): number => {
-      doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(8.5).fillColor(bold ? '#0f172a' : '#334155');
+      doc
+        .font(bold ? 'Helvetica-Bold' : 'Helvetica')
+        .fontSize(8.5)
+        .fillColor(bold ? '#0f172a' : '#334155');
       let maxH = doc.heightOfString('X', { width: 50 });
       const heights = cells.map((c, i) => doc.heightOfString(c || '—', { width: widths[i] - 6 }));
       maxH = Math.max(maxH, ...heights);
@@ -105,7 +115,12 @@ export function buildSchedulePdf(
     };
 
     let y = renderRow(HEADERS, true, doc.y);
-    doc.strokeColor('#cbd5e1').lineWidth(1).moveTo(startX, y - 3).lineTo(startX + widths.reduce((a, b) => a + b, 0), y - 3).stroke();
+    doc
+      .strokeColor('#cbd5e1')
+      .lineWidth(1)
+      .moveTo(startX, y - 3)
+      .lineTo(startX + widths.reduce((a, b) => a + b, 0), y - 3)
+      .stroke();
     for (const r of rows) {
       if (y > 520) {
         doc.addPage();

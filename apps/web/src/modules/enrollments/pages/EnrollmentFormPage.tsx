@@ -46,7 +46,8 @@ export function EnrollmentFormPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState('');
 
-  const isLoadingSelectors = isLoadingStudents || isLoadingCourses || isLoadingGrades || isLoadingPeriods;
+  const isLoadingSelectors =
+    isLoadingStudents || isLoadingCourses || isLoadingGrades || isLoadingPeriods;
 
   if (!canManage) {
     return (
@@ -107,10 +108,7 @@ export function EnrollmentFormPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Nueva matrícula"
-        description="Matricular un estudiante en un curso"
-      />
+      <PageHeader title="Nueva matrícula" description="Matricular un estudiante en un curso" />
 
       {apiError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -134,7 +132,9 @@ export function EnrollmentFormPage() {
               >
                 <option value="">Seleccionar estudiante</option>
                 {studentsData?.data.map((s) => (
-                  <option key={s.id} value={s.id}>{s.firstName} {s.lastName} — {s.documentNumber}</option>
+                  <option key={s.id} value={s.id}>
+                    {s.firstName} {s.lastName} — {s.documentNumber}
+                  </option>
                 ))}
               </select>
               {errors.studentId && <p className="text-sm text-red-600 mt-1">{errors.studentId}</p>}
@@ -152,14 +152,19 @@ export function EnrollmentFormPage() {
               >
                 <option value="">Seleccionar curso</option>
                 {coursesData?.data.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.code})
+                  </option>
                 ))}
               </select>
               {errors.courseId && <p className="text-sm text-red-600 mt-1">{errors.courseId}</p>}
             </div>
 
             <div>
-              <label htmlFor="schoolGradeId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="schoolGradeId"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Grado escolar *
               </label>
               <select
@@ -170,14 +175,21 @@ export function EnrollmentFormPage() {
               >
                 <option value="">Seleccionar grado</option>
                 {schoolGradesData?.data.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name} ({g.code})</option>
+                  <option key={g.id} value={g.id}>
+                    {g.name} ({g.code})
+                  </option>
                 ))}
               </select>
-              {errors.schoolGradeId && <p className="text-sm text-red-600 mt-1">{errors.schoolGradeId}</p>}
+              {errors.schoolGradeId && (
+                <p className="text-sm text-red-600 mt-1">{errors.schoolGradeId}</p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="academicPeriodId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="academicPeriodId"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Periodo académico *
               </label>
               <select
@@ -188,10 +200,14 @@ export function EnrollmentFormPage() {
               >
                 <option value="">Seleccionar periodo</option>
                 {periodsData?.data.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
                 ))}
               </select>
-              {errors.academicPeriodId && <p className="text-sm text-red-600 mt-1">{errors.academicPeriodId}</p>}
+              {errors.academicPeriodId && (
+                <p className="text-sm text-red-600 mt-1">{errors.academicPeriodId}</p>
+              )}
             </div>
           </div>
         </Card>

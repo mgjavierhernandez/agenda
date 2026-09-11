@@ -13,13 +13,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
@@ -48,10 +42,7 @@ export class SchedulesController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 409, description: 'Conflict' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() createScheduleDto: CreateScheduleDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() createScheduleDto: CreateScheduleDto) {
     return this.schedulesService.create(
       req.tenant!.institutionId,
       createScheduleDto,
@@ -67,15 +58,8 @@ export class SchedulesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListSchedulesQueryDto,
-  ) {
-    return this.schedulesService.findAll(
-      req.tenant!.institutionId,
-      query,
-      req.user.userId,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListSchedulesQueryDto) {
+    return this.schedulesService.findAll(req.tenant!.institutionId, query, req.user.userId);
   }
 
   @Get('export')
@@ -110,15 +94,8 @@ export class SchedulesController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Schedule not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.schedulesService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.schedulesService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch(':id')
@@ -154,15 +131,7 @@ export class SchedulesController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Schedule not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.schedulesService.deactivate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.schedulesService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

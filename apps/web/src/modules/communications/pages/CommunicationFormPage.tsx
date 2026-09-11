@@ -27,7 +27,9 @@ export function CommunicationFormPage() {
   const { hasPermission } = usePermissions();
   const canManage = hasPermission(PERMISSIONS.COMMUNICATIONS_MANAGE);
 
-  const { data: existingCommunication, isLoading: isLoadingCommunication } = useCommunication(id ?? '');
+  const { data: existingCommunication, isLoading: isLoadingCommunication } = useCommunication(
+    id ?? '',
+  );
   const createMutation = useCreateCommunication();
   const updateMutation = useUpdateCommunication();
 
@@ -112,15 +114,37 @@ export function CommunicationFormPage() {
   }
 
   if (isEditing && !existingCommunication) {
-    return <ErrorState error={{ statusCode: 404, message: 'Comunicación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Comunicación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (isEditing && existingCommunication && existingCommunication.status !== 'DRAFT') {
-    return <ErrorState error={{ statusCode: 400, message: 'Solo las comunicaciones en borrador pueden editarse', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 400,
+          message: 'Solo las comunicaciones en borrador pueden editarse',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   if (!canManage) {
-    return <ErrorState error={{ statusCode: 403, message: 'No tienes permisos para gestionar comunicaciones', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 403,
+          message: 'No tienes permisos para gestionar comunicaciones',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -129,7 +153,11 @@ export function CommunicationFormPage() {
     <div className="space-y-6 max-w-2xl">
       <PageHeader
         title={isEditing ? 'Editar comunicación' : 'Nueva comunicación'}
-        description={isEditing ? 'Actualizar información de la comunicación' : 'Crear una nueva comunicación institucional'}
+        description={
+          isEditing
+            ? 'Actualizar información de la comunicación'
+            : 'Crear una nueva comunicación institucional'
+        }
       />
 
       <Card>
@@ -194,7 +222,9 @@ export function CommunicationFormPage() {
             onChange={(e) => setExpiresAt(e.target.value)}
             disabled={isSubmitting}
           />
-          <p className="mt-1 text-sm text-gray-500">Opcional. La comunicación expirará en esta fecha.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Opcional. La comunicación expirará en esta fecha.
+          </p>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button

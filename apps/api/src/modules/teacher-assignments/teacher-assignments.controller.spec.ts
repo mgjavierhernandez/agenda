@@ -8,12 +8,16 @@ import { TeacherAssignmentsController } from './teacher-assignments.controller';
 type RouteInfo = { method: string; path: string; handler: string };
 
 function getRoutes(): RouteInfo[] {
-  const proto = TeacherAssignmentsController.prototype as unknown as Record<string, (...args: never[]) => unknown>;
+  const proto = TeacherAssignmentsController.prototype as unknown as Record<
+    string,
+    (...args: never[]) => unknown
+  >;
   const names = Object.getOwnPropertyNames(proto).filter((n) => n !== 'constructor');
   return names.map((name) => {
     const path: string | string[] | undefined = Reflect.getMetadata(PATH_METADATA, proto[name]);
     const method: RequestMethod | undefined = Reflect.getMetadata(METHOD_METADATA, proto[name]);
-    const methodName = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'][method ?? -1] ?? `m${method}`;
+    const methodName =
+      ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'][method ?? -1] ?? `m${method}`;
     const p = Array.isArray(path) ? path.join(',') : String(path ?? '');
     return { method: methodName, path: p, handler: name };
   });
@@ -43,7 +47,10 @@ describe('TeacherAssignmentsController routing (regression: uuid is expected)', 
   });
 
   it('mantiene ParseUUIDPipe en :id (validacion estricta, sin relajar)', () => {
-    const src = fs.readFileSync(path.join(__dirname, 'teacher-assignments.controller.ts'), 'utf8') as string;
+    const src = fs.readFileSync(
+      path.join(__dirname, 'teacher-assignments.controller.ts'),
+      'utf8',
+    ) as string;
     expect(src).toContain("@Param('id', ParseUUIDPipe)");
     expect(src).not.toContain('ParseUUIDPipe({ optional');
   });

@@ -40,7 +40,11 @@ export function GradeDetailPage() {
   }
 
   if (!grade) {
-    return <ErrorState error={{ statusCode: 404, message: 'Calificación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Calificación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   return (
@@ -66,7 +70,9 @@ export function GradeDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Calificación</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Información de la Calificación
+          </h3>
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Valor</dt>
@@ -120,15 +126,11 @@ export function GradeDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Creado</dt>
-              <dd className="text-gray-900">
-                {new Date(grade.createdAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(grade.createdAt).toLocaleString('es-CO')}</dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Última actualización</dt>
-              <dd className="text-gray-900">
-                {new Date(grade.updatedAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(grade.updatedAt).toLocaleString('es-CO')}</dd>
             </div>
           </dl>
         </Card>
@@ -146,7 +148,8 @@ export function GradeDetailPage() {
           <Card className="w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desactivar la calificación {grade.value} del período {grade.period}? Esta acción puede revertirse editando la calificación.
+              ¿Deseas desactivar la calificación {grade.value} del período {grade.period}? Esta
+              acción puede revertirse editando la calificación.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>

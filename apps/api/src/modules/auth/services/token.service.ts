@@ -96,7 +96,9 @@ export class TokenService {
     return { userId: storedToken.userId, tokenId: storedToken.id };
   }
 
-  async rotateRefreshToken(oldToken: string): Promise<{ newAccessToken: string; newRefreshToken: string }> {
+  async rotateRefreshToken(
+    oldToken: string,
+  ): Promise<{ newAccessToken: string; newRefreshToken: string }> {
     const validation = await this.validateRefreshToken(oldToken);
 
     if (!validation) {

@@ -30,12 +30,18 @@ export class ListAgendaQueryDto {
   @IsEnum(AgendaView)
   view?: AgendaView = AgendaView.WEEK;
 
-  @ApiPropertyOptional({ enum: AgendaEventType, isArray: true, description: 'Filter by event types' })
+  @ApiPropertyOptional({
+    enum: AgendaEventType,
+    isArray: true,
+    description: 'Filter by event types',
+  })
   @IsOptional()
   @IsEnum(AgendaEventType, { each: true })
   eventTypes?: AgendaEventType[];
 
-  @ApiPropertyOptional({ description: 'Restrict agenda to one linked student (parents only, validated)' })
+  @ApiPropertyOptional({
+    description: 'Restrict agenda to one linked student (parents only, validated)',
+  })
   @IsOptional()
   @IsUUID()
   studentId?: string;

@@ -49,7 +49,8 @@ export function TeacherAssignmentFormPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState('');
 
-  const isLoadingSelectors = isLoadingUsers || isLoadingCourses || isLoadingSubjects || isLoadingPeriods;
+  const isLoadingSelectors =
+    isLoadingUsers || isLoadingCourses || isLoadingSubjects || isLoadingPeriods;
 
   if (!canManage) {
     return (
@@ -134,7 +135,10 @@ export function TeacherAssignmentFormPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Datos de la asignación</h3>
           <div className="space-y-4">
             <div>
-              <label htmlFor="teacherUserId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="teacherUserId"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Profesor *
               </label>
               <select
@@ -145,10 +149,14 @@ export function TeacherAssignmentFormPage() {
               >
                 <option value="">Seleccionar profesor</option>
                 {usersData?.data.map((u) => (
-                  <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.email})</option>
+                  <option key={u.id} value={u.id}>
+                    {u.firstName} {u.lastName} ({u.email})
+                  </option>
                 ))}
               </select>
-              {errors.teacherUserId && <p className="text-sm text-red-600 mt-1">{errors.teacherUserId}</p>}
+              {errors.teacherUserId && (
+                <p className="text-sm text-red-600 mt-1">{errors.teacherUserId}</p>
+              )}
             </div>
 
             <div>
@@ -163,7 +171,9 @@ export function TeacherAssignmentFormPage() {
               >
                 <option value="">Seleccionar curso</option>
                 {coursesData?.data.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.code})
+                  </option>
                 ))}
               </select>
               {errors.courseId && <p className="text-sm text-red-600 mt-1">{errors.courseId}</p>}
@@ -181,14 +191,19 @@ export function TeacherAssignmentFormPage() {
               >
                 <option value="">Seleccionar asignatura</option>
                 {subjectsData?.data.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.code})
+                  </option>
                 ))}
               </select>
               {errors.subjectId && <p className="text-sm text-red-600 mt-1">{errors.subjectId}</p>}
             </div>
 
             <div>
-              <label htmlFor="academicPeriodId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="academicPeriodId"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Periodo académico *
               </label>
               <select
@@ -199,10 +214,14 @@ export function TeacherAssignmentFormPage() {
               >
                 <option value="">Seleccionar periodo</option>
                 {periodsData?.data.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
                 ))}
               </select>
-              {errors.academicPeriodId && <p className="text-sm text-red-600 mt-1">{errors.academicPeriodId}</p>}
+              {errors.academicPeriodId && (
+                <p className="text-sm text-red-600 mt-1">{errors.academicPeriodId}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -217,7 +236,9 @@ export function TeacherAssignmentFormPage() {
                   onChange={(e) => setStartDate(e.target.value)}
                   className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
-                {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
+                {errors.startDate && (
+                  <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
@@ -237,7 +258,11 @@ export function TeacherAssignmentFormPage() {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button variant="secondary" type="button" onClick={() => navigate('/teacher-assignments')}>
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => navigate('/teacher-assignments')}
+          >
             Cancelar
           </Button>
           <Button type="submit" isLoading={createMutation.isPending}>

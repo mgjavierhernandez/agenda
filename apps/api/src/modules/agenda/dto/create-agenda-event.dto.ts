@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { CommunicationAudience } from '@prisma/client';
 
 export class CreateAgendaEventDto {
@@ -22,11 +15,17 @@ export class CreateAgendaEventDto {
   @MaxLength(2000)
   description?: string;
 
-  @ApiProperty({ description: 'Event start datetime (ISO 8601)', example: '2026-09-01T14:00:00.000Z' })
+  @ApiProperty({
+    description: 'Event start datetime (ISO 8601)',
+    example: '2026-09-01T14:00:00.000Z',
+  })
   @IsDateString()
   startAt!: string;
 
-  @ApiProperty({ description: 'Event end datetime (ISO 8601)', example: '2026-09-01T16:00:00.000Z' })
+  @ApiProperty({
+    description: 'Event end datetime (ISO 8601)',
+    example: '2026-09-01T16:00:00.000Z',
+  })
   @IsDateString()
   endAt!: string;
 

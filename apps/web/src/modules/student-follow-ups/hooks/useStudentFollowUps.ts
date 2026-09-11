@@ -1,9 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
-import type { PaginatedApiResponse, StudentFollowUp, ListStudentFollowUpsParams } from '@/api/types';
+import type {
+  PaginatedApiResponse,
+  StudentFollowUp,
+  ListStudentFollowUpsParams,
+} from '@/api/types';
 
 export function useStudentFollowUps(params: ListStudentFollowUpsParams = {}) {
-  const { page = 1, limit = 20, search, studentId, type, severity, status, confidentiality, categoryId, createdById, createdFrom, createdTo } = params;
+  const {
+    page = 1,
+    limit = 20,
+    search,
+    studentId,
+    type,
+    severity,
+    status,
+    confidentiality,
+    categoryId,
+    createdById,
+    createdFrom,
+    createdTo,
+  } = params;
 
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(page));
@@ -20,7 +37,23 @@ export function useStudentFollowUps(params: ListStudentFollowUpsParams = {}) {
   if (createdTo) searchParams.set('createdTo', createdTo);
 
   return useQuery<PaginatedApiResponse<StudentFollowUp>>({
-    queryKey: ['student-follow-ups', { page, limit, search, studentId, type, severity, status, confidentiality, categoryId, createdById, createdFrom, createdTo }],
+    queryKey: [
+      'student-follow-ups',
+      {
+        page,
+        limit,
+        search,
+        studentId,
+        type,
+        severity,
+        status,
+        confidentiality,
+        categoryId,
+        createdById,
+        createdFrom,
+        createdTo,
+      },
+    ],
     queryFn: () => apiClient.get(`/student-follow-ups?${searchParams.toString()}`),
   });
 }

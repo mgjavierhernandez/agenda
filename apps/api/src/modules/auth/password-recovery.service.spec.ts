@@ -171,7 +171,9 @@ describe('AuthService - Password Recovery', () => {
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
       passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: true });
       passwordServiceMock.hash.mockResolvedValue('new-hash');
-      prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock));
+      prismaMock.$transaction.mockImplementation(
+        async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+      );
 
       const result = await service.resetPassword('valid-token', 'NewPassword123!');
 
@@ -183,9 +185,9 @@ describe('AuthService - Password Recovery', () => {
     it('should throw BadRequestException for invalid token', async () => {
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.resetPassword('invalid-token', 'NewPassword123!'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword('invalid-token', 'NewPassword123!')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException for already used token', async () => {
@@ -198,9 +200,9 @@ describe('AuthService - Password Recovery', () => {
       };
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
 
-      await expect(
-        service.resetPassword('used-token', 'NewPassword123!'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword('used-token', 'NewPassword123!')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException for expired token', async () => {
@@ -213,9 +215,9 @@ describe('AuthService - Password Recovery', () => {
       };
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
 
-      await expect(
-        service.resetPassword('expired-token', 'NewPassword123!'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword('expired-token', 'NewPassword123!')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException for inactive user', async () => {
@@ -228,9 +230,9 @@ describe('AuthService - Password Recovery', () => {
       };
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
 
-      await expect(
-        service.resetPassword('valid-token', 'NewPassword123!'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword('valid-token', 'NewPassword123!')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should revoke all refresh tokens after reset', async () => {
@@ -244,7 +246,9 @@ describe('AuthService - Password Recovery', () => {
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
       passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: true });
       passwordServiceMock.hash.mockResolvedValue('new-hash');
-      prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock));
+      prismaMock.$transaction.mockImplementation(
+        async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+      );
 
       await service.resetPassword('valid-token', 'NewPassword123!');
 
@@ -265,7 +269,9 @@ describe('AuthService - Password Recovery', () => {
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
       passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: true });
       passwordServiceMock.hash.mockResolvedValue('new-hash');
-      prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock));
+      prismaMock.$transaction.mockImplementation(
+        async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+      );
 
       await service.resetPassword('valid-token', 'NewPassword123!');
 
@@ -290,7 +296,9 @@ describe('AuthService - Password Recovery', () => {
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
       passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: true });
       passwordServiceMock.hash.mockResolvedValue('new-hash');
-      prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock));
+      prismaMock.$transaction.mockImplementation(
+        async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+      );
 
       await service.resetPassword('valid-token', 'NewPassword123!');
 
@@ -313,11 +321,14 @@ describe('AuthService - Password Recovery', () => {
         user: { id: 'user-1', status: UserStatus.ACTIVE },
       };
       prismaMock.passwordResetToken.findUnique.mockResolvedValue(mockToken);
-      passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: false, error: 'Too short' });
+      passwordServiceMock.validatePasswordPolicy.mockReturnValue({
+        valid: false,
+        error: 'Too short',
+      });
 
-      await expect(
-        service.resetPassword('valid-token', 'short'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword('valid-token', 'short')).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(passwordServiceMock.hash).not.toHaveBeenCalled();
     });

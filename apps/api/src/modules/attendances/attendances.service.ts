@@ -6,9 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import {
-  AttendanceAuthorizationService,
-} from './attendance-authorization';
+import { AttendanceAuthorizationService } from './attendance-authorization';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { ListAttendancesQueryDto } from './dto/list-attendances-query.dto';
@@ -46,13 +44,21 @@ export class AttendancesService {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
       }
-      if (access.reason === 'NO_COURSE_RELATIONSHIP' || access.reason === 'NO_STUDENT_RELATIONSHIP') {
+      if (
+        access.reason === 'NO_COURSE_RELATIONSHIP' ||
+        access.reason === 'NO_STUDENT_RELATIONSHIP'
+      ) {
         throw new NotFoundException('Student or course not found');
       }
       throw new ForbiddenException('Insufficient permissions');
     }
 
-    await this.validateIdentifiableResources(institutionId, dto.studentId, dto.courseId, dto.academicPeriodId);
+    await this.validateIdentifiableResources(
+      institutionId,
+      dto.studentId,
+      dto.courseId,
+      dto.academicPeriodId,
+    );
 
     const attendance = await this.prisma.$transaction(async (tx) => {
       await this.assertPeriodOpen(tx, institutionId, dto.academicPeriodId);
@@ -68,7 +74,9 @@ export class AttendancesService {
         },
       });
       if (existing) {
-        throw new BadRequestException('Attendance already recorded for this student, course and date');
+        throw new BadRequestException(
+          'Attendance already recorded for this student, course and date',
+        );
       }
 
       return tx.attendance.create({
@@ -109,7 +117,10 @@ export class AttendancesService {
     institutionId: string,
     query: ListAttendancesQueryDto,
     userId: string,
-  ): Promise<{ data: Attendance[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Attendance[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const role = await this.authorizationService.getUserRole(userId, institutionId);
     if (!role || role === 'SUPER_ADMIN') {
       return { data: [], meta: { page: 1, limit: query.limit ?? 20, total: 0, totalPages: 0 } };
@@ -166,11 +177,7 @@ export class AttendancesService {
     };
   }
 
-  async findOne(
-    institutionId: string,
-    attendanceId: string,
-    userId: string,
-  ): Promise<Attendance> {
+  async findOne(institutionId: string, attendanceId: string, userId: string): Promise<Attendance> {
     const attendance = await this.prisma.attendance.findFirst({
       where: { id: attendanceId, institutionId },
       include: {
@@ -345,7 +352,10 @@ export class AttendancesService {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
       }
-      if (access.reason === 'NO_COURSE_RELATIONSHIP' || access.reason === 'NO_STUDENT_RELATIONSHIP') {
+      if (
+        access.reason === 'NO_COURSE_RELATIONSHIP' ||
+        access.reason === 'NO_STUDENT_RELATIONSHIP'
+      ) {
         throw new NotFoundException('Student or course not found');
       }
       throw new ForbiddenException('Insufficient permissions');

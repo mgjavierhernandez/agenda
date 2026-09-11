@@ -64,10 +64,7 @@ describe('TaskAssignmentsService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new TaskAssignmentsService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new TaskAssignmentsService(prismaMock as never, auditServiceMock as never);
 
     mockedResolveStudents.mockReset();
     mockedResolveStudents.mockResolvedValue(null);
@@ -75,13 +72,27 @@ describe('TaskAssignmentsService', () => {
 
   describe('create', () => {
     it('should create assignment for specific students', async () => {
-      prismaMock.task.findFirst.mockResolvedValue({ id: taskId, institutionId, courseId, status: TaskStatus.PUBLISHED });
+      prismaMock.task.findFirst.mockResolvedValue({
+        id: taskId,
+        institutionId,
+        courseId,
+        status: TaskStatus.PUBLISHED,
+      });
       prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
       prismaMock.taskAssignment.findUnique.mockResolvedValue(null);
       prismaMock.enrollment.findFirst.mockResolvedValue({ id: 'enr-1', studentId, courseId });
-      prismaMock.taskAssignment.create.mockResolvedValue({ id: 'ta-1', institutionId, taskId, studentId });
+      prismaMock.taskAssignment.create.mockResolvedValue({
+        id: 'ta-1',
+        institutionId,
+        taskId,
+        studentId,
+      });
 
-      const result = await service.create(institutionId, { taskId, studentIds: [studentId] }, userId);
+      const result = await service.create(
+        institutionId,
+        { taskId, studentIds: [studentId] },
+        userId,
+      );
 
       expect(result).toHaveLength(1);
       expect(prismaMock.taskAssignment.create).toHaveBeenCalled();
@@ -96,7 +107,11 @@ describe('TaskAssignmentsService', () => {
     });
 
     it('should throw if task is not PUBLISHED', async () => {
-      prismaMock.task.findFirst.mockResolvedValue({ id: taskId, institutionId, status: TaskStatus.DRAFT });
+      prismaMock.task.findFirst.mockResolvedValue({
+        id: taskId,
+        institutionId,
+        status: TaskStatus.DRAFT,
+      });
 
       await expect(
         service.create(institutionId, { taskId, studentIds: [studentId] }, userId),
@@ -104,12 +119,22 @@ describe('TaskAssignmentsService', () => {
     });
 
     it('should auto-assign all enrolled students when no studentIds', async () => {
-      prismaMock.task.findFirst.mockResolvedValue({ id: taskId, institutionId, courseId, status: TaskStatus.PUBLISHED });
+      prismaMock.task.findFirst.mockResolvedValue({
+        id: taskId,
+        institutionId,
+        courseId,
+        status: TaskStatus.PUBLISHED,
+      });
       prismaMock.enrollment.findMany.mockResolvedValue([{ studentId: 's1' }, { studentId: 's2' }]);
       prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
       prismaMock.taskAssignment.findUnique.mockResolvedValue(null);
       prismaMock.enrollment.findFirst.mockResolvedValue({ id: 'enr-1' });
-      prismaMock.taskAssignment.create.mockResolvedValue({ id: 'ta-1', institutionId, taskId, studentId });
+      prismaMock.taskAssignment.create.mockResolvedValue({
+        id: 'ta-1',
+        institutionId,
+        taskId,
+        studentId,
+      });
 
       const result = await service.create(institutionId, { taskId }, userId);
 
@@ -133,7 +158,11 @@ describe('TaskAssignmentsService', () => {
 
     it('should reject an assignment outside the caller scope', async () => {
       mockedResolveStudents.mockResolvedValue(['own-1']);
-      prismaMock.taskAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId, studentId: 'other-1' });
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: 'ta-1',
+        institutionId,
+        studentId: 'other-1',
+      });
 
       await expect(service.findOne(institutionId, 'ta-1', 'student-1')).rejects.toThrow(
         NotFoundException,
@@ -178,9 +207,17 @@ describe('TaskAssignmentsService', () => {
   describe('update', () => {
     it('should update assignment status', async () => {
       prismaMock.taskAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId });
-      prismaMock.taskAssignment.update.mockResolvedValue({ id: 'ta-1', status: TaskAssignmentStatus.COMPLETED });
+      prismaMock.taskAssignment.update.mockResolvedValue({
+        id: 'ta-1',
+        status: TaskAssignmentStatus.COMPLETED,
+      });
 
-      const result = await service.update(institutionId, 'ta-1', { status: TaskAssignmentStatus.COMPLETED }, userId);
+      const result = await service.update(
+        institutionId,
+        'ta-1',
+        { status: TaskAssignmentStatus.COMPLETED },
+        userId,
+      );
       expect(result.status).toBe(TaskAssignmentStatus.COMPLETED);
     });
   });

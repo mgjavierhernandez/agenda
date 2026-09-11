@@ -85,7 +85,11 @@ export function CourseFormPage() {
   }
 
   if (isEditing && !existingCourse) {
-    return <ErrorState error={{ statusCode: 404, message: 'Curso no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Curso no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -137,7 +141,9 @@ export function CourseFormPage() {
               rows={3}
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
             />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
           </div>
 
           <div>

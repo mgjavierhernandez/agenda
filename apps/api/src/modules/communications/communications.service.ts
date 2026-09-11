@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Inject,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { AuthorizationService } from '../auth/authorization/authorization.service';
@@ -50,11 +44,23 @@ export class CommunicationsService {
 
     switch (audience) {
       case CommunicationAudience.TEACHERS:
-        return roleNames.includes('TEACHER') || roleNames.includes('INSTITUTION_ADMIN') || roleNames.includes('SUPER_ADMIN');
+        return (
+          roleNames.includes('TEACHER') ||
+          roleNames.includes('INSTITUTION_ADMIN') ||
+          roleNames.includes('SUPER_ADMIN')
+        );
       case CommunicationAudience.PARENTS:
-        return roleNames.includes('PARENT') || roleNames.includes('INSTITUTION_ADMIN') || roleNames.includes('SUPER_ADMIN');
+        return (
+          roleNames.includes('PARENT') ||
+          roleNames.includes('INSTITUTION_ADMIN') ||
+          roleNames.includes('SUPER_ADMIN')
+        );
       case CommunicationAudience.STUDENTS:
-        return roleNames.includes('STUDENT') || roleNames.includes('INSTITUTION_ADMIN') || roleNames.includes('SUPER_ADMIN');
+        return (
+          roleNames.includes('STUDENT') ||
+          roleNames.includes('INSTITUTION_ADMIN') ||
+          roleNames.includes('SUPER_ADMIN')
+        );
       default:
         return false;
     }
@@ -96,7 +102,10 @@ export class CommunicationsService {
   async findAll(
     institutionId: string,
     query: ListCommunicationsQueryDto,
-  ): Promise<{ data: Communication[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Communication[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -148,7 +157,10 @@ export class CommunicationsService {
     institutionId: string,
     query: ListCommunicationsQueryDto,
     userId: string,
-  ): Promise<{ data: Communication[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Communication[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -182,7 +194,15 @@ export class CommunicationsService {
 
     const visibleData: Communication[] = [];
     for (const comm of allData) {
-      if (await this.canUserViewCommunication(userId, institutionId, comm.audience, comm.status, comm.expiresAt)) {
+      if (
+        await this.canUserViewCommunication(
+          userId,
+          institutionId,
+          comm.audience,
+          comm.status,
+          comm.expiresAt,
+        )
+      ) {
         visibleData.push(comm);
       }
     }
@@ -334,7 +354,9 @@ export class CommunicationsService {
     }
 
     if (existing.expiresAt && existing.expiresAt <= new Date()) {
-      throw new BadRequestException('Cannot publish a communication with an expired expiration date');
+      throw new BadRequestException(
+        'Cannot publish a communication with an expired expiration date',
+      );
     }
 
     const communication = await this.prisma.communication.update({
@@ -346,7 +368,11 @@ export class CommunicationsService {
     });
 
     // Auto-create recipients based on audience
-    await this.createRecipientsForCommunication(institutionId, communication.id, communication.audience);
+    await this.createRecipientsForCommunication(
+      institutionId,
+      communication.id,
+      communication.audience,
+    );
 
     // Best-effort, asynchronous email dispatch. Never blocks nor rolls back the
     // publish if email fails; errors are sanitized and logged.
@@ -418,9 +444,10 @@ export class CommunicationsService {
       STUDENTS: ['STUDENT'],
     };
 
-    const targetRoles = audience === CommunicationAudience.ALL
-      ? ['TEACHER', 'PARENT', 'STUDENT']
-      : roleMap[audience] || [];
+    const targetRoles =
+      audience === CommunicationAudience.ALL
+        ? ['TEACHER', 'PARENT', 'STUDENT']
+        : roleMap[audience] || [];
 
     if (targetRoles.length === 0) return;
 
@@ -493,12 +520,10 @@ export class CommunicationsService {
           title: communication.title,
           content: communication.content,
         };
-        this.emailProvider
-          .sendCommunication(data)
-          .catch((err: unknown) => {
-            const message = err instanceof Error ? err.message : String(err);
-            this.logger.warn(`[comm ${communication.id}] email to ${u.email} failed: ${message}`);
-          });
+        this.emailProvider.sendCommunication(data).catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`[comm ${communication.id}] email to ${u.email} failed: ${message}`);
+        });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

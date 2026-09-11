@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Memberships Module (e2e)', () => {
   let app: INestApplication;
@@ -63,7 +64,9 @@ describe('Memberships Module (e2e)', () => {
       data: {
         email: 'admin@second-memberships-e2e.dev',
         passwordHash: VALID_PASSWORD_HASH,
-        firstName: 'Second', lastName: 'Admin', status: 'ACTIVE',
+        firstName: 'Second',
+        lastName: 'Admin',
+        status: 'ACTIVE',
       },
     });
 
@@ -101,10 +104,14 @@ describe('Memberships Module (e2e)', () => {
       await prisma.userInstitution.deleteMany({ where: { userId: testUserId } });
       await prisma.user.delete({ where: { id: testUserId } }).catch(() => {});
     }
-    await prisma.rolePermission.deleteMany({ where: { role: { institutionId: secondInstitutionId } } });
+    await prisma.rolePermission.deleteMany({
+      where: { role: { institutionId: secondInstitutionId } },
+    });
     await prisma.role.deleteMany({ where: { institutionId: secondInstitutionId } });
     await prisma.userInstitution.deleteMany({ where: { institutionId: secondInstitutionId } });
-    await prisma.user.delete({ where: { email: 'admin@second-memberships-e2e.dev' } }).catch(() => {});
+    await prisma.user
+      .delete({ where: { email: 'admin@second-memberships-e2e.dev' } })
+      .catch(() => {});
     await prisma.institution.delete({ where: { id: secondInstitutionId } }).catch(() => {});
     await app.close();
     await prisma.$disconnect();
@@ -116,7 +123,9 @@ describe('Memberships Module (e2e)', () => {
         data: {
           email: 'link-target-mem-e2e@dev.test',
           passwordHash: VALID_PASSWORD_HASH,
-          firstName: 'Link', lastName: 'Target', status: 'ACTIVE',
+          firstName: 'Link',
+          lastName: 'Target',
+          status: 'ACTIVE',
         },
       });
       testUserId = user.id;
@@ -155,7 +164,9 @@ describe('Memberships Module (e2e)', () => {
         data: {
           email: 'teacher-block-mem@dev.test',
           passwordHash: VALID_PASSWORD_HASH,
-          firstName: 'Blocked', lastName: 'User', status: 'ACTIVE',
+          firstName: 'Blocked',
+          lastName: 'User',
+          status: 'ACTIVE',
         },
       });
 
@@ -258,7 +269,9 @@ describe('Memberships Module (e2e)', () => {
 
     it('TEST-11: Admin removes role \u2192 204', async () => {
       await request(app.getHttpServer())
-        .delete(`/api/v1/institutions/${demoInstitutionId}/memberships/user/${testUserId}/roles/${teacherRoleId}`)
+        .delete(
+          `/api/v1/institutions/${demoInstitutionId}/memberships/user/${testUserId}/roles/${teacherRoleId}`,
+        )
         .set('Authorization', `Bearer ${adminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .expect(204);
@@ -283,7 +296,9 @@ describe('Memberships Module (e2e)', () => {
         data: {
           email: 'escalation-target-mem@dev.test',
           passwordHash: VALID_PASSWORD_HASH,
-          firstName: 'Escalation', lastName: 'Target', status: 'ACTIVE',
+          firstName: 'Escalation',
+          lastName: 'Target',
+          status: 'ACTIVE',
         },
       });
       escalationUserId = user.id;
@@ -299,7 +314,9 @@ describe('Memberships Module (e2e)', () => {
 
     afterAll(async () => {
       if (escalationUserId) {
-        await prisma.userRole.deleteMany({ where: { userInstitution: { userId: escalationUserId } } });
+        await prisma.userRole.deleteMany({
+          where: { userInstitution: { userId: escalationUserId } },
+        });
         await prisma.userInstitution.deleteMany({ where: { userId: escalationUserId } });
         await prisma.user.delete({ where: { id: escalationUserId } }).catch(() => {});
       }
@@ -311,7 +328,9 @@ describe('Memberships Module (e2e)', () => {
       });
 
       await request(app.getHttpServer())
-        .post(`/api/v1/institutions/${demoInstitutionId}/memberships/user/${escalationUserId}/roles`)
+        .post(
+          `/api/v1/institutions/${demoInstitutionId}/memberships/user/${escalationUserId}/roles`,
+        )
         .set('Authorization', `Bearer ${adminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .send({ roleId: superAdminRole!.id })
@@ -335,7 +354,9 @@ describe('Memberships Module (e2e)', () => {
       expect(foreignRole).toBeTruthy();
 
       await request(app.getHttpServer())
-        .post(`/api/v1/institutions/${demoInstitutionId}/memberships/user/${escalationUserId}/roles`)
+        .post(
+          `/api/v1/institutions/${demoInstitutionId}/memberships/user/${escalationUserId}/roles`,
+        )
         .set('Authorization', `Bearer ${adminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .send({ roleId: foreignRole!.id })

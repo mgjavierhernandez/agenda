@@ -1,4 +1,13 @@
-import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsUUID, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsEnum,
+  IsUUID,
+  IsDateString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { TaskStatus } from '@prisma/client';
 import { ApiPropertyOptional } from '@nestjs/swagger';
@@ -39,7 +48,10 @@ export class ListTasksQueryDto {
   @IsUUID()
   subjectId?: string;
 
-  @ApiPropertyOptional({ format: 'uuid', description: 'Restrict to tasks assigned to one accessible student' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Restrict to tasks assigned to one accessible student',
+  })
   @IsOptional()
   @IsUUID()
   studentId?: string;

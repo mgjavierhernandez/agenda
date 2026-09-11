@@ -58,19 +58,14 @@ export class FollowUpCategoriesService {
     return category;
   }
 
-  async findAll(
-    institutionId: string,
-  ): Promise<FollowUpCategory[]> {
+  async findAll(institutionId: string): Promise<FollowUpCategory[]> {
     return this.prisma.followUpCategory.findMany({
       where: { institutionId },
       orderBy: { name: 'asc' },
     });
   }
 
-  async findOne(
-    institutionId: string,
-    categoryId: string,
-  ): Promise<FollowUpCategory> {
+  async findOne(institutionId: string, categoryId: string): Promise<FollowUpCategory> {
     const category = await this.prisma.followUpCategory.findFirst({
       where: { id: categoryId, institutionId },
     });

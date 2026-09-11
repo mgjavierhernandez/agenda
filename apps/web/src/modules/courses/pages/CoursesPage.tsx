@@ -59,9 +59,7 @@ export function CoursesPage() {
         description="Gestionar cursos de la institución"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/courses/new')}>
-              Nuevo curso
-            </Button>
+            <Button onClick={() => navigate('/courses/new')}>Nuevo curso</Button>
           ) : undefined
         }
       />
@@ -174,12 +172,8 @@ export function CoursesPage() {
               <Card key={course.id}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">
-                      {course.name}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1 font-mono">
-                      {course.code}
-                    </p>
+                    <p className="font-medium text-gray-900">{course.name}</p>
+                    <p className="text-sm text-gray-500 mt-1 font-mono">{course.code}</p>
                     {course.description && (
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                         {course.description}

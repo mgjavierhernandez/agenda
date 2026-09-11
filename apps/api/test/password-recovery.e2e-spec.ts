@@ -72,10 +72,7 @@ describe('Password Recovery (e2e)', () => {
     });
 
     it('should reject missing email', async () => {
-      await request(app.getHttpServer())
-        .post('/api/v1/auth/forgot-password')
-        .send({})
-        .expect(400);
+      await request(app.getHttpServer()).post('/api/v1/auth/forgot-password').send({}).expect(400);
     });
 
     it('should not reveal raw token in response', async () => {

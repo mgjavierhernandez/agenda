@@ -39,7 +39,10 @@ async function bootstrap(): Promise<void> {
 
   // --- CORS ---
   if (corsOrigins) {
-    const origins = corsOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+    const origins = corsOrigins
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean);
     app.enableCors({
       origin: origins,
       credentials: true,
@@ -62,13 +65,13 @@ async function bootstrap(): Promise<void> {
       .setTitle('Agenda Escolar Digital — API')
       .setDescription(
         'REST API for the School Agenda Digital Platform.\n\n' +
-        '## Authentication\n' +
-        'All protected endpoints require a JWT Bearer token in the `Authorization` header.\n\n' +
-        '## Tenant Context\n' +
-        'Most endpoints require the `X-Institution-Id` header to scope requests to a specific institution. ' +
-        'SUPER_ADMIN users can access cross-tenant endpoints.\n\n' +
-        '## Request ID\n' +
-        'Every response includes an `X-Request-Id` header. You may supply your own via the `X-Request-Id` request header.',
+          '## Authentication\n' +
+          'All protected endpoints require a JWT Bearer token in the `Authorization` header.\n\n' +
+          '## Tenant Context\n' +
+          'Most endpoints require the `X-Institution-Id` header to scope requests to a specific institution. ' +
+          'SUPER_ADMIN users can access cross-tenant endpoints.\n\n' +
+          '## Request ID\n' +
+          'Every response includes an `X-Request-Id` header. You may supply your own via the `X-Request-Id` request header.',
       )
       .setVersion('1.0.1')
       .addBearerAuth(
@@ -103,7 +106,10 @@ async function bootstrap(): Promise<void> {
       .addTag('Enrollments', 'Student enrollment management')
       .addTag('Teacher Assignments', 'Teacher–course–subject assignment management')
       .addTag('Files', 'File upload, download, and management')
-      .addTag('Agenda', 'Aggregated calendar view — custom events, tasks, schedules, communications, signatures')
+      .addTag(
+        'Agenda',
+        'Aggregated calendar view — custom events, tasks, schedules, communications, signatures',
+      )
       .addTag('Agenda Events', 'Custom agenda event CRUD (create, read, update, cancel)')
       .build();
 

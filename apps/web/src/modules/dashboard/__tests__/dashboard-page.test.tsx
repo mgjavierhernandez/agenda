@@ -24,7 +24,12 @@ vi.mock('@/auth/auth.store', () => ({
 
 vi.mock('@/tenant/tenant.store', () => ({
   useTenant: () => ({
-    selectedInstitution: { id: 'inst-1', name: 'Colegio San José', slug: 'san-jose', status: 'ACTIVE' },
+    selectedInstitution: {
+      id: 'inst-1',
+      name: 'Colegio San José',
+      slug: 'san-jose',
+      status: 'ACTIVE',
+    },
     isTenantReady: true,
     hasMultipleInstitutions: false,
     needsInstitutionSelection: false,
@@ -108,16 +113,38 @@ const adminDashboard: RoleDashboard = {
     },
   ],
   recentCommunications: [
-    { id: 'comm-1', title: 'Comunicado de inicio de año', content: 'Hola', publishedAt: '2026-01-05T10:00:00Z' },
+    {
+      id: 'comm-1',
+      title: 'Comunicado de inicio de año',
+      content: 'Hola',
+      publishedAt: '2026-01-05T10:00:00Z',
+    },
   ],
   pendingSignatures: [
-    { id: 'sig-1', title: 'Autorización de excursión', description: 'Firma requerida', dueDate: '2026-02-20T00:00:00Z' },
+    {
+      id: 'sig-1',
+      title: 'Autorización de excursión',
+      description: 'Firma requerida',
+      dueDate: '2026-02-20T00:00:00Z',
+    },
   ],
   followUps: [
-    { id: 'fu-1', title: 'Seguimiento académico', confidentiality: 'INTERNAL', status: 'OPEN', createdAt: '2026-01-10T10:00:00Z', studentId: 'stu-1' },
+    {
+      id: 'fu-1',
+      title: 'Seguimiento académico',
+      confidentiality: 'INTERNAL',
+      status: 'OPEN',
+      createdAt: '2026-01-10T10:00:00Z',
+      studentId: 'stu-1',
+    },
   ],
   pendingCommitments: [
-    { id: 'co-1', description: 'Presentar reporte', status: 'PENDING', dueDate: '2026-02-01T00:00:00Z' },
+    {
+      id: 'co-1',
+      description: 'Presentar reporte',
+      status: 'PENDING',
+      dueDate: '2026-02-01T00:00:00Z',
+    },
   ],
 };
 
@@ -125,7 +152,8 @@ function mockDashboard(payload: RoleDashboard, unreadCount = 3) {
   vi.mocked(apiClient.get).mockImplementation((url: string) => {
     const u = String(url);
     if (u === '/dashboard') return Promise.resolve(payload);
-    if (u === '/communication-recipients/unread-count') return Promise.resolve({ count: unreadCount });
+    if (u === '/communication-recipients/unread-count')
+      return Promise.resolve({ count: unreadCount });
     return Promise.resolve({});
   });
 }

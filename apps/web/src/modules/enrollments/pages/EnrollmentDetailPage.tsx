@@ -72,7 +72,11 @@ export function EnrollmentDetailPage() {
   }
 
   if (!enrollment) {
-    return <ErrorState error={{ statusCode: 404, message: 'Matrícula no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Matrícula no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canDeactivate = canManage && enrollment.status === 'ACTIVE';
@@ -105,23 +109,37 @@ export function EnrollmentDetailPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Estudiante</dt>
-              <dd className="text-gray-900">{student ? `${student.firstName} ${student.lastName}` : enrollment.studentId}</dd>
+              <dd className="text-gray-900">
+                {student ? `${student.firstName} ${student.lastName}` : enrollment.studentId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Documento</dt>
-              <dd className="text-gray-900">{student ? `${student.documentType} ${student.documentNumber}` : '—'}</dd>
+              <dd className="text-gray-900">
+                {student ? `${student.documentType} ${student.documentNumber}` : '—'}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Curso</dt>
-              <dd className="text-gray-900">{course ? `${course.name} (${course.code})` : enrollment.courseId}</dd>
+              <dd className="text-gray-900">
+                {course ? `${course.name} (${course.code})` : enrollment.courseId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Grado escolar</dt>
-              <dd className="text-gray-900">{schoolGrade ? `${schoolGrade.name} (${schoolGrade.code})` : enrollment.schoolGradeId}</dd>
+              <dd className="text-gray-900">
+                {schoolGrade
+                  ? `${schoolGrade.name} (${schoolGrade.code})`
+                  : enrollment.schoolGradeId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Periodo académico</dt>
-              <dd className="text-gray-900">{academicPeriod ? `${academicPeriod.name} (${academicPeriod.code})` : enrollment.academicPeriodId}</dd>
+              <dd className="text-gray-900">
+                {academicPeriod
+                  ? `${academicPeriod.name} (${academicPeriod.code})`
+                  : enrollment.academicPeriodId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Estado</dt>
@@ -186,7 +204,11 @@ export function EnrollmentDetailPage() {
               </Button>
               <Button
                 variant="danger"
-                isLoading={confirmAction === 'deactivate' ? deactivateMutation.isPending : updateMutation.isPending}
+                isLoading={
+                  confirmAction === 'deactivate'
+                    ? deactivateMutation.isPending
+                    : updateMutation.isPending
+                }
                 onClick={confirmAction === 'deactivate' ? handleDeactivate : handleWithdraw}
               >
                 {confirmAction === 'deactivate' ? 'Desactivar' : 'Retirar'}

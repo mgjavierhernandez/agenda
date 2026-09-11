@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { CommunicationRecipientStatus, Prisma } from '@prisma/client';
@@ -14,12 +11,7 @@ export class CommunicationRecipientsService {
     private readonly auditService: AuditService,
   ) {}
 
-  async markAsRead(
-    institutionId: string,
-    id: string,
-    userId: string,
-    ipAddress?: string,
-  ) {
+  async markAsRead(institutionId: string, id: string, userId: string, ipAddress?: string) {
     const recipient = await this.prisma.communicationRecipient.findFirst({
       where: { id, institutionId, userId },
     });
@@ -71,11 +63,7 @@ export class CommunicationRecipientsService {
     return { opened: true };
   }
 
-  async findAll(
-    institutionId: string,
-    userId: string,
-    query: ListRecipientsQueryDto,
-  ) {
+  async findAll(institutionId: string, userId: string, query: ListRecipientsQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -105,10 +93,7 @@ export class CommunicationRecipientsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async getUnreadCount(
-    institutionId: string,
-    userId: string,
-  ): Promise<{ count: number }> {
+  async getUnreadCount(institutionId: string, userId: string): Promise<{ count: number }> {
     const count = await this.prisma.communicationRecipient.count({
       where: {
         institutionId,
@@ -119,11 +104,7 @@ export class CommunicationRecipientsService {
     return { count };
   }
 
-  async markAllAsRead(
-    institutionId: string,
-    userId: string,
-    ipAddress?: string,
-  ) {
+  async markAllAsRead(institutionId: string, userId: string, ipAddress?: string) {
     const result = await this.prisma.communicationRecipient.updateMany({
       where: {
         institutionId,

@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Request, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
@@ -64,7 +77,11 @@ export class AreasController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Area not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async update(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAreaDto) {
+  async update(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateAreaDto,
+  ) {
     return this.areasService.update(req.tenant!.institutionId, id, dto, req.user.userId, req.ip);
   }
 

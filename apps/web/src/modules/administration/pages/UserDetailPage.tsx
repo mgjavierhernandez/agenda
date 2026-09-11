@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/auth/auth.store';
-import { useMembership, useRoles, useAssignRole, useRemoveRole, useUnlinkUser, useUser } from '../hooks';
+import {
+  useMembership,
+  useRoles,
+  useAssignRole,
+  useRemoveRole,
+  useUnlinkUser,
+  useUser,
+} from '../hooks';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -29,7 +36,8 @@ export function UserDetailPage() {
   const { data: membership, isLoading, error } = useMembership(selectedInstitutionId, membershipId);
   const { data: fullUser } = useUser(selectedInstitutionId, membership?.userId);
   const { data: roles = [] } = useRoles();
-  const assignRole = useAssignRole(selectedInstitutionId);  const removeRole = useRemoveRole(selectedInstitutionId);
+  const assignRole = useAssignRole(selectedInstitutionId);
+  const removeRole = useRemoveRole(selectedInstitutionId);
   const unlinkUser = useUnlinkUser(selectedInstitutionId);
 
   const [apiError, setApiError] = useState('');
@@ -53,7 +61,8 @@ export function UserDetailPage() {
   }
 
   const user = membership.user;
-  const profile = fullUser?.profiles?.[0] ?? null;  const assignedRoleIds = new Set(
+  const profile = fullUser?.profiles?.[0] ?? null;
+  const assignedRoleIds = new Set(
     membership.roles.map((r) => (typeof r.role === 'string' ? r.role : r.role.id)),
   );
   const availableRoles = assignableRoles.filter((r) => !assignedRoleIds.has(r.id));
@@ -78,7 +87,9 @@ export function UserDetailPage() {
 
   const handleUnlink = async () => {
     setApiError('');
-    if (!window.confirm(`¿Deseas desvincular a ${user.firstName} ${user.lastName} de la institución?`)) {
+    if (
+      !window.confirm(`¿Deseas desvincular a ${user.firstName} ${user.lastName} de la institución?`)
+    ) {
       return;
     }
     try {
@@ -123,7 +134,9 @@ export function UserDetailPage() {
           <div>
             <dt className="text-gray-500">Estado</dt>
             <dd>
-              <Badge variant={user.status === 'ACTIVE' ? 'success' : 'default'}>{user.status}</Badge>
+              <Badge variant={user.status === 'ACTIVE' ? 'success' : 'default'}>
+                {user.status}
+              </Badge>
             </dd>
           </div>
         </dl>
@@ -199,7 +212,12 @@ export function UserDetailPage() {
             <h4 className="text-sm font-medium text-gray-700 mb-2">Asignar rol</h4>
             <div className="flex flex-wrap gap-2">
               {availableRoles.map((role) => (
-                <Button key={role.id} variant="secondary" size="sm" onClick={() => handleAssign(role.id)}>
+                <Button
+                  key={role.id}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleAssign(role.id)}
+                >
                   + {role.name}
                 </Button>
               ))}

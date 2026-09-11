@@ -1,6 +1,11 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useStudentFollowUp, useCreateStudentFollowUp, useUpdateStudentFollowUp, useFollowUpCategories } from '../hooks';
+import {
+  useStudentFollowUp,
+  useCreateStudentFollowUp,
+  useUpdateStudentFollowUp,
+  useFollowUpCategories,
+} from '../hooks';
 import { useStudents } from '@/modules/students/hooks';
 import { PermissionGate } from '@/permissions/PermissionGate';
 import { PageHeader } from '@/components/feedback/PageHeader';
@@ -120,21 +125,50 @@ export function StudentFollowUpFormPage() {
   }
 
   if (isEditing && !existingFollowUp) {
-    return <ErrorState error={{ statusCode: 404, message: 'Seguimiento no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Seguimiento no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (isEditing && existingFollowUp && existingFollowUp.status === 'CLOSED') {
-    return <ErrorState error={{ statusCode: 400, message: 'No se pueden editar seguimientos cerrados', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 400,
+          message: 'No se pueden editar seguimientos cerrados',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <PermissionGate permission={PERMISSIONS.STUDENT_FOLLOW_UPS_CREATE} fallback={<ErrorState error={{ statusCode: 403, message: 'No tienes permiso para crear seguimientos', timestamp: '', path: '' }} />}>
+    <PermissionGate
+      permission={PERMISSIONS.STUDENT_FOLLOW_UPS_CREATE}
+      fallback={
+        <ErrorState
+          error={{
+            statusCode: 403,
+            message: 'No tienes permiso para crear seguimientos',
+            timestamp: '',
+            path: '',
+          }}
+        />
+      }
+    >
       <div className="space-y-6 max-w-2xl">
         <PageHeader
           title={isEditing ? 'Editar seguimiento' : 'Nuevo seguimiento'}
-          description={isEditing ? 'Actualizar información del seguimiento' : 'Registrar un nuevo seguimiento de observador del alumno'}
+          description={
+            isEditing
+              ? 'Actualizar información del seguimiento'
+              : 'Registrar un nuevo seguimiento de observador del alumno'
+          }
         />
 
         <Card>
@@ -164,7 +198,9 @@ export function StudentFollowUpFormPage() {
                     </option>
                   ))}
                 </select>
-                {errors.studentId && <p className="mt-1 text-sm text-red-600">{errors.studentId}</p>}
+                {errors.studentId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.studentId}</p>
+                )}
               </div>
             )}
 
@@ -180,11 +216,13 @@ export function StudentFollowUpFormPage() {
                 className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
               >
                 <option value="">Sin categoría</option>
-                {categories.filter((c) => c.active).map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
+                {categories
+                  .filter((c) => c.active)
+                  .map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -224,7 +262,10 @@ export function StudentFollowUpFormPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="confidentiality" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="confidentiality"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Confidencialidad
                 </label>
                 <select
@@ -288,7 +329,9 @@ export function StudentFollowUpFormPage() {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate(isEditing ? `/student-follow-ups/${id}` : '/student-follow-ups')}
+                onClick={() =>
+                  navigate(isEditing ? `/student-follow-ups/${id}` : '/student-follow-ups')
+                }
                 disabled={isSubmitting}
               >
                 Cancelar

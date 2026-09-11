@@ -44,7 +44,9 @@ export function TaskDetailPage() {
     await createAttachmentMutation.mutateAsync({ taskId: id, fileAssetId: fileAsset.id });
   };
 
-  const [confirmAction, setConfirmAction] = useState<'publish' | 'close' | 'deactivate' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'publish' | 'close' | 'deactivate' | null>(
+    null,
+  );
 
   const handleConfirmAction = async () => {
     if (!id || !confirmAction) return;
@@ -64,7 +66,8 @@ export function TaskDetailPage() {
     }
   };
 
-  const isTransitionPending = publishMutation.isPending || closeMutation.isPending || deactivateMutation.isPending;
+  const isTransitionPending =
+    publishMutation.isPending || closeMutation.isPending || deactivateMutation.isPending;
 
   if (isLoading) {
     return (
@@ -79,7 +82,11 @@ export function TaskDetailPage() {
   }
 
   if (!task) {
-    return <ErrorState error={{ statusCode: 404, message: 'Tarea no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Tarea no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canEdit = canManage && task.status === 'DRAFT';
@@ -99,11 +106,7 @@ export function TaskDetailPage() {
                 Editar
               </Button>
             )}
-            {canPublish && (
-              <Button onClick={() => setConfirmAction('publish')}>
-                Publicar
-              </Button>
-            )}
+            {canPublish && <Button onClick={() => setConfirmAction('publish')}>Publicar</Button>}
             {canClose && (
               <Button variant="secondary" onClick={() => setConfirmAction('close')}>
                 Cerrar
@@ -134,9 +137,7 @@ export function TaskDetailPage() {
             )}
             <div>
               <dt className="text-sm text-gray-500">Fecha límite</dt>
-              <dd className="text-gray-900">
-                {new Date(task.dueDate).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(task.dueDate).toLocaleString('es-CO')}</dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Estado</dt>
@@ -166,15 +167,11 @@ export function TaskDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Creado</dt>
-              <dd className="text-gray-900">
-                {new Date(task.createdAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(task.createdAt).toLocaleString('es-CO')}</dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Última actualización</dt>
-              <dd className="text-gray-900">
-                {new Date(task.updatedAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(task.updatedAt).toLocaleString('es-CO')}</dd>
             </div>
           </dl>
         </Card>
@@ -183,9 +180,7 @@ export function TaskDetailPage() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Archivos adjuntos</h3>
-          {canAttach && (
-            <span className="text-sm text-gray-500">Máx. 10 archivos, 10 MB c/u</span>
-          )}
+          {canAttach && <span className="text-sm text-gray-500">Máx. 10 archivos, 10 MB c/u</span>}
         </div>
         <AttachmentList
           attachments={attachments}
@@ -211,10 +206,7 @@ export function TaskDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Asignaciones</h3>
           {canManage && task.status === 'PUBLISHED' && (
-            <Button
-              size="sm"
-              onClick={() => navigate(`/task-assignments/new`)}
-            >
+            <Button size="sm" onClick={() => navigate(`/task-assignments/new`)}>
               Nueva asignación
             </Button>
           )}
@@ -224,21 +216,14 @@ export function TaskDetailPage() {
         ) : (
           <div className="text-sm text-gray-600">
             <p>
-              {assignments.length} asignacion{assignments.length !== 1 ? 'es' : ''} registrada{assignments.length !== 1 ? 's' : ''}
+              {assignments.length} asignacion{assignments.length !== 1 ? 'es' : ''} registrada
+              {assignments.length !== 1 ? 's' : ''}
             </p>
             <div className="flex gap-3 mt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/task-assignments`)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/task-assignments`)}>
                 Ver todas las asignaciones
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/task-submissions`)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/task-submissions`)}>
                 Ver entregas
               </Button>
             </div>
@@ -262,9 +247,12 @@ export function TaskDetailPage() {
               {confirmAction === 'deactivate' && 'Confirmar desactivación'}
             </h3>
             <p className="text-gray-600 mb-6">
-              {confirmAction === 'publish' && `¿Deseas publicar la tarea "${task.title}"? Una vez publicada, los estudiantes podrán verla y asignarla.`}
-              {confirmAction === 'close' && `¿Deseas cerrar la tarea "${task.title}"? No se podrán recibir nuevas entregas.`}
-              {confirmAction === 'deactivate' && `¿Deseas desactivar la tarea "${task.title}"? Esta acción puede revertirse editando la tarea.`}
+              {confirmAction === 'publish' &&
+                `¿Deseas publicar la tarea "${task.title}"? Una vez publicada, los estudiantes podrán verla y asignarla.`}
+              {confirmAction === 'close' &&
+                `¿Deseas cerrar la tarea "${task.title}"? No se podrán recibir nuevas entregas.`}
+              {confirmAction === 'deactivate' &&
+                `¿Deseas desactivar la tarea "${task.title}"? Esta acción puede revertirse editando la tarea.`}
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setConfirmAction(null)}>

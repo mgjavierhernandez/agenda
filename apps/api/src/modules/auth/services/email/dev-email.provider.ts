@@ -23,14 +23,10 @@ export class DevEmailProvider implements EmailProvider {
   }
 
   async sendCommunication(data: CommunicationEmailData): Promise<void> {
-    this.logger.log(
-      `[DEV EMAIL] Communication to ${data.to}: "${data.title}"`,
-    );
+    this.logger.log(`[DEV EMAIL] Communication to ${data.to}: "${data.title}"`);
   }
 
   async sendSignatureRequest(data: SignatureRequestEmailData): Promise<void> {
-    this.logger.log(
-      `[DEV EMAIL] Signature request to ${data.to}: "${data.title}"`,
-    );
+    this.logger.log(`[DEV EMAIL] Signature request to ${data.to}: "${data.title}"`);
   }
 }

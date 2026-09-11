@@ -4,7 +4,11 @@ import type { StudentFollowUpCategory, UpdateFollowUpCategoryInput } from '@/api
 
 export function useUpdateFollowUpCategory() {
   const queryClient = useQueryClient();
-  return useMutation<StudentFollowUpCategory, Error, { id: string; data: UpdateFollowUpCategoryInput }>({
+  return useMutation<
+    StudentFollowUpCategory,
+    Error,
+    { id: string; data: UpdateFollowUpCategoryInput }
+  >({
     mutationFn: ({ id, data }) => apiClient.patch(`/student-follow-ups/categories/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-follow-up-categories'] });

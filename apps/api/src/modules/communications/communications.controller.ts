@@ -49,10 +49,7 @@ export class CommunicationsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new communication' })
   @ApiResponse({ status: 201, description: 'Communication created successfully' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateCommunicationDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateCommunicationDto) {
     return this.communicationsService.create(
       req.tenant!.institutionId,
       dto,
@@ -65,17 +62,29 @@ export class CommunicationsController {
   @RequirePermission('communications:read')
   @ApiOperation({ summary: 'List communications with optional filters' })
   @ApiResponse({ status: 200, description: 'Communications retrieved successfully' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search by title or content' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by title or content',
+  })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by status' })
   @ApiQuery({ name: 'audience', required: false, type: String, description: 'Filter by audience' })
-  @ApiQuery({ name: 'publishedFrom', required: false, type: String, description: 'Filter by published date from' })
-  @ApiQuery({ name: 'publishedTo', required: false, type: String, description: 'Filter by published date to' })
+  @ApiQuery({
+    name: 'publishedFrom',
+    required: false,
+    type: String,
+    description: 'Filter by published date from',
+  })
+  @ApiQuery({
+    name: 'publishedTo',
+    required: false,
+    type: String,
+    description: 'Filter by published date to',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListCommunicationsQueryDto,
-  ) {
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListCommunicationsQueryDto) {
     const hasManagePermission = await this.authorizationService.hasPermission(
       req.user.userId,
       req.tenant!.institutionId,
@@ -83,10 +92,7 @@ export class CommunicationsController {
     );
 
     if (hasManagePermission) {
-      return this.communicationsService.findAll(
-        req.tenant!.institutionId,
-        query,
-      );
+      return this.communicationsService.findAll(req.tenant!.institutionId, query);
     }
 
     return this.communicationsService.findAllVisible(
@@ -102,10 +108,7 @@ export class CommunicationsController {
   @ApiParam({ name: 'id', description: 'Communication UUID' })
   @ApiResponse({ status: 200, description: 'Communication found' })
   @ApiResponse({ status: 404, description: 'Communication not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     const hasManagePermission = await this.authorizationService.hasPermission(
       req.user.userId,
       req.tenant!.institutionId,
@@ -113,10 +116,7 @@ export class CommunicationsController {
     );
 
     if (hasManagePermission) {
-      return this.communicationsService.findOne(
-        req.tenant!.institutionId,
-        id,
-      );
+      return this.communicationsService.findOne(req.tenant!.institutionId, id);
     }
 
     return this.communicationsService.findOneVisible(
@@ -152,10 +152,7 @@ export class CommunicationsController {
   @ApiParam({ name: 'id', description: 'Communication UUID' })
   @ApiResponse({ status: 200, description: 'Communication published successfully' })
   @ApiResponse({ status: 404, description: 'Communication not found' })
-  async publish(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async publish(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.communicationsService.publish(
       req.tenant!.institutionId,
       id,
@@ -170,10 +167,7 @@ export class CommunicationsController {
   @ApiParam({ name: 'id', description: 'Communication UUID' })
   @ApiResponse({ status: 200, description: 'Communication deactivated successfully' })
   @ApiResponse({ status: 404, description: 'Communication not found' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.communicationsService.deactivate(
       req.tenant!.institutionId,
       id,
@@ -212,10 +206,7 @@ export class CommunicationsController {
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.filesService.listCommunicationAttachments(
-      req.tenant!.institutionId,
-      id,
-    );
+    return this.filesService.listCommunicationAttachments(req.tenant!.institutionId, id);
   }
 
   @Delete(':id/attachments/:attachmentId')

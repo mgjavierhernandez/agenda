@@ -16,7 +16,10 @@ import { PERMISSIONS } from '@/permissions/permission.constants';
 import { ATTENDANCE_STATUS_LABELS } from '@/api/types';
 import type { AttendanceStatus } from '@/api/types';
 
-const ATTENDANCE_STATUS_VARIANT: Record<AttendanceStatus, 'success' | 'danger' | 'warning' | 'info'> = {
+const ATTENDANCE_STATUS_VARIANT: Record<
+  AttendanceStatus,
+  'success' | 'danger' | 'warning' | 'info'
+> = {
   PRESENT: 'success',
   ABSENT: 'danger',
   LATE: 'warning',
@@ -104,9 +107,7 @@ export function AttendanceListPage() {
         description="Registro de asistencia de estudiantes a los cursos"
         actions={
           canRegister ? (
-            <Button onClick={() => navigate('/attendance/register')}>
-              Registrar asistencia
-            </Button>
+            <Button onClick={() => navigate('/attendance/register')}>Registrar asistencia</Button>
           ) : undefined
         }
       />
@@ -114,18 +115,26 @@ export function AttendanceListPage() {
       <Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label htmlFor="filter-student" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="filter-student"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Estudiante
             </label>
             <select
               id="filter-student"
               value={studentIdFilter}
-              onChange={(e) => { setStudentIdFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setStudentIdFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {studentsData?.data.map((s) => (
-                <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
+                <option key={s.id} value={s.id}>
+                  {s.firstName} {s.lastName}
+                </option>
               ))}
             </select>
           </div>
@@ -136,12 +145,17 @@ export function AttendanceListPage() {
             <select
               id="filter-course"
               value={courseIdFilter}
-              onChange={(e) => { setCourseIdFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setCourseIdFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {coursesData?.data.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -152,12 +166,17 @@ export function AttendanceListPage() {
             <select
               id="filter-period"
               value={academicPeriodIdFilter}
-              onChange={(e) => { setAcademicPeriodIdFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setAcademicPeriodIdFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {periodsData?.data.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
@@ -168,12 +187,17 @@ export function AttendanceListPage() {
             <select
               id="filter-status"
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value as AttendanceStatus | ''); setPage(1); }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as AttendanceStatus | '');
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {Object.entries(ATTENDANCE_STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
+                <option key={value} value={value}>
+                  {label}
+                </option>
               ))}
             </select>
           </div>
@@ -185,7 +209,10 @@ export function AttendanceListPage() {
               id="filter-date"
               type="date"
               value={dateFilter}
-              onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -209,7 +236,9 @@ export function AttendanceListPage() {
         </div>
       ) : attendances.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? 'No se encontraron registros' : 'No hay registros de asistencia'}
+          title={
+            hasActiveFilters ? 'No se encontraron registros' : 'No hay registros de asistencia'
+          }
           description={
             hasActiveFilters
               ? 'No encontramos asistencias que coincidan con los filtros.'
@@ -217,9 +246,7 @@ export function AttendanceListPage() {
           }
           action={
             canRegister && !hasActiveFilters ? (
-              <Button onClick={() => navigate('/attendance/register')}>
-                Registrar asistencia
-              </Button>
+              <Button onClick={() => navigate('/attendance/register')}>Registrar asistencia</Button>
             ) : undefined
           }
         />
@@ -258,9 +285,7 @@ export function AttendanceListPage() {
                           {ATTENDANCE_STATUS_LABELS[attendance.status]}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
-                        {attendance.notes ?? '—'}
-                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{attendance.notes ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -65,7 +65,11 @@ export function AcademicPeriodDetailPage() {
   }
 
   if (!period) {
-    return <ErrorState error={{ statusCode: 404, message: 'Periodo no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Periodo no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isClosed = period.status === 'CLOSED';
@@ -128,13 +132,23 @@ export function AcademicPeriodDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Fecha de inicio</dt>
               <dd className="text-gray-900">
-                {new Date(period.startDate).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {new Date(period.startDate).toLocaleDateString('es-CO', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de finalización</dt>
               <dd className="text-gray-900">
-                {new Date(period.endDate).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {new Date(period.endDate).toLocaleDateString('es-CO', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </dd>
             </div>
             <div>
@@ -166,11 +180,10 @@ export function AcademicPeriodDetailPage() {
       {confirmDeactivate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Card className="w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Confirmar desactivación
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desactivar el periodo "{period.name}"? Esta acción cambiará su estado a Inactivo.
+              ¿Deseas desactivar el periodo "{period.name}"? Esta acción cambiará su estado a
+              Inactivo.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setConfirmDeactivate(false)}>
@@ -202,11 +215,7 @@ export function AcademicPeriodDetailPage() {
               <Button variant="secondary" onClick={() => setConfirmClose(false)}>
                 Cancelar
               </Button>
-              <Button
-                variant="danger"
-                isLoading={closeMutation.isPending}
-                onClick={handleClose}
-              >
+              <Button variant="danger" isLoading={closeMutation.isPending} onClick={handleClose}>
                 Cerrar periodo
               </Button>
             </div>

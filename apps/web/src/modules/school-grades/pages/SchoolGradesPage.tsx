@@ -63,9 +63,7 @@ export function SchoolGradesPage() {
         description="Gestionar los grados o niveles académicos de la institución"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/school-grades/new')}>
-              Nuevo grado
-            </Button>
+            <Button onClick={() => navigate('/school-grades/new')}>Nuevo grado</Button>
           ) : undefined
         }
       />
@@ -128,12 +126,13 @@ export function SchoolGradesPage() {
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">
                         {grade.sortOrder}
                       </td>
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={grade.name}>
+                      <td
+                        className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                        title={grade.name}
+                      >
                         {grade.name}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 font-mono text-xs">
-                        {grade.code}
-                      </td>
+                      <td className="px-4 py-3 text-gray-600 font-mono text-xs">{grade.code}</td>
                       <td className="px-4 py-3">
                         <Badge variant={STATUS_BADGE_VARIANT[grade.status]}>
                           {SCHOOL_GRADE_STATUS_LABELS[grade.status]}
@@ -162,15 +161,9 @@ export function SchoolGradesPage() {
               <Card key={grade.id}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-lg truncate">
-                      {grade.name}
-                    </p>
-                    <p className="text-sm text-gray-500 font-mono">
-                      {grade.code}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Orden: {grade.sortOrder}
-                    </p>
+                    <p className="font-semibold text-gray-900 text-lg truncate">{grade.name}</p>
+                    <p className="text-sm text-gray-500 font-mono">{grade.code}</p>
+                    <p className="text-xs text-gray-500">Orden: {grade.sortOrder}</p>
                   </div>
                   <Badge variant={STATUS_BADGE_VARIANT[grade.status]}>
                     {SCHOOL_GRADE_STATUS_LABELS[grade.status]}

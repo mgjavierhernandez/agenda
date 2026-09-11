@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { CreateClassroomDto, UpdateClassroomDto, ListClassroomsQueryDto } from './dto/classroom.dto';
+import {
+  CreateClassroomDto,
+  UpdateClassroomDto,
+  ListClassroomsQueryDto,
+} from './dto/classroom.dto';
 import { Classroom, ScheduleStatus, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -51,7 +55,10 @@ export class ClassroomsService {
   async findAll(
     institutionId: string,
     query: ListClassroomsQueryDto,
-  ): Promise<{ data: Classroom[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Classroom[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -119,7 +126,10 @@ export class ClassroomsService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === ScheduleStatus.INACTIVE ? 'CLASSROOM_DEACTIVATED' : 'CLASSROOM_UPDATED',
+      action:
+        dto.status && dto.status === ScheduleStatus.INACTIVE
+          ? 'CLASSROOM_DEACTIVATED'
+          : 'CLASSROOM_UPDATED',
       entityType: 'Classroom',
       entityId: classroom.id,
       oldValues: { code: existing.code, name: existing.name, status: existing.status },

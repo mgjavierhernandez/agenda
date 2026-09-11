@@ -1,6 +1,12 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSchedule, useCreateSchedule, useUpdateSchedule, useScheduleBlocks, useClassrooms } from '../hooks';
+import {
+  useSchedule,
+  useCreateSchedule,
+  useUpdateSchedule,
+  useScheduleBlocks,
+  useClassrooms,
+} from '../hooks';
 import { useCourses } from '@/modules/courses/hooks';
 import { useSubjects } from '@/modules/subjects/hooks';
 import { useAcademicPeriods } from '@/modules/academic-periods/hooks';
@@ -12,7 +18,12 @@ import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { getErrorMessage } from '@/api/errors';
-import type { ScheduleStatus, DayOfWeek, CreateScheduleInput, UpdateScheduleInput } from '@/api/types';
+import type {
+  ScheduleStatus,
+  DayOfWeek,
+  CreateScheduleInput,
+  UpdateScheduleInput,
+} from '@/api/types';
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -83,7 +94,12 @@ export function ScheduleFormPage() {
     } else if (!TIME_REGEX.test(endTime)) {
       newErrors.endTime = 'Formato de hora inválido (HH:MM)';
     }
-    if (startTime.trim() && endTime.trim() && TIME_REGEX.test(startTime) && TIME_REGEX.test(endTime)) {
+    if (
+      startTime.trim() &&
+      endTime.trim() &&
+      TIME_REGEX.test(startTime) &&
+      TIME_REGEX.test(endTime)
+    ) {
       if (startTime >= endTime) {
         newErrors.endTime = 'La hora de fin debe ser posterior a la hora de inicio';
       }
@@ -131,7 +147,11 @@ export function ScheduleFormPage() {
   }
 
   if (isEditing && !existingSchedule) {
-    return <ErrorState error={{ statusCode: 404, message: 'Horario no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Horario no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -140,7 +160,9 @@ export function ScheduleFormPage() {
     <div className="space-y-6 max-w-2xl">
       <PageHeader
         title={isEditing ? 'Editar horario' : 'Nuevo horario'}
-        description={isEditing ? 'Actualizar información del horario' : 'Registrar un nuevo horario de clases'}
+        description={
+          isEditing ? 'Actualizar información del horario' : 'Registrar un nuevo horario de clases'
+        }
       />
 
       <Card>
@@ -237,7 +259,10 @@ export function ScheduleFormPage() {
           </div>
 
           <div>
-            <label htmlFor="academicPeriodId" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="academicPeriodId"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Periodo académico *
             </label>
             <select
@@ -254,7 +279,9 @@ export function ScheduleFormPage() {
                 </option>
               ))}
             </select>
-            {errors.academicPeriodId && <p className="mt-1 text-sm text-red-600">{errors.academicPeriodId}</p>}
+            {errors.academicPeriodId && (
+              <p className="mt-1 text-sm text-red-600">{errors.academicPeriodId}</p>
+            )}
           </div>
 
           <div>

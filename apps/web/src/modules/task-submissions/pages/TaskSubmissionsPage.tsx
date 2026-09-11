@@ -12,7 +12,10 @@ import { Card } from '@/components/ui/Card';
 import { TASK_SUBMISSION_STATUS_LABELS, TASK_STATUS_LABELS } from '@/api/types';
 import type { TaskSubmissionStatus, TaskStatus, TaskSubmission, TaskAssignment } from '@/api/types';
 
-const SUBMISSION_STATUS_BADGE: Record<TaskSubmissionStatus, 'success' | 'warning' | 'default' | 'danger'> = {
+const SUBMISSION_STATUS_BADGE: Record<
+  TaskSubmissionStatus,
+  'success' | 'warning' | 'default' | 'danger'
+> = {
   PENDING: 'default',
   SUBMITTED: 'success',
   LATE: 'danger',
@@ -54,13 +57,9 @@ function AssignmentRow({
           <span className="text-sm text-gray-500">Sin entrega</span>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-600">
-        {submission?.grade ?? '—'}
-      </td>
+      <td className="px-4 py-3 text-sm text-gray-600">{submission?.grade ?? '—'}</td>
       <td className="px-4 py-3">
-        {submission?.submittedAt
-          ? new Date(submission.submittedAt).toLocaleString('es-CO')
-          : '—'}
+        {submission?.submittedAt ? new Date(submission.submittedAt).toLocaleString('es-CO') : '—'}
       </td>
       <td className="px-4 py-3 text-right">
         <Button
@@ -114,16 +113,12 @@ function AssignmentCard({
               {TASK_SUBMISSION_STATUS_LABELS[submission.status]}
             </Badge>
           ) : (
-          <span className="text-sm text-gray-500">Sin entrega</span>
+            <span className="text-sm text-gray-500">Sin entrega</span>
           )}
         </div>
       </div>
       <div className="mt-3 flex justify-end">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate(assignment.id)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => onNavigate(assignment.id)}>
           Ver detalle
         </Button>
       </div>
@@ -176,10 +171,7 @@ export function TaskSubmissionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Entregas de tareas"
-        description="Consultar entregas de tareas por tarea"
-      />
+      <PageHeader title="Entregas de tareas" description="Consultar entregas de tareas por tarea" />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">
@@ -216,9 +208,7 @@ export function TaskSubmissionsPage() {
           title="No hay asignaciones"
           description="Esta tarea no tiene asignaciones registradas."
           action={
-            <Button onClick={() => navigate(`/task-assignments/new`)}>
-              Crear asignación
-            </Button>
+            <Button onClick={() => navigate(`/task-assignments/new`)}>Crear asignación</Button>
           }
         />
       ) : (
@@ -231,16 +221,16 @@ export function TaskSubmissionsPage() {
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Estudiante</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Calificación</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Fecha de entrega</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">
+                      Fecha de entrega
+                    </th>
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {assignments.map((assignment) => (
                     <SubmissionFetcher key={assignment.id} assignment={assignment}>
-                      {(item) => (
-                        <AssignmentRow item={item} onNavigate={handleNavigateToDetail} />
-                      )}
+                      {(item) => <AssignmentRow item={item} onNavigate={handleNavigateToDetail} />}
                     </SubmissionFetcher>
                   ))}
                 </tbody>
@@ -251,15 +241,14 @@ export function TaskSubmissionsPage() {
           <div className="md:hidden space-y-3">
             {assignments.map((assignment) => (
               <SubmissionFetcher key={assignment.id} assignment={assignment}>
-                {(item) => (
-                  <AssignmentCard item={item} onNavigate={handleNavigateToDetail} />
-                )}
+                {(item) => <AssignmentCard item={item} onNavigate={handleNavigateToDetail} />}
               </SubmissionFetcher>
             ))}
           </div>
 
           <div className="text-sm text-gray-500">
-            {assignments.length} asignacion{assignments.length !== 1 ? 'es' : ''} para {getTaskTitle(selectedTaskId)}
+            {assignments.length} asignacion{assignments.length !== 1 ? 'es' : ''} para{' '}
+            {getTaskTitle(selectedTaskId)}
           </div>
         </>
       )}

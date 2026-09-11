@@ -17,9 +17,11 @@ export function StatCard({ title, value, icon, description, trend }: StatCardPro
           <p className="text-3xl font-bold text-gray-900 mt-1 tabular-nums">{value}</p>
           {description && <p className="text-xs text-gray-500 mt-1 truncate">{description}</p>}
           {trend && (
-            <p className={`text-xs font-medium mt-2 ${trend.value >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-              {trend.value >= 0 ? '+' : ''}{trend.value}%
-              {trend.label ? ` ${trend.label}` : ''}
+            <p
+              className={`text-xs font-medium mt-2 ${trend.value >= 0 ? 'text-emerald-600' : 'text-red-500'}`}
+            >
+              {trend.value >= 0 ? '+' : ''}
+              {trend.value}%{trend.label ? ` ${trend.label}` : ''}
             </p>
           )}
         </div>

@@ -27,7 +27,10 @@ export function GuardiansPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [confirmUnlink, setConfirmUnlink] = useState<{ studentId: string; studentName: string } | null>(null);
+  const [confirmUnlink, setConfirmUnlink] = useState<{
+    studentId: string;
+    studentName: string;
+  } | null>(null);
   const limit = 20;
 
   useEffect(() => {
@@ -80,9 +83,7 @@ export function GuardiansPage() {
         }
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/guardians/new')}>
-              Nueva vinculación
-            </Button>
+            <Button onClick={() => navigate('/guardians/new')}>Nueva vinculación</Button>
           ) : undefined
         }
       />
@@ -113,7 +114,11 @@ export function GuardiansPage() {
         </div>
       ) : links.length === 0 ? (
         <EmptyState
-          title={debouncedSearch ? 'No se encontraron vinculaciones' : 'No hay vinculaciones de acudientes'}
+          title={
+            debouncedSearch
+              ? 'No se encontraron vinculaciones'
+              : 'No hay vinculaciones de acudientes'
+          }
           description={
             debouncedSearch
               ? 'No encontramos vinculaciones que coincidan con la búsqueda.'
@@ -182,10 +187,12 @@ export function GuardiansPage() {
                             <Button
                               variant="danger"
                               size="sm"
-                              onClick={() => setConfirmUnlink({
-                                studentId: link.studentId,
-                                studentName: `${link.student.firstName} ${link.student.lastName}`,
-                              })}
+                              onClick={() =>
+                                setConfirmUnlink({
+                                  studentId: link.studentId,
+                                  studentName: `${link.student.firstName} ${link.student.lastName}`,
+                                })
+                              }
                             >
                               Desvincular
                             </Button>
@@ -209,9 +216,7 @@ export function GuardiansPage() {
                         {link.student.firstName} {link.student.lastName}
                       </p>
                       {link.student.documentNumber && (
-                        <p className="text-sm text-gray-500">
-                          Doc: {link.student.documentNumber}
-                        </p>
+                        <p className="text-sm text-gray-500">Doc: {link.student.documentNumber}</p>
                       )}
                     </div>
                     <Badge variant={STATUS_BADGE_VARIANT[link.status]}>
@@ -220,9 +225,7 @@ export function GuardiansPage() {
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <span>{RELATIONSHIP_TYPE_LABELS[link.relationshipType]}</span>
-                    {link.isPrimary && (
-                      <Badge variant="success">Principal</Badge>
-                    )}
+                    {link.isPrimary && <Badge variant="success">Principal</Badge>}
                   </div>
                 </div>
                 <div className="mt-3 flex justify-end gap-2">
@@ -237,10 +240,12 @@ export function GuardiansPage() {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => setConfirmUnlink({
-                        studentId: link.studentId,
-                        studentName: `${link.student.firstName} ${link.student.lastName}`,
-                      })}
+                      onClick={() =>
+                        setConfirmUnlink({
+                          studentId: link.studentId,
+                          studentName: `${link.student.firstName} ${link.student.lastName}`,
+                        })
+                      }
                     >
                       Desvincular
                     </Button>
@@ -285,21 +290,16 @@ export function GuardiansPage() {
       {confirmUnlink && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Card className="w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Confirmar desvinculación
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desvinculación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desvincular al estudiante "{confirmUnlink.studentName}"? Esta acción cambiará el estado de la vinculación a Inactivo.
+              ¿Deseas desvincular al estudiante "{confirmUnlink.studentName}"? Esta acción cambiará
+              el estado de la vinculación a Inactivo.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setConfirmUnlink(null)}>
                 Cancelar
               </Button>
-              <Button
-                variant="danger"
-                isLoading={unlinkMutation.isPending}
-                onClick={handleUnlink}
-              >
+              <Button variant="danger" isLoading={unlinkMutation.isPending} onClick={handleUnlink}>
                 Desvincular
               </Button>
             </div>

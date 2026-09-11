@@ -108,7 +108,12 @@ export function FollowUpCategoriesPage() {
         title="Categorías del Observador"
         description="Gestiona las categorías para los seguimientos de estudiantes"
         actions={
-          <Button onClick={() => { resetForm(); setShowForm(!showForm); }}>
+          <Button
+            onClick={() => {
+              resetForm();
+              setShowForm(!showForm);
+            }}
+          >
             {showForm ? 'Cancelar' : 'Nueva categoría'}
           </Button>
         }
@@ -150,7 +155,9 @@ export function FollowUpCategoriesPage() {
                 className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 placeholder="Descripción opcional de la categoría..."
               />
-              {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-3">
@@ -174,7 +181,14 @@ export function FollowUpCategoriesPage() {
           title="No hay categorías"
           description="Crea categorías para organizar los seguimientos de estudiantes."
           action={
-            <Button onClick={() => { resetForm(); setShowForm(true); }}>Nueva categoría</Button>
+            <Button
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+            >
+              Nueva categoría
+            </Button>
           }
         />
       ) : (
@@ -198,9 +212,7 @@ export function FollowUpCategoriesPage() {
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        cat.active
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
+                        cat.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       {cat.active ? 'Activa' : 'Inactiva'}

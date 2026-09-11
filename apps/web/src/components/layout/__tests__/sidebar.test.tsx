@@ -39,14 +39,40 @@ describe('Sidebar por categorias', () => {
     renderSidebar('/dashboard');
     const allTos = NAV_CATEGORIES.flatMap((c) => c.items.map((i) => i.to));
     for (const to of [
-      '/dashboard', '/agenda', '/students', '/courses', '/subjects', '/areas',
-      '/grades', '/schedules', '/schedules/blocks', '/schedules/classrooms',
-      '/tasks', '/task-assignments', '/task-submissions', '/communications',
-      '/communication-inbox', '/signatures', '/notifications', '/academic-periods',
-      '/school-grades', '/guardians', '/enrollments', '/teacher-assignments',
-      '/course-directors', '/teachers', '/student-follow-ups',
-      '/student-follow-ups/categories', '/attendance', '/reports', '/reports/course',
-      '/institution', '/admin/users', '/admin/requests', '/profile', '/students/import',
+      '/dashboard',
+      '/agenda',
+      '/students',
+      '/courses',
+      '/subjects',
+      '/areas',
+      '/grades',
+      '/schedules',
+      '/schedules/blocks',
+      '/schedules/classrooms',
+      '/tasks',
+      '/task-assignments',
+      '/task-submissions',
+      '/communications',
+      '/communication-inbox',
+      '/signatures',
+      '/notifications',
+      '/academic-periods',
+      '/school-grades',
+      '/guardians',
+      '/enrollments',
+      '/teacher-assignments',
+      '/course-directors',
+      '/teachers',
+      '/student-follow-ups',
+      '/student-follow-ups/categories',
+      '/attendance',
+      '/reports',
+      '/reports/course',
+      '/institution',
+      '/admin/users',
+      '/admin/requests',
+      '/profile',
+      '/students/import',
     ]) {
       expect(allTos).toContain(to);
     }
@@ -57,7 +83,9 @@ describe('Sidebar por categorias', () => {
     mockHasPermission.mockReturnValue(true);
     renderSidebar('/course-directors');
     expect(screen.getByRole('button', { name: /Categoría Administración/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Categoría Gestión académica/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Categoría Gestión académica/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Categoría Gestión docente/i })).toBeInTheDocument();
     expect(screen.getByText('Directores de grupo')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Categoría Administración/i }));
@@ -84,7 +112,9 @@ describe('Sidebar por categorias', () => {
     renderSidebar('/tasks');
     expect(screen.queryByText('Directores de grupo')).not.toBeInTheDocument();
     expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Categoría Gestión docente/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Categoría Gestión docente/i }),
+    ).not.toBeInTheDocument();
     // Mi perfil vive en Inicio (expandir si está colapsada)
     fireEvent.click(screen.getByRole('button', { name: /Categoría Inicio/i }));
     expect(screen.getByText('Mi perfil')).toBeInTheDocument();
@@ -133,9 +163,7 @@ describe('Sidebar por categorias', () => {
   });
 
   it('no muestra franjas ni aulas sin permiso de gestión', () => {
-    mockHasPermission.mockImplementation((code: string) =>
-      ['schedules:read'].includes(code),
-    );
+    mockHasPermission.mockImplementation((code: string) => ['schedules:read'].includes(code));
     renderSidebar('/schedules');
     expect(screen.getByText('Horarios', { selector: 'a' })).toBeDefined();
     expect(screen.queryByText('Franjas horarias')).not.toBeInTheDocument();

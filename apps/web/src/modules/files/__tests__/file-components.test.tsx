@@ -78,7 +78,9 @@ describe('FileUploader', () => {
 
   it('shows disabled state when disabled prop is true', () => {
     const onUploadComplete = vi.fn();
-    const { container } = render(<FileUploader onUploadComplete={onUploadComplete} disabled />, { wrapper: createWrapper() });
+    const { container } = render(<FileUploader onUploadComplete={onUploadComplete} disabled />, {
+      wrapper: createWrapper(),
+    });
     const dropzone = container.querySelector('.opacity-50');
     expect(dropzone).toBeInTheDocument();
   });
@@ -89,7 +91,9 @@ describe('FileUploader', () => {
     render(<FileUploader onUploadComplete={onUploadComplete} />, { wrapper: createWrapper() });
 
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const largeFile = new File(['x'.repeat(11 * 1024 * 1024)], 'large.pdf', { type: 'application/pdf' });
+    const largeFile = new File(['x'.repeat(11 * 1024 * 1024)], 'large.pdf', {
+      type: 'application/pdf',
+    });
     Object.defineProperty(largeFile, 'size', { value: 11 * 1024 * 1024 });
 
     fireEvent.change(input, { target: { files: [largeFile] } });
@@ -124,29 +128,39 @@ describe('AttachmentList', () => {
   });
 
   it('renders attachment with file name and size', () => {
-    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, { wrapper: createWrapper() });
+    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.getByText('documento.pdf')).toBeInTheDocument();
     expect(screen.getByText(/1\.0 KB/)).toBeInTheDocument();
     expect(screen.getByText(/application\/pdf/)).toBeInTheDocument();
   });
 
   it('shows download button', () => {
-    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, { wrapper: createWrapper() });
+    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.getByText('Descargar')).toBeInTheDocument();
   });
 
   it('shows delete button when canManage is true', () => {
-    render(<AttachmentList attachments={[mockTaskAttachment]} canManage />, { wrapper: createWrapper() });
+    render(<AttachmentList attachments={[mockTaskAttachment]} canManage />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.getByText('Eliminar')).toBeInTheDocument();
   });
 
   it('hides delete button when canManage is false', () => {
-    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, { wrapper: createWrapper() });
+    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.queryByText('Eliminar')).not.toBeInTheDocument();
   });
 
   it('renders correct file icon for PDF', () => {
-    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, { wrapper: createWrapper() });
+    render(<AttachmentList attachments={[mockTaskAttachment]} canManage={false} />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.getByText('📄')).toBeInTheDocument();
   });
 
@@ -155,7 +169,9 @@ describe('AttachmentList', () => {
       ...mockTaskAttachment,
       fileAsset: { ...mockFileAsset, mimeType: 'image/png' },
     };
-    render(<AttachmentList attachments={[imageAttachment]} canManage={false} />, { wrapper: createWrapper() });
+    render(<AttachmentList attachments={[imageAttachment]} canManage={false} />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.getByText('🖼️')).toBeInTheDocument();
   });
 });

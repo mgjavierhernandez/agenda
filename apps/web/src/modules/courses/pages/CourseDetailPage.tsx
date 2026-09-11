@@ -40,7 +40,11 @@ export function CourseDetailPage() {
   }
 
   if (!course) {
-    return <ErrorState error={{ statusCode: 404, message: 'Curso no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Curso no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   return (
@@ -126,7 +130,8 @@ export function CourseDetailPage() {
           <Card className="w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desactivar el curso {course.name}? Esta acción puede revertirse editando el curso.
+              ¿Deseas desactivar el curso {course.name}? Esta acción puede revertirse editando el
+              curso.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>

@@ -66,15 +66,9 @@ describe('agenda events hooks', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('status=ACTIVE'),
-    );
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('audience=ALL'),
-    );
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('search=padres'),
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('status=ACTIVE'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('audience=ALL'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('search=padres'));
   });
 
   it('useAgendaEvent fetches a single event and is disabled without id', async () => {
@@ -90,9 +84,7 @@ describe('agenda events hooks', () => {
     await waitFor(() => {
       expect(withId.current.isSuccess).toBe(true);
     });
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('/agenda/events/ev-1'),
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/agenda/events/ev-1'));
   });
 
   it('useCreateAgendaEvent posts to /agenda/events', async () => {

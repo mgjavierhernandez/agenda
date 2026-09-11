@@ -9,7 +9,9 @@ function formatAvg(n: number): string {
 /** Barras horizontales SVG: promedio por materia (sin dependencias externas). */
 export function SubjectBars({ data }: { data: SubjectAverage[] }) {
   if (data.length === 0) {
-    return <p className="text-sm text-gray-500 py-4 text-center">Sin calificaciones para graficar.</p>;
+    return (
+      <p className="text-sm text-gray-500 py-4 text-center">Sin calificaciones para graficar.</p>
+    );
   }
   const max = Math.max(...data.map((d) => d.average), 5);
   return (
@@ -74,7 +76,13 @@ export function PeriodTrend({ data }: { data: PeriodAverage[] }) {
             strokeWidth="1"
           />
         ))}
-        <polyline points={points} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinejoin="round" />
+        <polyline
+          points={points}
+          fill="none"
+          stroke="#2563eb"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
         {data.map((d, i) => (
           <g key={d.period}>
             <circle cx={x(i)} cy={y(d.average)} r="4" fill="#2563eb" stroke="#fff" strokeWidth="2">
@@ -83,7 +91,14 @@ export function PeriodTrend({ data }: { data: PeriodAverage[] }) {
             <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fill="#6b7280">
               {d.period}
             </text>
-            <text x={x(i)} y={y(d.average) - 10} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#111827">
+            <text
+              x={x(i)}
+              y={y(d.average) - 10}
+              textAnchor="middle"
+              fontSize="11"
+              fontWeight="bold"
+              fill="#111827"
+            >
               {formatAvg(d.average)}
             </text>
           </g>

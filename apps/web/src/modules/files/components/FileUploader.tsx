@@ -90,9 +90,7 @@ export function FileUploader({ onUploadComplete, disabled = false }: FileUploade
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-          isDragOver
-            ? 'border-blue-400 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400'
+          isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         onClick={() => !disabled && inputRef.current?.click()}
       >
@@ -118,9 +116,7 @@ export function FileUploader({ onUploadComplete, disabled = false }: FileUploade
           </>
         )}
       </div>
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

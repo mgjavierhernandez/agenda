@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { SignaturesService } from './signatures.service';
-import {
-  SignatureRequestStatus,
-  SignatureRecipientStatus,
-} from '@prisma/client';
+import { SignatureRequestStatus, SignatureRecipientStatus } from '@prisma/client';
 
 describe('SignaturesService', () => {
   let service: SignaturesService;
@@ -25,10 +22,7 @@ describe('SignaturesService', () => {
     updatedAt: new Date(),
   });
 
-  const makeRequest = (
-    id: string,
-    overrides: Record<string, unknown> = {},
-  ) => ({
+  const makeRequest = (id: string, overrides: Record<string, unknown> = {}) => ({
     id,
     institutionId,
     title: 'Test Request',
@@ -133,18 +127,16 @@ describe('SignaturesService', () => {
 
   describe('create', () => {
     it('should create a signature request with recipients in DRAFT status', async () => {
-      prismaMock.userInstitution.findFirst.mockResolvedValue(makeUserInstitution(userId, institutionId));
+      prismaMock.userInstitution.findFirst.mockResolvedValue(
+        makeUserInstitution(userId, institutionId),
+      );
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRequest: {
-            create: jest.fn().mockResolvedValue(
-              makeRequest(request1),
-            ),
+            create: jest.fn().mockResolvedValue(makeRequest(request1)),
           },
           signatureRecipient: {
-            create: jest.fn().mockResolvedValue(
-              makeRecipient(recipient1, request1, userId),
-            ),
+            create: jest.fn().mockResolvedValue(makeRecipient(recipient1, request1, userId)),
           },
         };
         return cb(tx);
@@ -172,10 +164,16 @@ describe('SignaturesService', () => {
     });
 
     it('should reject duplicate recipient user IDs', async () => {
-      prismaMock.userInstitution.findFirst.mockResolvedValue(makeUserInstitution(userId, institutionId));
+      prismaMock.userInstitution.findFirst.mockResolvedValue(
+        makeUserInstitution(userId, institutionId),
+      );
 
       await expect(
-        service.create(institutionId, { title: 'Test', recipientUserIds: [userId, userId] }, userId),
+        service.create(
+          institutionId,
+          { title: 'Test', recipientUserIds: [userId, userId] },
+          userId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -186,12 +184,7 @@ describe('SignaturesService', () => {
       prismaMock.signatureRequest.findMany.mockResolvedValue([{ ...req, recipients: [] }]);
       prismaMock.signatureRequest.count.mockResolvedValue(1);
 
-      const result = await service.findAll(
-        institutionId,
-        { page: 1, limit: 20 },
-        userId,
-        true,
-      );
+      const result = await service.findAll(institutionId, { page: 1, limit: 20 }, userId, true);
 
       expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
@@ -228,9 +221,9 @@ describe('SignaturesService', () => {
     it('should throw NotFoundException when request does not exist', async () => {
       prismaMock.signatureRequest.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, request1, userId, true),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, request1, userId, true)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should hide DRAFT requests from non-managers', async () => {
@@ -239,9 +232,9 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, userId)],
       });
 
-      await expect(
-        service.findOne(institutionId, request1, userId, false),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, request1, userId, false)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for non-recipients of non-DRAFT requests', async () => {
@@ -250,9 +243,9 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, otherUserId)],
       });
 
-      await expect(
-        service.findOne(institutionId, request1, userId, false),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, request1, userId, false)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -270,7 +263,9 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRequest: {
-            update: jest.fn().mockResolvedValue({ ...existing, title: 'New', description: 'New desc' }),
+            update: jest
+              .fn()
+              .mockResolvedValue({ ...existing, title: 'New', description: 'New desc' }),
           },
           signatureRecipient: {
             deleteMany: jest.fn(),
@@ -282,7 +277,12 @@ describe('SignaturesService', () => {
         return cb(tx);
       });
 
-      const result = await service.update(institutionId, request1, { title: 'New', description: 'New desc' }, userId);
+      const result = await service.update(
+        institutionId,
+        request1,
+        { title: 'New', description: 'New desc' },
+        userId,
+      );
       expect(result.title).toBe('New');
       expect(result.description).toBe('New desc');
     });
@@ -317,7 +317,13 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRequest: {
-            update: jest.fn().mockResolvedValue({ ...existing, status: SignatureRequestStatus.PUBLISHED, recipients: [makeRecipient(recipient1, request1, userId)] }),
+            update: jest
+              .fn()
+              .mockResolvedValue({
+                ...existing,
+                status: SignatureRequestStatus.PUBLISHED,
+                recipients: [makeRecipient(recipient1, request1, userId)],
+              }),
           },
           signatureRecipient: {
             findMany: jest.fn().mockResolvedValue([makeRecipient(recipient1, request1, userId)]),
@@ -340,9 +346,9 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, userId)],
       });
 
-      await expect(
-        service.publish(institutionId, request1, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.publish(institutionId, request1, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject publish with no recipients', async () => {
@@ -351,9 +357,9 @@ describe('SignaturesService', () => {
         recipients: [],
       });
 
-      await expect(
-        service.publish(institutionId, request1, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.publish(institutionId, request1, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject publish with past dueDate', async () => {
@@ -363,9 +369,9 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, userId)],
       });
 
-      await expect(
-        service.publish(institutionId, request1, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.publish(institutionId, request1, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -378,12 +384,24 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRecipient: {
-            update: jest.fn().mockResolvedValue({ ...rec, status: SignatureRecipientStatus.SIGNED, signedAt: new Date() }),
+            update: jest
+              .fn()
+              .mockResolvedValue({
+                ...rec,
+                status: SignatureRecipientStatus.SIGNED,
+                signedAt: new Date(),
+              }),
             count: jest.fn().mockResolvedValue(0),
             findMany: jest.fn(),
           },
           signatureRequest: {
-            update: jest.fn().mockResolvedValue({ ...req, status: SignatureRequestStatus.COMPLETED, recipients: [{ ...rec, status: SignatureRecipientStatus.SIGNED }] }),
+            update: jest
+              .fn()
+              .mockResolvedValue({
+                ...req,
+                status: SignatureRequestStatus.COMPLETED,
+                recipients: [{ ...rec, status: SignatureRecipientStatus.SIGNED }],
+              }),
           },
         };
         return cb(tx);
@@ -400,7 +418,9 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, otherUserId)],
       });
 
-      await expect(service.sign(institutionId, request1, userId)).rejects.toThrow(ForbiddenException);
+      await expect(service.sign(institutionId, request1, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject signing an expired request', async () => {
@@ -413,13 +433,17 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, userId)],
       });
 
-      await expect(service.sign(institutionId, request1, userId)).rejects.toThrow(BadRequestException);
+      await expect(service.sign(institutionId, request1, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when request does not exist', async () => {
       prismaMock.signatureRequest.findFirst.mockResolvedValue(null);
 
-      await expect(service.sign(institutionId, request1, userId)).rejects.toThrow(NotFoundException);
+      await expect(service.sign(institutionId, request1, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -446,13 +470,17 @@ describe('SignaturesService', () => {
         recipients: [makeRecipient(recipient1, request1, otherUserId)],
       });
 
-      await expect(service.decline(institutionId, request1, userId)).rejects.toThrow(ForbiddenException);
+      await expect(service.decline(institutionId, request1, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw NotFoundException when request does not exist', async () => {
       prismaMock.signatureRequest.findFirst.mockResolvedValue(null);
 
-      await expect(service.decline(institutionId, request1, userId)).rejects.toThrow(NotFoundException);
+      await expect(service.decline(institutionId, request1, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -466,7 +494,13 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRequest: {
-            update: jest.fn().mockResolvedValue({ ...req, status: SignatureRequestStatus.INACTIVE, recipients: [] }),
+            update: jest
+              .fn()
+              .mockResolvedValue({
+                ...req,
+                status: SignatureRequestStatus.INACTIVE,
+                recipients: [],
+              }),
           },
           signatureRecipient: {
             findMany: jest.fn().mockResolvedValue([makeRecipient(recipient1, request1, userId)]),
@@ -485,7 +519,9 @@ describe('SignaturesService', () => {
     it('should throw NotFoundException when request does not exist', async () => {
       prismaMock.signatureRequest.findFirst.mockResolvedValue(null);
 
-      await expect(service.deactivate(institutionId, request1, userId)).rejects.toThrow(NotFoundException);
+      await expect(service.deactivate(institutionId, request1, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should return existing if already INACTIVE', async () => {

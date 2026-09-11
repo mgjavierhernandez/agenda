@@ -46,7 +46,11 @@ export function SubjectDetailPage() {
   }
 
   if (!subject) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignatura no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignatura no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const assignments = assignmentsData?.data ?? [];
@@ -124,13 +128,17 @@ export function SubjectDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Nivel mínimo</dt>
               <dd className="text-gray-900">
-                {subject.minimumLevel ? EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel] : '—'}
+                {subject.minimumLevel
+                  ? EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]
+                  : '—'}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Nivel máximo</dt>
               <dd className="text-gray-900">
-                {subject.maximumLevel ? EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel] : '—'}
+                {subject.maximumLevel
+                  ? EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]
+                  : '—'}
               </dd>
             </div>
           </dl>
@@ -168,11 +176,18 @@ export function SubjectDetailPage() {
               <h4 className="text-sm font-medium text-gray-700 mb-2">Docentes asignados</h4>
               <div className="space-y-2">
                 {Array.from(new Set(assignments.map((a) => a.teacherUserId))).map((teacherId) => {
-                  const teacherAssignments = assignments.filter((a) => a.teacherUserId === teacherId);
+                  const teacherAssignments = assignments.filter(
+                    (a) => a.teacherUserId === teacherId,
+                  );
                   const courses = Array.from(new Set(teacherAssignments.map((a) => a.courseId)));
                   return (
-                    <div key={teacherId} className="p-3 rounded-md border border-gray-100 bg-gray-50">
-                      <p className="font-medium text-gray-900">Docente (ID: {teacherId.slice(0, 8)}...)</p>
+                    <div
+                      key={teacherId}
+                      className="p-3 rounded-md border border-gray-100 bg-gray-50"
+                    >
+                      <p className="font-medium text-gray-900">
+                        Docente (ID: {teacherId.slice(0, 8)}...)
+                      </p>
                       <p className="text-sm text-gray-500 mt-1">
                         Cursos: {courses.map((c) => c.slice(0, 8) + '...').join(', ')}
                       </p>
@@ -186,10 +201,17 @@ export function SubjectDetailPage() {
               <div className="space-y-2">
                 {Array.from(new Set(assignments.map((a) => a.courseId))).map((courseId) => {
                   const courseAssignments = assignments.filter((a) => a.courseId === courseId);
-                  const periods = Array.from(new Set(courseAssignments.map((a) => a.academicPeriodId)));
+                  const periods = Array.from(
+                    new Set(courseAssignments.map((a) => a.academicPeriodId)),
+                  );
                   return (
-                    <div key={courseId} className="p-3 rounded-md border border-gray-100 bg-gray-50">
-                      <p className="font-medium text-gray-900">Curso (ID: {courseId.slice(0, 8)}...)</p>
+                    <div
+                      key={courseId}
+                      className="p-3 rounded-md border border-gray-100 bg-gray-50"
+                    >
+                      <p className="font-medium text-gray-900">
+                        Curso (ID: {courseId.slice(0, 8)}...)
+                      </p>
                       <p className="text-sm text-gray-500 mt-1">
                         Periodos: {periods.map((p) => p.slice(0, 8) + '...').join(', ')}
                       </p>
@@ -214,7 +236,8 @@ export function SubjectDetailPage() {
           <Card className="w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desactivar la asignatura {subject.name}? Esta acción puede revertirse editando la asignatura.
+              ¿Deseas desactivar la asignatura {subject.name}? Esta acción puede revertirse editando
+              la asignatura.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>

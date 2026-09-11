@@ -36,13 +36,25 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'Gestión académica',
     items: [
       { to: '/students', label: 'Estudiantes', permission: PERMISSIONS.STUDENTS_READ },
-      { to: '/students/import', label: 'Importar estudiantes', permission: PERMISSIONS.STUDENTS_MANAGE },
+      {
+        to: '/students/import',
+        label: 'Importar estudiantes',
+        permission: PERMISSIONS.STUDENTS_MANAGE,
+      },
       { to: '/enrollments', label: 'Matrículas', permission: PERMISSIONS.ENROLLMENTS_READ },
       { to: '/courses', label: 'Cursos', permission: PERMISSIONS.COURSES_READ },
       { to: '/subjects', label: 'Asignaturas', permission: PERMISSIONS.SUBJECTS_READ },
       { to: '/areas', label: 'Áreas', permission: PERMISSIONS.AREAS_READ },
-      { to: '/school-grades', label: 'Grados académicos', permission: PERMISSIONS.SCHOOL_GRADES_READ },
-      { to: '/academic-periods', label: 'Periodos académicos', permission: PERMISSIONS.ACADEMIC_PERIODS_READ },
+      {
+        to: '/school-grades',
+        label: 'Grados académicos',
+        permission: PERMISSIONS.SCHOOL_GRADES_READ,
+      },
+      {
+        to: '/academic-periods',
+        label: 'Periodos académicos',
+        permission: PERMISSIONS.ACADEMIC_PERIODS_READ,
+      },
     ],
   },
   {
@@ -50,8 +62,16 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'Gestión docente',
     items: [
       { to: '/teachers', label: 'Docentes', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
-      { to: '/teacher-assignments', label: 'Asignaciones docentes', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
-      { to: '/course-directors', label: 'Directores de grupo', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
+      {
+        to: '/teacher-assignments',
+        label: 'Asignaciones docentes',
+        permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ,
+      },
+      {
+        to: '/course-directors',
+        label: 'Directores de grupo',
+        permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ,
+      },
     ],
   },
   {
@@ -69,7 +89,11 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'Horarios',
     items: [
       { to: '/schedules', label: 'Horarios', permission: PERMISSIONS.SCHEDULES_READ },
-      { to: '/schedules/blocks', label: 'Franjas horarias', permission: PERMISSIONS.SCHEDULES_MANAGE },
+      {
+        to: '/schedules/blocks',
+        label: 'Franjas horarias',
+        permission: PERMISSIONS.SCHEDULES_MANAGE,
+      },
       { to: '/schedules/classrooms', label: 'Aulas', permission: PERMISSIONS.SCHEDULES_MANAGE },
     ],
   },
@@ -86,8 +110,16 @@ export const NAV_CATEGORIES: NavCategory[] = [
     id: 'comunicacion',
     label: 'Comunicación',
     items: [
-      { to: '/communications', label: 'Comunicaciones', permission: PERMISSIONS.COMMUNICATIONS_READ },
-      { to: '/communication-inbox', label: 'Bandeja de entrada', permission: PERMISSIONS.COMMUNICATIONS_READ },
+      {
+        to: '/communications',
+        label: 'Comunicaciones',
+        permission: PERMISSIONS.COMMUNICATIONS_READ,
+      },
+      {
+        to: '/communication-inbox',
+        label: 'Bandeja de entrada',
+        permission: PERMISSIONS.COMMUNICATIONS_READ,
+      },
       { to: '/signatures', label: 'Firmas', permission: PERMISSIONS.SIGNATURES_READ },
       { to: '/notifications', label: 'Notificaciones', permission: PERMISSIONS.NOTIFICATIONS_READ },
     ],
@@ -96,16 +128,22 @@ export const NAV_CATEGORIES: NavCategory[] = [
     id: 'convivencia',
     label: 'Convivencia',
     items: [
-      { to: '/student-follow-ups', label: 'Observador', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_READ },
-      { to: '/student-follow-ups/categories', label: 'Categorías', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_CATEGORIES },
+      {
+        to: '/student-follow-ups',
+        label: 'Observador',
+        permission: PERMISSIONS.STUDENT_FOLLOW_UPS_READ,
+      },
+      {
+        to: '/student-follow-ups/categories',
+        label: 'Categorías',
+        permission: PERMISSIONS.STUDENT_FOLLOW_UPS_CATEGORIES,
+      },
     ],
   },
   {
     id: 'comunidad',
     label: 'Comunidad',
-    items: [
-      { to: '/guardians', label: 'Acudientes', permission: PERMISSIONS.GUARDIANS_READ },
-    ],
+    items: [{ to: '/guardians', label: 'Acudientes', permission: PERMISSIONS.GUARDIANS_READ }],
   },
   {
     id: 'administracion',
@@ -113,7 +151,11 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { to: '/institution', label: 'Mi institución', permission: PERMISSIONS.INSTITUTION_READ },
       { to: '/admin/users', label: 'Usuarios', permission: PERMISSIONS.USERS_READ },
-      { to: '/admin/requests', label: 'Solicitudes de acceso', permission: PERMISSIONS.MEMBERSHIPS_MANAGE },
+      {
+        to: '/admin/requests',
+        label: 'Solicitudes de acceso',
+        permission: PERMISSIONS.MEMBERSHIPS_MANAGE,
+      },
     ],
   },
 ];
@@ -149,20 +191,30 @@ interface SidebarProps {
 
 function SidebarSkeleton({ isMobile }: { isMobile: boolean }) {
   return (
-    <nav className={`${isMobile ? 'flex flex-col gap-1 h-full max-h-full' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`} aria-label="Main navigation" aria-busy="true">
+    <nav
+      className={`${isMobile ? 'flex flex-col gap-1 h-full max-h-full' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`}
+      aria-label="Main navigation"
+      aria-busy="true"
+    >
       <div className="flex-1 py-4 overflow-y-auto overscroll-contain min-h-0">
         <ul className="space-y-1 px-3">
           {[1, 2, 3, 4].map((i) => (
             <li key={i}>
               <div className="flex w-full items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-lg">
-                <div className="h-3 bg-gray-200 rounded animate-pulse" style={{ width: `${60 + i * 10}%` }} />
+                <div
+                  className="h-3 bg-gray-200 rounded animate-pulse"
+                  style={{ width: `${60 + i * 10}%` }}
+                />
               </div>
               {i <= 2 && (
                 <ul className="mt-1 ml-2 space-y-1 border-l border-gray-200 pl-2">
                   {[1, 2].map((j) => (
                     <li key={j}>
                       <div className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-lg">
-                        <div className="h-3 bg-gray-100 rounded animate-pulse" style={{ width: `${50 + j * 15}%` }} />
+                        <div
+                          className="h-3 bg-gray-100 rounded animate-pulse"
+                          style={{ width: `${50 + j * 15}%` }}
+                        />
                       </div>
                     </li>
                   ))}
@@ -236,8 +288,8 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
     const list = e.currentTarget;
     const focusable = Array.from(
       list.querySelectorAll<HTMLButtonElement | HTMLAnchorElement>(
-        'button[aria-expanded], a[href]'
-      )
+        'button[aria-expanded], a[href]',
+      ),
     );
     const idx = focusable.indexOf(target as HTMLButtonElement & HTMLAnchorElement);
     if (idx === -1) return;
@@ -264,12 +316,17 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
   };
 
   return (
-    <nav className={`${isMobile ? 'flex flex-col gap-1 h-full max-h-full' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`} aria-label="Main navigation">
+    <nav
+      className={`${isMobile ? 'flex flex-col gap-1 h-full max-h-full' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`}
+      aria-label="Main navigation"
+    >
       <div className="flex-1 py-4 overflow-y-auto overscroll-contain min-h-0">
         <ul className="space-y-1 px-3" onKeyDown={handleKeyDown}>
           {visibleCategories.map((cat) => {
             const open = isExpanded(cat.id);
-            const containsActive = cat.items.some((item) => isPathActive(item.to, location.pathname));
+            const containsActive = cat.items.some((item) =>
+              isPathActive(item.to, location.pathname),
+            );
             return (
               <li key={cat.id}>
                 <button
@@ -307,7 +364,10 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
                         >
                           {item.label}
                           {item.to === '/communication-inbox' && unreadCount > 0 && (
-                            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white" aria-label={`${unreadCount} mensajes sin leer`}>
+                            <span
+                              className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"
+                              aria-label={`${unreadCount} mensajes sin leer`}
+                            >
                               {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
                           )}

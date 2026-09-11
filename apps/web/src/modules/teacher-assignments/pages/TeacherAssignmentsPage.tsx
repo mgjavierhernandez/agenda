@@ -116,9 +116,7 @@ export function TeacherAssignmentsPage() {
         description="Gestionar asignaciones de profesores a cursos y asignaturas"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/teacher-assignments/new')}>
-              Nueva asignación
-            </Button>
+            <Button onClick={() => navigate('/teacher-assignments/new')}>Nueva asignación</Button>
           ) : undefined
         }
       />
@@ -126,18 +124,26 @@ export function TeacherAssignmentsPage() {
       <Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label htmlFor="filter-teacher" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="filter-teacher"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Profesor
             </label>
             <select
               id="filter-teacher"
               value={teacherFilter}
-              onChange={(e) => { setTeacherFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setTeacherFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {usersData?.data.map((u) => (
-                <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                <option key={u.id} value={u.id}>
+                  {u.firstName} {u.lastName}
+                </option>
               ))}
             </select>
           </div>
@@ -148,28 +154,41 @@ export function TeacherAssignmentsPage() {
             <select
               id="filter-course"
               value={courseFilter}
-              onChange={(e) => { setCourseFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setCourseFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {coursesData?.data.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor="filter-subject" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="filter-subject"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Asignatura
             </label>
             <select
               id="filter-subject"
               value={subjectFilter}
-              onChange={(e) => { setSubjectFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSubjectFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todas</option>
               {subjectsData?.data.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
               ))}
             </select>
           </div>
@@ -180,12 +199,17 @@ export function TeacherAssignmentsPage() {
             <select
               id="filter-period"
               value={periodFilter}
-              onChange={(e) => { setPeriodFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setPeriodFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {periodsData?.data.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
@@ -209,7 +233,9 @@ export function TeacherAssignmentsPage() {
         </div>
       ) : assignments.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? 'No se encontraron asignaciones' : 'No hay asignaciones docentes'}
+          title={
+            hasActiveFilters ? 'No se encontraron asignaciones' : 'No hay asignaciones docentes'
+          }
           description={
             hasActiveFilters
               ? 'No encontramos asignaciones que coincidan con los filtros.'
@@ -254,10 +280,14 @@ export function TeacherAssignmentsPage() {
                         {periodMap[assignment.academicPeriodId] ?? assignment.academicPeriodId}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                        {assignment.startDate
+                          ? new Date(assignment.startDate).toLocaleDateString('es-CO')
+                          : '—'}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+                        {assignment.endDate
+                          ? new Date(assignment.endDate).toLocaleDateString('es-CO')
+                          : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={STATUS_BADGE_VARIANT[assignment.status]}>
@@ -290,7 +320,8 @@ export function TeacherAssignmentsPage() {
                         {userMap[assignment.teacherUserId] ?? 'Profesor'}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {courseMap[assignment.courseId] ?? 'Curso'} — {subjectMap[assignment.subjectId] ?? 'Asignatura'}
+                        {courseMap[assignment.courseId] ?? 'Curso'} —{' '}
+                        {subjectMap[assignment.subjectId] ?? 'Asignatura'}
                       </p>
                     </div>
                     <Badge variant={STATUS_BADGE_VARIANT[assignment.status]}>
@@ -301,10 +332,16 @@ export function TeacherAssignmentsPage() {
                     Periodo: {periodMap[assignment.academicPeriodId] ?? '—'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Inicio: {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                    Inicio:{' '}
+                    {assignment.startDate
+                      ? new Date(assignment.startDate).toLocaleDateString('es-CO')
+                      : '—'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Fin: {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+                    Fin:{' '}
+                    {assignment.endDate
+                      ? new Date(assignment.endDate).toLocaleDateString('es-CO')
+                      : '—'}
                   </p>
                 </div>
                 <div className="mt-3 flex justify-end">

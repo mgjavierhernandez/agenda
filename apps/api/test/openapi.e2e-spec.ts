@@ -20,10 +20,7 @@ describe('OpenAPI / Swagger (e2e)', () => {
       .setTitle('Agenda Escolar Digital — API')
       .setDescription('REST API for the School Agenda Digital Platform')
       .setVersion('0.1.0')
-      .addBearerAuth(
-        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-        'bearer',
-      )
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
       .addTag('Auth', 'Authentication, login, refresh, password recovery, tenant selection')
       .addTag('Health', 'Liveness and readiness probes')
       .addTag('Institutions', 'School institution management')
@@ -61,9 +58,7 @@ describe('OpenAPI / Swagger (e2e)', () => {
 
   describe('Swagger UI', () => {
     it('GET /api/docs should return HTML with swagger', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/docs/')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/docs/').expect(200);
 
       expect(res.headers['content-type']).toMatch(/html/);
       expect(res.text).toContain('swagger');
@@ -72,9 +67,7 @@ describe('OpenAPI / Swagger (e2e)', () => {
 
   describe('OpenAPI JSON', () => {
     it('GET /api/docs-json should return valid OpenAPI document', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/docs-json')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/docs-json').expect(200);
 
       expect(res.body).toHaveProperty('openapi');
       expect(res.body).toHaveProperty('info');
@@ -252,9 +245,7 @@ describe('OpenAPI / Swagger (e2e)', () => {
     });
 
     it('should document memberships (nested under institutions)', () => {
-      const membershipPaths = Object.keys(document.paths).filter((p) =>
-        p.includes('/memberships'),
-      );
+      const membershipPaths = Object.keys(document.paths).filter((p) => p.includes('/memberships'));
       expect(membershipPaths.length).toBeGreaterThan(0);
     });
   });

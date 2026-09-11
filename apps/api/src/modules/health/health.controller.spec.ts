@@ -11,9 +11,7 @@ describe('HealthController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
-      providers: [
-        { provide: PrismaService, useValue: prismaMock },
-      ],
+      providers: [{ provide: PrismaService, useValue: prismaMock }],
     }).compile();
 
     controller = module.get<HealthController>(HealthController);

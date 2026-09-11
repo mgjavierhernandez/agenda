@@ -1,17 +1,6 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsUUID,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsUUID, MaxLength, MinLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  FollowUpType,
-  FollowUpSeverity,
-  FollowUpConfidentiality,
-} from '@prisma/client';
+import { FollowUpType, FollowUpSeverity, FollowUpConfidentiality } from '@prisma/client';
 
 export class UpdateStudentFollowUpDto {
   @ApiPropertyOptional({ enum: FollowUpType })

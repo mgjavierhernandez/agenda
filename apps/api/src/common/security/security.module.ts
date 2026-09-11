@@ -6,13 +6,13 @@ import { RequestIdMiddleware } from '../middleware/request-id.middleware';
 export class SecurityModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(helmet({
-        crossOriginEmbedderPolicy: false,
-      }))
+      .apply(
+        helmet({
+          crossOriginEmbedderPolicy: false,
+        }),
+      )
       .forRoutes('*');
 
-    consumer
-      .apply(RequestIdMiddleware)
-      .forRoutes('*');
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
   }
 }

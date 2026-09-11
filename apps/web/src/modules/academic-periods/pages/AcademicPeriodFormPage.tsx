@@ -69,7 +69,11 @@ export function AcademicPeriodFormPage() {
   }
 
   if (isEditMode && !existingPeriod) {
-    return <ErrorState error={{ statusCode: 404, message: 'Periodo no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Periodo no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (isEditMode && existingPeriod && existingPeriod.status === 'CLOSED') {
@@ -148,7 +152,9 @@ export function AcademicPeriodFormPage() {
     <div className="space-y-6">
       <PageHeader
         title={isEditMode ? 'Editar periodo académico' : 'Nuevo periodo académico'}
-        description={isEditMode ? 'Actualizar la información del periodo' : 'Crear un nuevo periodo académico'}
+        description={
+          isEditMode ? 'Actualizar la información del periodo' : 'Crear un nuevo periodo académico'
+        }
       />
 
       {apiError && (

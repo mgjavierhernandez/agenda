@@ -80,7 +80,10 @@ export function StudentImportPage() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="defaultCourse" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="defaultCourse"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Curso por defecto (opcional)
               </label>
               <select
@@ -91,12 +94,17 @@ export function StudentImportPage() {
               >
                 <option value="">Usar courseCode de cada fila</option>
                 {(coursesData?.data ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>{c.code} — {c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.code} — {c.name}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label htmlFor="academicPeriod" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="academicPeriod"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Periodo académico (opcional)
               </label>
               <select
@@ -107,13 +115,18 @@ export function StudentImportPage() {
               >
                 <option value="">Detectar periodo ACTIVE único</option>
                 {(periodsData?.data ?? []).map((p) => (
-                  <option key={p.id} value={p.id}>{p.code} — {p.name}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.code} — {p.name}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3" role="alert">
+            <div
+              className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3"
+              role="alert"
+            >
               {error}
             </div>
           )}

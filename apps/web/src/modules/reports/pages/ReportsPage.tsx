@@ -35,7 +35,10 @@ export function ReportsPage() {
   const [exportingBulletinPdf, setExportingBulletinPdf] = useState(false);
   const [exportingBulletinCsv, setExportingBulletinCsv] = useState(false);
 
-  const { data: periodsData, isLoading: isLoadingPeriods } = useAcademicPeriods({ page: 1, limit: 100 });
+  const { data: periodsData, isLoading: isLoadingPeriods } = useAcademicPeriods({
+    page: 1,
+    limit: 100,
+  });
   const periods = useMemo(() => periodsData?.data ?? [], [periodsData]);
 
   const { data: studentsData, isLoading: isLoadingStudents } = useStudents({
@@ -58,7 +61,11 @@ export function ReportsPage() {
     if (selectedStudentId === null && defaultChild) {
       setSelectedStudentId(defaultChild);
     }
-    if (selectedStudentId && children.length > 0 && !children.some((c) => c.studentId === selectedStudentId)) {
+    if (
+      selectedStudentId &&
+      children.length > 0 &&
+      !children.some((c) => c.studentId === selectedStudentId)
+    ) {
       setSelectedStudentId(defaultChild);
     }
   }, [isParent, children, selectedChildId, selectedStudentId]);
@@ -70,10 +77,14 @@ export function ReportsPage() {
   }, []);
 
   const periodLabel =
-    periods.find((p) => p.id === selectedPeriodId)?.name ?? (selectedPeriodId ? 'Periodo seleccionado' : 'Todos los periodos');
+    periods.find((p) => p.id === selectedPeriodId)?.name ??
+    (selectedPeriodId ? 'Periodo seleccionado' : 'Todos los periodos');
 
   const report = useStudentReport(selectedStudentId ?? undefined, selectedPeriodId || undefined);
-  const bulletin = useStudentBulletin(selectedStudentId ?? undefined, selectedPeriodId || undefined);
+  const bulletin = useStudentBulletin(
+    selectedStudentId ?? undefined,
+    selectedPeriodId || undefined,
+  );
 
   const selectedStudentName = students.find((s) => s.id === selectedStudentId)
     ? `${students.find((s) => s.id === selectedStudentId)!.firstName} ${students.find((s) => s.id === selectedStudentId)!.lastName}`
@@ -85,7 +96,11 @@ export function ReportsPage() {
     if (!selectedStudentId) return;
     setExportingReportPdf(true);
     try {
-      await downloadStudentReportPdf(selectedStudentId, selectedStudentName ?? 'estudiante', selectedPeriodId || undefined);
+      await downloadStudentReportPdf(
+        selectedStudentId,
+        selectedStudentName ?? 'estudiante',
+        selectedPeriodId || undefined,
+      );
     } finally {
       setExportingReportPdf(false);
     }
@@ -95,7 +110,11 @@ export function ReportsPage() {
     if (!selectedStudentId) return;
     setExportingReportCsv(true);
     try {
-      await downloadStudentReportCsv(selectedStudentId, selectedStudentName ?? 'estudiante', selectedPeriodId || undefined);
+      await downloadStudentReportCsv(
+        selectedStudentId,
+        selectedStudentName ?? 'estudiante',
+        selectedPeriodId || undefined,
+      );
     } finally {
       setExportingReportCsv(false);
     }
@@ -105,7 +124,11 @@ export function ReportsPage() {
     if (!selectedStudentId) return;
     setExportingBulletinPdf(true);
     try {
-      await downloadBulletinPdf(selectedStudentId, selectedStudentName ?? 'estudiante', selectedPeriodId || undefined);
+      await downloadBulletinPdf(
+        selectedStudentId,
+        selectedStudentName ?? 'estudiante',
+        selectedPeriodId || undefined,
+      );
     } finally {
       setExportingBulletinPdf(false);
     }
@@ -115,7 +138,11 @@ export function ReportsPage() {
     if (!selectedStudentId) return;
     setExportingBulletinCsv(true);
     try {
-      await downloadBulletinCsv(selectedStudentId, selectedStudentName ?? 'estudiante', selectedPeriodId || undefined);
+      await downloadBulletinCsv(
+        selectedStudentId,
+        selectedStudentName ?? 'estudiante',
+        selectedPeriodId || undefined,
+      );
     } finally {
       setExportingBulletinCsv(false);
     }
@@ -217,7 +244,10 @@ export function ReportsPage() {
       ) : report.error ? (
         <ErrorState error={report.error} onRetry={() => report.refetch()} />
       ) : !report.data || !bulletin.data ? (
-        <ErrorState error={new Error('No se encontró el reporte')} onRetry={() => report.refetch()} />
+        <ErrorState
+          error={new Error('No se encontró el reporte')}
+          onRetry={() => report.refetch()}
+        />
       ) : (
         <div className="space-y-8">
           {report.data ? (

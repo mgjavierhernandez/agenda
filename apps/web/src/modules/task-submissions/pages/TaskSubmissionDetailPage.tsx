@@ -17,7 +17,10 @@ import { TASK_SUBMISSION_STATUS_LABELS, TASK_ASSIGNMENT_STATUS_LABELS } from '@/
 import type { TaskSubmissionStatus, TaskAssignmentStatus } from '@/api/types';
 import { getErrorMessage } from '@/api/errors';
 
-const SUBMISSION_STATUS_BADGE: Record<TaskSubmissionStatus, 'success' | 'warning' | 'default' | 'danger'> = {
+const SUBMISSION_STATUS_BADGE: Record<
+  TaskSubmissionStatus,
+  'success' | 'warning' | 'default' | 'danger'
+> = {
   PENDING: 'default',
   SUBMITTED: 'success',
   LATE: 'danger',
@@ -31,8 +34,16 @@ export function TaskSubmissionDetailPage() {
   const { hasPermission } = usePermissions();
   const canGrade = hasPermission(PERMISSIONS.GRADES_MANAGE);
 
-  const { data: assignment, isLoading: isLoadingAssignment, error: assignmentError } = useTaskAssignment(id ?? '');
-  const { data: submission, isLoading: isLoadingSubmission, error: submissionError } = useTaskSubmission(id ?? '');
+  const {
+    data: assignment,
+    isLoading: isLoadingAssignment,
+    error: assignmentError,
+  } = useTaskAssignment(id ?? '');
+  const {
+    data: submission,
+    isLoading: isLoadingSubmission,
+    error: submissionError,
+  } = useTaskSubmission(id ?? '');
   const { data: task } = useTask(assignment?.taskId ?? '');
   const { data: studentsData } = useStudents({ limit: 100 });
   const gradeMutation = useGradeTaskSubmission();
@@ -94,7 +105,11 @@ export function TaskSubmissionDetailPage() {
   }
 
   if (!assignment) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canSubmit = !submission;
@@ -113,9 +128,7 @@ export function TaskSubmissionDetailPage() {
         actions={
           <div className="flex gap-2">
             {canSubmit && (
-              <Button onClick={() => navigate(`/task-submissions/${id}/new`)}>
-                Crear entrega
-              </Button>
+              <Button onClick={() => navigate(`/task-submissions/${id}/new`)}>Crear entrega</Button>
             )}
             {canUpdate && (
               <Button variant="secondary" onClick={() => navigate(`/task-submissions/${id}/new`)}>
@@ -123,9 +136,7 @@ export function TaskSubmissionDetailPage() {
               </Button>
             )}
             {canGradeSubmission && !isGrading && (
-              <Button onClick={() => setIsGrading(true)}>
-                Calificar
-              </Button>
+              <Button onClick={() => setIsGrading(true)}>Calificar</Button>
             )}
           </div>
         }
@@ -164,7 +175,15 @@ export function TaskSubmissionDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Asignación</dt>
               <dd>
-                <Badge variant={assignment.status === 'COMPLETED' ? 'success' : assignment.status === 'CANCELLED' ? 'warning' : 'default'}>
+                <Badge
+                  variant={
+                    assignment.status === 'COMPLETED'
+                      ? 'success'
+                      : assignment.status === 'CANCELLED'
+                        ? 'warning'
+                        : 'default'
+                  }
+                >
                   {TASK_ASSIGNMENT_STATUS_LABELS[assignment.status as TaskAssignmentStatus]}
                 </Badge>
               </dd>
@@ -177,9 +196,7 @@ export function TaskSubmissionDetailPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Calificación</dt>
-              <dd className="text-gray-900">
-                {submission?.grade ?? 'Sin calificar'}
-              </dd>
+              <dd className="text-gray-900">{submission?.grade ?? 'Sin calificar'}</dd>
             </div>
             {submission?.feedback && (
               <div>
@@ -204,9 +221,7 @@ export function TaskSubmissionDetailPage() {
         <dl className="space-y-3">
           <div>
             <dt className="text-sm text-gray-500">Tarea</dt>
-            <dd className="text-gray-900">
-              {task?.title ?? assignment.taskId.slice(0, 8) + '…'}
-            </dd>
+            <dd className="text-gray-900">{task?.title ?? assignment.taskId.slice(0, 8) + '…'}</dd>
           </div>
           {task?.description && (
             <div>
@@ -217,15 +232,15 @@ export function TaskSubmissionDetailPage() {
           {task?.dueDate && (
             <div>
               <dt className="text-sm text-gray-500">Fecha límite</dt>
-              <dd className="text-gray-900">
-                {new Date(task.dueDate).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(task.dueDate).toLocaleString('es-CO')}</dd>
             </div>
           )}
           <div>
             <dt className="text-sm text-gray-500">Estudiante</dt>
             <dd className="text-gray-900">
-              {student ? `${student.firstName} ${student.lastName}` : assignment.studentId.slice(0, 8) + '…'}
+              {student
+                ? `${student.firstName} ${student.lastName}`
+                : assignment.studentId.slice(0, 8) + '…'}
             </dd>
           </div>
         </dl>
@@ -280,10 +295,7 @@ export function TaskSubmissionDetailPage() {
               >
                 Cancelar
               </Button>
-              <Button
-                onClick={handleGrade}
-                isLoading={gradeMutation.isPending}
-              >
+              <Button onClick={handleGrade} isLoading={gradeMutation.isPending}>
                 Guardar calificación
               </Button>
             </div>
@@ -296,10 +308,7 @@ export function TaskSubmissionDetailPage() {
           Volver a entregas
         </Button>
         {submission && (
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/task-assignments/${id}`)}
-          >
+          <Button variant="ghost" onClick={() => navigate(`/task-assignments/${id}`)}>
             Ver asignación
           </Button>
         )}

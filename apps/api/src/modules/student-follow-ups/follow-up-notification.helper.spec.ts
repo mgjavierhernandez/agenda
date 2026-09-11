@@ -64,7 +64,11 @@ describe('follow-up-notification.helper', () => {
       const prisma = createPrismaMock();
       mockFindGuardianUserIds.mockResolvedValue(['guardian-1', 'guardian-2']);
 
-      await sendFollowUpNotification(asPrisma(prisma), createCtx({ confidentiality: FollowUpConfidentiality.PUBLIC }), 'CREATED');
+      await sendFollowUpNotification(
+        asPrisma(prisma),
+        createCtx({ confidentiality: FollowUpConfidentiality.PUBLIC }),
+        'CREATED',
+      );
 
       expect(prisma.notification.createMany).toHaveBeenCalledWith({
         data: expect.arrayContaining([
@@ -101,16 +105,12 @@ describe('follow-up-notification.helper', () => {
 
     it('creates notifications for admins when confidentiality allows', async () => {
       const prisma = createPrismaMock();
-      prisma.userInstitution.findMany.mockResolvedValue([
-        { userId: 'admin-1' },
-      ]);
+      prisma.userInstitution.findMany.mockResolvedValue([{ userId: 'admin-1' }]);
 
       await sendFollowUpNotification(asPrisma(prisma), createCtx(), 'CLOSED');
 
       expect(prisma.notification.createMany).toHaveBeenCalledWith({
-        data: expect.arrayContaining([
-          expect.objectContaining({ userId: 'admin-1' }),
-        ]),
+        data: expect.arrayContaining([expect.objectContaining({ userId: 'admin-1' })]),
       });
     });
 
@@ -118,9 +118,15 @@ describe('follow-up-notification.helper', () => {
       const prisma = createPrismaMock();
       mockFindGuardianUserIds.mockResolvedValue(['actor-1', 'guardian-1']);
 
-      await sendFollowUpNotification(asPrisma(prisma), createCtx({ actorUserId: 'actor-1', confidentiality: FollowUpConfidentiality.PUBLIC }), 'CREATED');
+      await sendFollowUpNotification(
+        asPrisma(prisma),
+        createCtx({ actorUserId: 'actor-1', confidentiality: FollowUpConfidentiality.PUBLIC }),
+        'CREATED',
+      );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ userId: string }>;
+      };
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).not.toContain('actor-1');
       expect(recipients).toContain('guardian-1');
@@ -163,9 +169,7 @@ describe('follow-up-notification.helper', () => {
 
     it('does not notify teachers for CONFIDENTIAL follow-ups', async () => {
       const prisma = createPrismaMock();
-      prisma.teacherAssignment.findMany.mockResolvedValue([
-        { teacherUserId: 'teacher-1' },
-      ]);
+      prisma.teacherAssignment.findMany.mockResolvedValue([{ teacherUserId: 'teacher-1' }]);
 
       await sendFollowUpNotification(
         asPrisma(prisma),
@@ -178,9 +182,7 @@ describe('follow-up-notification.helper', () => {
 
     it('notifies admins for CONFIDENTIAL follow-ups', async () => {
       const prisma = createPrismaMock();
-      prisma.userInstitution.findMany.mockResolvedValue([
-        { userId: 'admin-1' },
-      ]);
+      prisma.userInstitution.findMany.mockResolvedValue([{ userId: 'admin-1' }]);
 
       await sendFollowUpNotification(
         asPrisma(prisma),
@@ -189,17 +191,13 @@ describe('follow-up-notification.helper', () => {
       );
 
       expect(prisma.notification.createMany).toHaveBeenCalledWith({
-        data: expect.arrayContaining([
-          expect.objectContaining({ userId: 'admin-1' }),
-        ]),
+        data: expect.arrayContaining([expect.objectContaining({ userId: 'admin-1' })]),
       });
     });
 
     it('notifies admins for SENSITIVE follow-ups', async () => {
       const prisma = createPrismaMock();
-      prisma.userInstitution.findMany.mockResolvedValue([
-        { userId: 'admin-1' },
-      ]);
+      prisma.userInstitution.findMany.mockResolvedValue([{ userId: 'admin-1' }]);
 
       await sendFollowUpNotification(
         asPrisma(prisma),
@@ -212,9 +210,7 @@ describe('follow-up-notification.helper', () => {
 
     it('uses generic message for CONFIDENTIAL follow-ups', async () => {
       const prisma = createPrismaMock();
-      prisma.userInstitution.findMany.mockResolvedValue([
-        { userId: 'admin-1' },
-      ]);
+      prisma.userInstitution.findMany.mockResolvedValue([{ userId: 'admin-1' }]);
 
       await sendFollowUpNotification(
         asPrisma(prisma),
@@ -222,7 +218,9 @@ describe('follow-up-notification.helper', () => {
         'CREATED',
       );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ title: string; message: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ title: string; message: string }>;
+      };
       expect(call.data[0].title).toBe('Nuevo seguimiento del alumno');
       expect(call.data[0].message).toContain('actualización');
     });
@@ -237,18 +235,12 @@ describe('follow-up-notification.helper', () => {
         'CREATED',
       );
 
-      expect(mockFindGuardianUserIds).toHaveBeenCalledWith(
-        prisma,
-        'tenant-a',
-        ['student-1'],
-      );
+      expect(mockFindGuardianUserIds).toHaveBeenCalledWith(prisma, 'tenant-a', ['student-1']);
     });
 
     it('sends notifications for all action types', async () => {
       const prisma = createPrismaMock();
-      prisma.userInstitution.findMany.mockResolvedValue([
-        { userId: 'admin-1' },
-      ]);
+      prisma.userInstitution.findMany.mockResolvedValue([{ userId: 'admin-1' }]);
 
       const actions = [
         'CREATED',
@@ -266,9 +258,7 @@ describe('follow-up-notification.helper', () => {
 
       for (const action of actions) {
         jest.clearAllMocks();
-        prisma.userInstitution.findMany.mockResolvedValue([
-          { userId: 'admin-1' },
-        ]);
+        prisma.userInstitution.findMany.mockResolvedValue([{ userId: 'admin-1' }]);
 
         await sendFollowUpNotification(asPrisma(prisma), createCtx(), action);
 
@@ -310,7 +300,9 @@ describe('follow-up-notification.helper', () => {
         'responsible-1',
       );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ userId: string }>;
+      };
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).toContain('responsible-1');
       expect(recipients).toContain('guardian-1');
@@ -327,7 +319,9 @@ describe('follow-up-notification.helper', () => {
         'responsible-1',
       );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ userId: string }>;
+      };
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).toContain('responsible-1');
       expect(recipients).not.toContain('guardian-1');
@@ -344,7 +338,9 @@ describe('follow-up-notification.helper', () => {
         'responsible-1',
       );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ userId: string }>;
+      };
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).toContain('responsible-1');
       expect(recipients).not.toContain('guardian-1');
@@ -361,7 +357,9 @@ describe('follow-up-notification.helper', () => {
         'responsible-1',
       );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ userId: string }>;
+      };
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).not.toContain('actor-1');
       expect(recipients).toContain('responsible-1');
@@ -391,7 +389,9 @@ describe('follow-up-notification.helper', () => {
         'responsible-1',
       );
 
-      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const call = prisma.notification.createMany.mock.calls[0][0] as {
+        data: Array<{ userId: string }>;
+      };
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).not.toContain('guardian-1');
     });

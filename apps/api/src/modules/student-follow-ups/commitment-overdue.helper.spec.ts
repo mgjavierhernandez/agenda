@@ -1,13 +1,12 @@
 import { CommitmentStatus } from '@prisma/client';
-import {
-  deriveCommitmentStatus,
-  deriveCommitmentStatuses,
-} from './commitment-overdue.helper';
+import { deriveCommitmentStatus, deriveCommitmentStatuses } from './commitment-overdue.helper';
 
-function makeCommitment(overrides: {
-  status?: CommitmentStatus;
-  dueDate?: Date | null;
-} = {}) {
+function makeCommitment(
+  overrides: {
+    status?: CommitmentStatus;
+    dueDate?: Date | null;
+  } = {},
+) {
   return {
     id: 'c1',
     followUpId: 'fu1',

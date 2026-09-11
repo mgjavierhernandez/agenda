@@ -24,7 +24,8 @@ vi.mock('../hooks', () => ({
 
 vi.mock('@/api/errors', () => ({
   getErrorMessage: (err: unknown) => {
-    if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+    if (err && typeof err === 'object' && 'message' in err)
+      return String((err as { message: unknown }).message);
     return 'Ocurrió un error inesperado';
   },
 }));
@@ -43,9 +44,10 @@ vi.mock('@/permissions/usePermissions', () => ({
     hasPermission: (code: string) => mockHasPermission(code),
     hasAnyPermission: (...codes: string[]) => codes.some((c) => mockHasPermission(c)),
     hasAllPermissions: (...codes: string[]) => codes.every((c) => mockHasPermission(c)),
-    permissionCodes: mockHasPermission.mock.calls.length > 0
-      ? ['students:read', 'students:manage'].filter((c) => mockHasPermission(c))
-      : [],
+    permissionCodes:
+      mockHasPermission.mock.calls.length > 0
+        ? ['students:read', 'students:manage'].filter((c) => mockHasPermission(c))
+        : [],
     isLoading: false,
     isError: false,
   }),

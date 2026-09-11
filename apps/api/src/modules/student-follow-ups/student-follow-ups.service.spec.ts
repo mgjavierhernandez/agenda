@@ -1,8 +1,4 @@
-import {
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { StudentFollowUpsService } from './student-follow-ups.service';
 import {
   FollowUpType,
@@ -395,9 +391,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NOT_FOUND',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny TEACHER access to follow-up of unassigned student', async () => {
@@ -406,9 +402,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny PARENT access to follow-up of unlinked student', async () => {
@@ -417,9 +413,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny STUDENT access to follow-up of another student', async () => {
@@ -428,9 +424,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny SUPER_ADMIN access', async () => {
@@ -439,9 +435,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'SUPER_ADMIN_NO_ACCESS',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny access to CONFIDENTIAL follow-up for TEACHER', async () => {
@@ -450,9 +446,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'CONFIDENTIALITY_RESTRICTED',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny access to SENSITIVE follow-up for PARENT', async () => {
@@ -461,9 +457,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'CONFIDENTIALITY_RESTRICTED',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -690,11 +686,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.studentFollowUp.findMany.mockResolvedValue([]);
       prismaMock.studentFollowUp.count.mockResolvedValue(0);
 
-      const result = await service.findAll(
-        institutionId,
-        { page: 2, limit: 10 },
-        userId,
-      );
+      const result = await service.findAll(institutionId, { page: 2, limit: 10 }, userId);
 
       expect(result.meta.page).toBe(2);
       expect(result.meta.limit).toBe(10);
@@ -771,12 +763,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -787,12 +774,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -803,12 +785,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -819,12 +796,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -835,12 +807,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -849,12 +816,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.studentFollowUp.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -864,12 +826,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
       prismaMock.studentFollowUp.update.mockResolvedValue(existingFollowUp);
 
-      await service.update(
-        institutionId,
-        followUpId,
-        { title: 'Updated' },
-        userId,
-      );
+      await service.update(institutionId, followUpId, { title: 'Updated' }, userId);
 
       const updateCall = prismaMock.studentFollowUp.update.mock.calls[0][0];
       expect(updateCall.data).not.toHaveProperty('institutionId');
@@ -881,12 +838,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
       prismaMock.studentFollowUp.update.mockResolvedValue(existingFollowUp);
 
-      await service.update(
-        institutionId,
-        followUpId,
-        { title: 'Updated' },
-        userId,
-      );
+      await service.update(institutionId, followUpId, { title: 'Updated' }, userId);
 
       const updateCall = prismaMock.studentFollowUp.update.mock.calls[0][0];
       expect(updateCall.data).not.toHaveProperty('createdById');
@@ -950,9 +902,9 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.CLOSED,
       });
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject double-close via canClose reason', async () => {
@@ -961,9 +913,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'ALREADY_CLOSED',
       });
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject TEACHER closing unassigned student follow-up', async () => {
@@ -972,9 +924,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should reject PARENT attempting to close', async () => {
@@ -983,9 +935,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'INSUFFICIENT_PERMISSIONS',
       });
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject STUDENT attempting to close', async () => {
@@ -994,9 +946,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'INSUFFICIENT_PERMISSIONS',
       });
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject SUPER_ADMIN attempting to close', async () => {
@@ -1005,18 +957,18 @@ describe('StudentFollowUpsService', () => {
         reason: 'SUPER_ADMIN_NO_ACCESS',
       });
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject cross-tenant close', async () => {
       authServiceMock.canClose.mockResolvedValue({ allowed: true });
       prismaMock.studentFollowUp.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.close(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.close(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -1027,9 +979,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should block student accessing follow-up of another student', async () => {
@@ -1038,9 +990,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should block teacher accessing follow-up of unassigned student', async () => {
@@ -1049,9 +1001,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NO_STUDENT_RELATIONSHIP',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should block admin Tenant A accessing follow-up Tenant B', async () => {
@@ -1060,9 +1012,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NOT_FOUND',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should block SUPER_ADMIN accessing any follow-up', async () => {
@@ -1071,9 +1023,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'SUPER_ADMIN_NO_ACCESS',
       });
 
-      await expect(
-        service.findOne(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should never return follow-up data when unauthorized', async () => {
@@ -1109,10 +1061,7 @@ describe('StudentFollowUpsService', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             confidentiality: {
-              in: [
-                FollowUpConfidentiality.PUBLIC,
-                FollowUpConfidentiality.INTERNAL,
-              ],
+              in: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
             },
           }),
         }),
@@ -1134,10 +1083,7 @@ describe('StudentFollowUpsService', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             confidentiality: {
-              in: [
-                FollowUpConfidentiality.PUBLIC,
-                FollowUpConfidentiality.INTERNAL,
-              ],
+              in: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
             },
           }),
         }),
@@ -1159,10 +1105,7 @@ describe('StudentFollowUpsService', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             confidentiality: {
-              in: [
-                FollowUpConfidentiality.PUBLIC,
-                FollowUpConfidentiality.INTERNAL,
-              ],
+              in: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
             },
           }),
         }),
@@ -1288,12 +1231,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          followUpId,
-          { title: 'Try' },
-          userId,
-        ),
+        service.update(institutionId, followUpId, { title: 'Try' }, userId),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -1311,12 +1249,7 @@ describe('StudentFollowUpsService', () => {
         id: followUpId,
       });
 
-      await service.update(
-        institutionId,
-        followUpId,
-        { title: 'Updated' },
-        userId,
-      );
+      await service.update(institutionId, followUpId, { title: 'Updated' }, userId);
 
       const updateCall = prismaMock.studentFollowUp.update.mock.calls[0][0];
       expect(updateCall.data).not.toHaveProperty('createdById');
@@ -1478,11 +1411,7 @@ describe('StudentFollowUpsService', () => {
       ]);
       prismaMock.followUpEntry.count.mockResolvedValue(1);
 
-      const result = await service.findEntries(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.findEntries(institutionId, followUpId, userId);
 
       expect(result.data).toHaveLength(1);
     });
@@ -1493,9 +1422,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'NOT_FOUND',
       });
 
-      await expect(
-        service.findEntries(institutionId, followUpId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findEntries(institutionId, followUpId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -1510,12 +1439,7 @@ describe('StudentFollowUpsService', () => {
         content: 'Test',
       });
 
-      const result = await service.findEntry(
-        institutionId,
-        followUpId,
-        'entry-1',
-        userId,
-      );
+      const result = await service.findEntry(institutionId, followUpId, 'entry-1', userId);
 
       expect(result.id).toBe('entry-1');
     });
@@ -1598,7 +1522,10 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.OPEN,
       });
       prismaMock.user.findFirst.mockResolvedValue({ id: responsibleUserId });
-      prismaMock.userInstitution.findFirst.mockResolvedValue({ userId: responsibleUserId, institutionId });
+      prismaMock.userInstitution.findFirst.mockResolvedValue({
+        userId: responsibleUserId,
+        institutionId,
+      });
       prismaMock.commitment.create.mockResolvedValue({
         id: 'commit-1',
         followUpId,
@@ -1681,11 +1608,7 @@ describe('StudentFollowUpsService', () => {
       ]);
       prismaMock.commitment.count.mockResolvedValue(1);
 
-      const result = await service.findCommitments(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.findCommitments(institutionId, followUpId, userId);
 
       expect(result.data).toHaveLength(1);
     });
@@ -1701,12 +1624,7 @@ describe('StudentFollowUpsService', () => {
         description: 'Test',
       });
 
-      const result = await service.findCommitment(
-        institutionId,
-        followUpId,
-        'commit-1',
-        userId,
-      );
+      const result = await service.findCommitment(institutionId, followUpId, 'commit-1', userId);
 
       expect(result.id).toBe('commit-1');
     });
@@ -1717,12 +1635,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.commitment.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.findCommitment(
-          institutionId,
-          followUpId,
-          'commit-nonexistent',
-          userId,
-        ),
+        service.findCommitment(institutionId, followUpId, 'commit-nonexistent', userId),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -1858,12 +1771,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.createAttachment(
-          institutionId,
-          followUpId,
-          { fileAssetId },
-          userId,
-        ),
+        service.createAttachment(institutionId, followUpId, { fileAssetId }, userId),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -1877,12 +1785,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.fileAsset.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.createAttachment(
-          institutionId,
-          followUpId,
-          { fileAssetId: 'nonexistent' },
-          userId,
-        ),
+        service.createAttachment(institutionId, followUpId, { fileAssetId: 'nonexistent' }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -1893,12 +1796,7 @@ describe('StudentFollowUpsService', () => {
       });
 
       await expect(
-        service.createAttachment(
-          institutionId,
-          followUpId,
-          { fileAssetId },
-          userId,
-        ),
+        service.createAttachment(institutionId, followUpId, { fileAssetId }, userId),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -1911,11 +1809,7 @@ describe('StudentFollowUpsService', () => {
         { id: 'att-1', followUpId, fileAssetId: 'file-1' },
       ]);
 
-      const result = await service.findAttachments(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.findAttachments(institutionId, followUpId, userId);
 
       expect(result).toHaveLength(1);
     });
@@ -1937,12 +1831,7 @@ describe('StudentFollowUpsService', () => {
       });
       prismaMock.followUpAttachment.delete.mockResolvedValue({});
 
-      const result = await service.removeAttachment(
-        institutionId,
-        followUpId,
-        'att-1',
-        userId,
-      );
+      const result = await service.removeAttachment(institutionId, followUpId, 'att-1', userId);
 
       expect(result.success).toBe(true);
       expect(auditServiceMock.log).toHaveBeenCalledWith(
@@ -1960,12 +1849,7 @@ describe('StudentFollowUpsService', () => {
       prismaMock.followUpAttachment.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.removeAttachment(
-          institutionId,
-          followUpId,
-          'att-nonexistent',
-          userId,
-        ),
+        service.removeAttachment(institutionId, followUpId, 'att-nonexistent', userId),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -1987,11 +1871,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.ESCALATED,
       });
 
-      const result = await service.escalate(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.escalate(institutionId, followUpId, userId);
 
       expect(result.status).toBe(FollowUpStatus.ESCALATED);
       expect(auditServiceMock.log).toHaveBeenCalledWith(
@@ -2007,9 +1887,9 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.CLOSED,
       });
 
-      await expect(
-        service.escalate(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.escalate(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject escalate for SUPER_ADMIN', async () => {
@@ -2018,9 +1898,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'SUPER_ADMIN_NO_ACCESS',
       });
 
-      await expect(
-        service.escalate(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.escalate(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -2037,11 +1917,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.IN_PROGRESS,
       });
 
-      const result = await service.followUp(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.followUp(institutionId, followUpId, userId);
 
       expect(result.status).toBe(FollowUpStatus.IN_PROGRESS);
       expect(auditServiceMock.log).toHaveBeenCalledWith(
@@ -2061,11 +1937,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.IN_PROGRESS,
       });
 
-      const result = await service.followUp(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.followUp(institutionId, followUpId, userId);
 
       expect(result.status).toBe(FollowUpStatus.IN_PROGRESS);
     });
@@ -2078,9 +1950,9 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.CLOSED,
       });
 
-      await expect(
-        service.followUp(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.followUp(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -2097,11 +1969,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.RESOLVED,
       });
 
-      const result = await service.resolve(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.resolve(institutionId, followUpId, userId);
 
       expect(result.status).toBe(FollowUpStatus.RESOLVED);
       expect(auditServiceMock.log).toHaveBeenCalledWith(
@@ -2117,9 +1985,9 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.OPEN,
       });
 
-      await expect(
-        service.resolve(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resolve(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -2140,11 +2008,7 @@ describe('StudentFollowUpsService', () => {
         closedById: null,
       });
 
-      const result = await service.reopen(
-        institutionId,
-        followUpId,
-        userId,
-      );
+      const result = await service.reopen(institutionId, followUpId, userId);
 
       expect(result.status).toBe(FollowUpStatus.IN_PROGRESS);
       expect(result.closedAt).toBeNull();
@@ -2159,9 +2023,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'INSUFFICIENT_PERMISSIONS',
       });
 
-      await expect(
-        service.reopen(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.reopen(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject reopen for non-CLOSED record', async () => {
@@ -2172,9 +2036,9 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.OPEN,
       });
 
-      await expect(
-        service.reopen(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.reopen(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject reopen for SUPER_ADMIN', async () => {
@@ -2183,9 +2047,9 @@ describe('StudentFollowUpsService', () => {
         reason: 'SUPER_ADMIN_NO_ACCESS',
       });
 
-      await expect(
-        service.reopen(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.reopen(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -2205,9 +2069,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.ESCALATED,
       });
 
-      await expect(
-        service.escalate(institutionId, followUpId, userId),
-      ).resolves.toBeDefined();
+      await expect(service.escalate(institutionId, followUpId, userId)).resolves.toBeDefined();
     });
 
     it('should allow ESCALATED → IN_PROGRESS', async () => {
@@ -2221,9 +2083,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.IN_PROGRESS,
       });
 
-      await expect(
-        service.followUp(institutionId, followUpId, userId),
-      ).resolves.toBeDefined();
+      await expect(service.followUp(institutionId, followUpId, userId)).resolves.toBeDefined();
     });
 
     it('should allow IN_PROGRESS → RESOLVED', async () => {
@@ -2237,9 +2097,7 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.RESOLVED,
       });
 
-      await expect(
-        service.resolve(institutionId, followUpId, userId),
-      ).resolves.toBeDefined();
+      await expect(service.resolve(institutionId, followUpId, userId)).resolves.toBeDefined();
     });
 
     it('should reject CLOSED → IN_PROGRESS via followUp (use reopen instead)', async () => {
@@ -2249,9 +2107,9 @@ describe('StudentFollowUpsService', () => {
         status: FollowUpStatus.CLOSED,
       });
 
-      await expect(
-        service.followUp(institutionId, followUpId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.followUp(institutionId, followUpId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

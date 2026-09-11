@@ -20,7 +20,15 @@ import { AuthorizationService } from '../auth/authorization/authorization.servic
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, ListUsersQueryDto } from './dto/user.dto';
 import { UpsertUserProfileDto } from './dto/user-profile.dto';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+} from '@nestjs/swagger';
 import { ForbiddenException } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 
@@ -45,7 +53,11 @@ export class UsersController {
     permission: string,
   ): Promise<void> {
     if (callerUserId === targetUserId) return;
-    const allowed = await this.authorizationService.hasPermission(callerUserId, institutionId, permission);
+    const allowed = await this.authorizationService.hasPermission(
+      callerUserId,
+      institutionId,
+      permission,
+    );
     if (!allowed) {
       throw new ForbiddenException('Access denied');
     }
@@ -58,16 +70,8 @@ export class UsersController {
   @Post()
   @RequirePermission('users:create')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateUserDto,
-  ) {
-    return this.usersService.create(
-      req.tenant!.institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateUserDto) {
+    return this.usersService.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'List users' })
@@ -78,14 +82,8 @@ export class UsersController {
   @ApiQuery({ name: 'status', required: false, enum: UserStatus })
   @Get()
   @RequirePermission('users:read')
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListUsersQueryDto,
-  ) {
-    return this.usersService.findAll(
-      req.tenant!.institutionId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListUsersQueryDto) {
+    return this.usersService.findAll(req.tenant!.institutionId, query);
   }
 
   @ApiOperation({ summary: 'Get user by ID' })
@@ -94,14 +92,8 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
   @RequirePermission('users:read')
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.usersService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.findOne(req.tenant!.institutionId, id);
   }
 
   @ApiOperation({ summary: 'Update user' })
@@ -115,13 +107,7 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateUserDto,
   ) {
-    return this.usersService.update(
-      req.tenant!.institutionId,
-      id,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+    return this.usersService.update(req.tenant!.institutionId, id, dto, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'Get tenant-scoped profile of a user' })
@@ -129,15 +115,9 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User profile found (null when not set)' })
   @ApiResponse({ status: 404, description: 'User not found in this institution' })
   @Get(':id/profile')
-  async findProfile(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async findProfile(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     await this.assertProfileAccess(req.user.userId, id, req.tenant!.institutionId, 'users:read');
-    return this.usersService.findProfile(
-      req.tenant!.institutionId,
-      id,
-    );
+    return this.usersService.findProfile(req.tenant!.institutionId, id);
   }
 
   @ApiOperation({ summary: 'Create or update the tenant-scoped profile of a user' })
@@ -162,20 +142,13 @@ export class UsersController {
     );
   }
 
-  @ApiOperation({ summary: 'Deactivate user' })  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOperation({ summary: 'Deactivate user' })
+  @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'User deactivated' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Patch(':id/deactivate')
   @RequirePermission('users:delete')
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.usersService.deactivate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

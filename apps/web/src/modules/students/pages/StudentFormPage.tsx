@@ -99,7 +99,11 @@ export function StudentFormPage() {
   }
 
   if (isEditing && !existingStudent) {
-    return <ErrorState error={{ statusCode: 404, message: 'Estudiante no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Estudiante no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -130,7 +134,9 @@ export function StudentFormPage() {
       <div className="space-y-6 max-w-2xl">
         <PageHeader
           title={isEditing ? 'Editar estudiante' : 'Nuevo estudiante'}
-          description={isEditing ? 'Actualizar información del estudiante' : 'Registrar un nuevo estudiante'}
+          description={
+            isEditing ? 'Actualizar información del estudiante' : 'Registrar un nuevo estudiante'
+          }
         />
 
         <Card>
@@ -160,7 +166,10 @@ export function StudentFormPage() {
             />
 
             <div>
-              <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="documentType"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Tipo de documento *
               </label>
               <select

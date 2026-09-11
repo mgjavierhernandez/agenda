@@ -30,7 +30,11 @@ export class EmailTemplates {
     this.appWebUrl = this.configService.get<string>('APP_WEB_URL', '');
   }
 
-  sendPasswordReset(data: { to: string; resetToken: string; expiresInMinutes: number }): RenderedEmail {
+  sendPasswordReset(data: {
+    to: string;
+    resetToken: string;
+    expiresInMinutes: number;
+  }): RenderedEmail {
     const resetUrl = this.buildUrl('/reset-password', { token: data.resetToken });
     const subject = 'Restablece tu contraseña';
     const text = [
@@ -51,9 +55,7 @@ export class EmailTemplates {
   }
 
   sendCommunication(data: CommunicationEmailData): RenderedEmail {
-    const subject = data.institutionName
-      ? `[${data.institutionName}] ${data.title}`
-      : data.title;
+    const subject = data.institutionName ? `[${data.institutionName}] ${data.title}` : data.title;
     const text = [
       `Hola ${data.recipientName || 'usuario'},`,
       ``,
@@ -92,7 +94,9 @@ export class EmailTemplates {
       `<p>Hola <strong>${escapeHtml(data.recipientName || 'usuario')}</strong>,</p>`,
       `<p>Se ha solicitado tu firma para: <strong>${escapeHtml(data.title)}</strong>.</p>`,
       data.description ? `<p>${escapeHtml(data.description).replace(/\n/g, '<br/>')}</p>` : '',
-      data.dueDate ? `<p>Fecha límite: ${new Date(data.dueDate).toLocaleDateString('es-CO')}</p>` : '',
+      data.dueDate
+        ? `<p>Fecha límite: ${new Date(data.dueDate).toLocaleDateString('es-CO')}</p>`
+        : '',
       this.appWebUrl
         ? `<p><a href="${this.escapeAttr(`${this.appWebUrl}/signatures`)}">Revisar y firmar</a></p>`
         : '',

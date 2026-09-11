@@ -3,13 +3,19 @@ import { EmailTemplates } from './email-templates';
 
 function makeConfig(overrides: Record<string, string> = {}): ConfigService {
   const store: Record<string, string> = { APP_WEB_URL: 'https://app.example.com', ...overrides };
-  return { get: jest.fn((key: string, def?: string) => store[key] ?? def) } as unknown as ConfigService;
+  return {
+    get: jest.fn((key: string, def?: string) => store[key] ?? def),
+  } as unknown as ConfigService;
 }
 
 describe('EmailTemplates', () => {
   it('builds a password reset email with an APP_WEB_URL link', () => {
     const service = new EmailTemplates(makeConfig());
-    const rendered = service.sendPasswordReset({ to: 'a@b.com', resetToken: 'tok123', expiresInMinutes: 60 });
+    const rendered = service.sendPasswordReset({
+      to: 'a@b.com',
+      resetToken: 'tok123',
+      expiresInMinutes: 60,
+    });
     expect(rendered.subject).toContain('contraseña');
     expect(rendered.text).toContain('tok123');
     expect(rendered.text).toContain('app.example.com');
@@ -65,7 +71,11 @@ describe('EmailTemplates', () => {
 
   it('never leaks secrets or credentials into the email', () => {
     const service = new EmailTemplates(makeConfig());
-    const rendered = service.sendPasswordReset({ to: 'a@b.com', resetToken: 'secret-token', expiresInMinutes: 30 });
+    const rendered = service.sendPasswordReset({
+      to: 'a@b.com',
+      resetToken: 'secret-token',
+      expiresInMinutes: 30,
+    });
     expect(rendered.subject).not.toContain('SMTP');
     expect(rendered.subject).not.toContain('password');
   });

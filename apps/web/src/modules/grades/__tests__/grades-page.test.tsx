@@ -18,12 +18,19 @@ vi.mock('../hooks', () => ({
   useGrades: (...args: unknown[]) => mockUseGrades(...args),
 }));
 
-const mockParentFilter = vi.fn((): {
-  isParent: boolean;
-  studentId: string | undefined;
-  selectedChild: { studentId: string; firstName: string; lastName: string; relationshipType: string } | null;
-  children: unknown[];
-} => ({ isParent: false, studentId: undefined, selectedChild: null, children: [] }));
+const mockParentFilter = vi.fn(
+  (): {
+    isParent: boolean;
+    studentId: string | undefined;
+    selectedChild: {
+      studentId: string;
+      firstName: string;
+      lastName: string;
+      relationshipType: string;
+    } | null;
+    children: unknown[];
+  } => ({ isParent: false, studentId: undefined, selectedChild: null, children: [] }),
+);
 
 vi.mock('@/modules/children', () => ({
   useParentStudentFilter: () => mockParentFilter(),
@@ -46,7 +53,8 @@ vi.mock('@/auth/auth.store', () => ({
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
     hasPermission: (code: string) => code === 'grades:read' || code === 'grades:manage',
-    hasAnyPermission: (...codes: string[]) => codes.some((c) => c === 'grades:read' || c === 'grades:manage'),
+    hasAnyPermission: (...codes: string[]) =>
+      codes.some((c) => c === 'grades:read' || c === 'grades:manage'),
     hasAllPermissions: () => true,
     permissionCodes: ['grades:read', 'grades:manage'],
   }),
@@ -165,7 +173,12 @@ describe('GradesPage', () => {
     mockParentFilter.mockReturnValue({
       isParent: true,
       studentId: 'stu-1',
-      selectedChild: { studentId: 'stu-1', firstName: 'Juan', lastName: 'Pérez', relationshipType: 'FATHER' },
+      selectedChild: {
+        studentId: 'stu-1',
+        firstName: 'Juan',
+        lastName: 'Pérez',
+        relationshipType: 'FATHER',
+      },
       children: [],
     });
     mockUseGrades.mockReturnValue({

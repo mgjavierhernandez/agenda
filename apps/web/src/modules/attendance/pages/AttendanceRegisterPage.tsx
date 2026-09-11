@@ -77,7 +77,12 @@ export function AttendanceRegisterPage() {
       notes: row.notes || null,
     }));
     try {
-      const result = await bulkCreate.mutateAsync({ courseId, academicPeriodId: periodId, date, records });
+      const result = await bulkCreate.mutateAsync({
+        courseId,
+        academicPeriodId: periodId,
+        date,
+        records,
+      });
       navigate('/attendance', { state: { success: true, created: result.created } });
     } catch (err) {
       setFormError(getErrorMessage(err));
@@ -126,7 +131,9 @@ export function AttendanceRegisterPage() {
             >
               <option value="">Selecciona un curso</option>
               {coursesData?.data.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -196,7 +203,8 @@ export function AttendanceRegisterPage() {
                   onClick={() =>
                     setRows((prev) => {
                       const next: Record<string, RowState> = {};
-                      for (const k of Object.keys(prev)) next[k] = { ...prev[k], status: 'PRESENT' };
+                      for (const k of Object.keys(prev))
+                        next[k] = { ...prev[k], status: 'PRESENT' };
                       return next;
                     })
                   }
@@ -234,7 +242,9 @@ export function AttendanceRegisterPage() {
                             className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                           >
                             {STATUS_OPTIONS.map((st) => (
-                              <option key={st} value={st}>{ATTENDANCE_STATUS_LABELS[st]}</option>
+                              <option key={st} value={st}>
+                                {ATTENDANCE_STATUS_LABELS[st]}
+                              </option>
                             ))}
                           </select>
                         </td>
@@ -273,7 +283,9 @@ export function AttendanceRegisterPage() {
                       className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                     >
                       {STATUS_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{ATTENDANCE_STATUS_LABELS[st]}</option>
+                        <option key={st} value={st}>
+                          {ATTENDANCE_STATUS_LABELS[st]}
+                        </option>
                       ))}
                     </select>
                     <input
@@ -302,9 +314,7 @@ export function AttendanceRegisterPage() {
               </Button>
             </div>
             {bulkCreate.isSuccess && (
-              <div className="mt-3 text-sm text-green-700">
-                Asistencia guardada correctamente.
-              </div>
+              <div className="mt-3 text-sm text-green-700">Asistencia guardada correctamente.</div>
             )}
           </Card>
         )

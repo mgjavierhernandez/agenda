@@ -5,7 +5,11 @@ import type { GradeTaskSubmissionInput, TaskSubmission } from '@/api/types';
 export function useGradeTaskSubmission() {
   const queryClient = useQueryClient();
 
-  return useMutation<TaskSubmission, Error, { submissionId: string; data: GradeTaskSubmissionInput }>({
+  return useMutation<
+    TaskSubmission,
+    Error,
+    { submissionId: string; data: GradeTaskSubmissionInput }
+  >({
     mutationFn: ({ submissionId, data }) =>
       apiClient.patch(`/submissions/${submissionId}/grade`, data),
     onSuccess: () => {

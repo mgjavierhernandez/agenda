@@ -7,7 +7,14 @@ import { TeacherAssignmentsPage } from '../pages/TeacherAssignmentsPage';
 import { TeacherAssignmentDetailPage } from '../pages/TeacherAssignmentDetailPage';
 import { TeacherAssignmentFormPage } from '../pages/TeacherAssignmentFormPage';
 import { apiClient } from '@/api/client';
-import type { TeacherAssignment, PaginatedApiResponse, User, Course, Subject, AcademicPeriod } from '@/api/types';
+import type {
+  TeacherAssignment,
+  PaginatedApiResponse,
+  User,
+  Course,
+  Subject,
+  AcademicPeriod,
+} from '@/api/types';
 
 vi.mock('@/api/client', () => ({
   apiClient: {
@@ -135,25 +142,37 @@ const mockRelatedData = () => {
       return Promise.resolve(mockUser);
     }
     if (u.startsWith('/users')) {
-      return Promise.resolve({ data: [mockUser], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockUser],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/courses/')) {
       return Promise.resolve(mockCourse);
     }
     if (u.startsWith('/courses')) {
-      return Promise.resolve({ data: [mockCourse], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockCourse],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/subjects/')) {
       return Promise.resolve(mockSubject);
     }
     if (u.startsWith('/subjects')) {
-      return Promise.resolve({ data: [mockSubject], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockSubject],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/academic-periods/')) {
       return Promise.resolve(mockPeriod);
     }
     if (u.startsWith('/academic-periods')) {
-      return Promise.resolve({ data: [mockPeriod], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockPeriod],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
   });
@@ -235,35 +254,45 @@ describe('TeacherAssignmentDetailPage', () => {
   });
 
   it('renders assignment details', async () => {
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.getAllByText('Carlos García').length).toBeGreaterThanOrEqual(1);
     });
   });
 
   it('shows course name', async () => {
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.getByText('Décimo A (10A)')).toBeInTheDocument();
     });
   });
 
   it('shows subject name', async () => {
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.getByText('Matemáticas (MAT)')).toBeInTheDocument();
     });
   });
 
   it('shows status badge', async () => {
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.getByText('Activa')).toBeInTheDocument();
     });
   });
 
   it('shows deactivate button for active assignments', async () => {
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.getByText('Desactivar')).toBeInTheDocument();
     });
@@ -271,14 +300,18 @@ describe('TeacherAssignmentDetailPage', () => {
 
   it('hides actions for non-managers', async () => {
     mockHasPermission.mockImplementation((perm: string) => perm !== 'teacher-assignments:manage');
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.queryByText('Desactivar')).not.toBeInTheDocument();
     });
   });
 
   it('shows back button', async () => {
-    render(<TeacherAssignmentDetailPage />, { wrapper: createWrapper(['/teacher-assignments/ta-1']) });
+    render(<TeacherAssignmentDetailPage />, {
+      wrapper: createWrapper(['/teacher-assignments/ta-1']),
+    });
     await waitFor(() => {
       expect(screen.getByText('Volver a asignaciones')).toBeInTheDocument();
     });

@@ -104,7 +104,11 @@ export class DashboardService {
     private readonly followUpAuthorization: StudentFollowUpAuthorizationService,
   ) {}
 
-  async getDashboard(userId: string, institutionId: string, periodId?: string): Promise<DashboardData> {
+  async getDashboard(
+    userId: string,
+    institutionId: string,
+    periodId?: string,
+  ): Promise<DashboardData> {
     const role = await this.resolveRole(userId, institutionId);
     if (!role) {
       throw new ForbiddenException('No active role for this institution');
@@ -226,7 +230,10 @@ export class DashboardService {
         this.prisma.course.count({ where: { institutionId, status: 'ACTIVE' } }),
         this.prisma.subject.count({ where: { institutionId, status: 'ACTIVE' } }),
         this.prisma.studentFollowUp.count({
-          where: { institutionId, status: { in: ['OPEN', 'IN_PROGRESS', 'PENDING_FOLLOW_UP', 'ESCALATED'] } },
+          where: {
+            institutionId,
+            status: { in: ['OPEN', 'IN_PROGRESS', 'PENDING_FOLLOW_UP', 'ESCALATED'] },
+          },
         }),
       ]);
       return { students, teachers, courses, subjects, pendingFollowUps };
@@ -475,7 +482,8 @@ export class DashboardService {
       role === 'ORIENTADOR' ||
       role === 'PSICOLOGO';
     if (staffAdmin) return true;
-    if (audience === CommunicationAudience.TEACHERS) return role === 'TEACHER' || role === 'DIRECTOR_DE_GRUPO';
+    if (audience === CommunicationAudience.TEACHERS)
+      return role === 'TEACHER' || role === 'DIRECTOR_DE_GRUPO';
     if (audience === CommunicationAudience.PARENTS) return role === 'PARENT';
     if (audience === CommunicationAudience.STUDENTS) return role === 'STUDENT';
     return false;
@@ -501,7 +509,11 @@ export class DashboardService {
 
   private async getPendingSignatures(userId: string, institutionId: string) {
     const rows = await this.prisma.signatureRecipient.findMany({
-      where: { userId, status: 'PENDING', signatureRequest: { institutionId, status: SignatureRequestStatus.PUBLISHED } },
+      where: {
+        userId,
+        status: 'PENDING',
+        signatureRequest: { institutionId, status: SignatureRequestStatus.PUBLISHED },
+      },
       orderBy: { signatureRequest: { createdAt: 'desc' } },
       take: 5,
       select: {
@@ -548,11 +560,7 @@ export class DashboardService {
     return rows;
   }
 
-  private async getPendingCommitments(
-    userId: string,
-    institutionId: string,
-    role: DashboardRole,
-  ) {
+  private async getPendingCommitments(userId: string, institutionId: string, role: DashboardRole) {
     // Admin: all pending commitments in the institution.
     // SUPER_ADMIN is excluded (no functional access to school data).
     if (role === 'INSTITUTION_ADMIN') {

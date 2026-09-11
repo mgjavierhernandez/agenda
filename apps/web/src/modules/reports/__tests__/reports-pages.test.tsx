@@ -61,10 +61,31 @@ const mockPeriod = {
 };
 
 const mockReport: StudentReport = {
-  student: { id: 'stu-1', firstName: 'Ana', lastName: 'García', documentType: 'DNI', documentNumber: '123', status: 'ACTIVE' },
+  student: {
+    id: 'stu-1',
+    firstName: 'Ana',
+    lastName: 'García',
+    documentType: 'DNI',
+    documentNumber: '123',
+    status: 'ACTIVE',
+  },
   institution: { id: 'inst-1', name: 'Demo School', slug: 'demo-school' },
-  academicPeriod: { id: 'ap-1', name: '2026 - Periodo 1', code: '2026-P1', status: 'ACTIVE', startDate: '2026-01-15', endDate: '2026-06-30' },
-  enrollment: { courseId: 'c-1', courseCode: 'MAT-10', courseName: 'Matemáticas', schoolGradeId: 'sg-1', schoolGradeName: 'Grado 10', enrolledAt: '2026-01-15' },
+  academicPeriod: {
+    id: 'ap-1',
+    name: '2026 - Periodo 1',
+    code: '2026-P1',
+    status: 'ACTIVE',
+    startDate: '2026-01-15',
+    endDate: '2026-06-30',
+  },
+  enrollment: {
+    courseId: 'c-1',
+    courseCode: 'MAT-10',
+    courseName: 'Matemáticas',
+    schoolGradeId: 'sg-1',
+    schoolGradeName: 'Grado 10',
+    enrolledAt: '2026-01-15',
+  },
   academic: [
     {
       subjectId: 'sub-1',
@@ -76,10 +97,22 @@ const mockReport: StudentReport = {
     },
   ],
   attendance: { total: 40, present: 35, absent: 2, late: 2, excused: 1 },
-  observador: { total: 3, open: 1, resolved: 2, byConfidentiality: { PUBLICA: 2, CONFIDENCIAL: 1 } },
+  observador: {
+    total: 3,
+    open: 1,
+    resolved: 2,
+    byConfidentiality: { PUBLICA: 2, CONFIDENCIAL: 1 },
+  },
 };
 
-const mockCourse: { id: string; institutionId: string; code: string; name: string; description: string | null; status: 'ACTIVE' | 'INACTIVE' } = {
+const mockCourse: {
+  id: string;
+  institutionId: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+} = {
   id: 'c-1',
   institutionId: 'inst-1',
   code: 'MAT-10',
@@ -90,10 +123,24 @@ const mockCourse: { id: string; institutionId: string; code: string; name: strin
 
 const mockCourseReport: CourseReport = {
   course: { id: 'c-1', code: 'MAT-10', name: 'Matemáticas', status: 'ACTIVE' },
-  academicPeriod: { id: 'ap-1', name: '2026 - Periodo 1', code: '2026-P1', status: 'ACTIVE', startDate: '2026-01-15', endDate: '2026-06-30' },
+  academicPeriod: {
+    id: 'ap-1',
+    name: '2026 - Periodo 1',
+    code: '2026-P1',
+    status: 'ACTIVE',
+    startDate: '2026-01-15',
+    endDate: '2026-06-30',
+  },
   students: [
     {
-      student: { id: 'stu-1', firstName: 'Ana', lastName: 'García', documentType: 'DNI', documentNumber: '123', status: 'ACTIVE' },
+      student: {
+        id: 'stu-1',
+        firstName: 'Ana',
+        lastName: 'García',
+        documentType: 'DNI',
+        documentNumber: '123',
+        status: 'ACTIVE',
+      },
       schoolGradeName: 'Grado 10',
       subjectCount: 6,
       gradeCount: 18,
@@ -118,7 +165,9 @@ describe('ReportsPage', () => {
     vi.clearAllMocks();
     mockHasPermission.mockReturnValue(true);
     mockChildContext = {
-      children: [{ studentId: 'stu-1', firstName: 'Ana', lastName: 'García', relationshipType: 'MADRE' }],
+      children: [
+        { studentId: 'stu-1', firstName: 'Ana', lastName: 'García', relationshipType: 'MADRE' },
+      ],
       selectedChildId: 'stu-1',
       setSelectedChildId: () => {},
       isLoading: false,
@@ -126,7 +175,10 @@ describe('ReportsPage', () => {
     };
     vi.mocked(apiClient.get).mockImplementation(async (path: string) => {
       if (path.startsWith('/academic-periods')) {
-        return { data: [mockPeriod], meta: { total: 1, page: 1, limit: 100, totalPages: 1 } } as PaginatedApiResponse<typeof mockPeriod>;
+        return {
+          data: [mockPeriod],
+          meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+        } as PaginatedApiResponse<typeof mockPeriod>;
       }
       if (path.startsWith('/reports/students/')) {
         return mockReport;
@@ -205,7 +257,10 @@ describe('ReportsPage', () => {
   it('shows an error state when the report fails', async () => {
     vi.mocked(apiClient.get).mockImplementation(async (path: string) => {
       if (path.startsWith('/academic-periods')) {
-        return { data: [mockPeriod], meta: { total: 1, page: 1, limit: 100, totalPages: 1 } } as PaginatedApiResponse<typeof mockPeriod>;
+        return {
+          data: [mockPeriod],
+          meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+        } as PaginatedApiResponse<typeof mockPeriod>;
       }
       throw { statusCode: 404, message: 'Estudiante no encontrado', timestamp: '', path };
     });
@@ -222,10 +277,16 @@ describe('CourseReportPage', () => {
     mockHasPermission.mockReturnValue(true);
     vi.mocked(apiClient.get).mockImplementation(async (path: string) => {
       if (path.startsWith('/academic-periods')) {
-        return { data: [mockPeriod], meta: { total: 1, page: 1, limit: 100, totalPages: 1 } } as PaginatedApiResponse<typeof mockPeriod>;
+        return {
+          data: [mockPeriod],
+          meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+        } as PaginatedApiResponse<typeof mockPeriod>;
       }
       if (path.startsWith('/courses')) {
-        return { data: [mockCourse], meta: { total: 1, page: 1, limit: 100, totalPages: 1 } } as PaginatedApiResponse<typeof mockCourse>;
+        return {
+          data: [mockCourse],
+          meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+        } as PaginatedApiResponse<typeof mockCourse>;
       }
       if (path.startsWith('/reports/courses/')) {
         return mockCourseReport;

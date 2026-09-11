@@ -1,4 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { RequestWithId } from '../middleware/request-id.middleware';
 
@@ -39,8 +46,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (status >= 500) {
       this.logger.error(
-        `${request.method} ${request.url} ${status}` +
-        (requestId ? ` [rid:${requestId}]` : ''),
+        `${request.method} ${request.url} ${status}` + (requestId ? ` [rid:${requestId}]` : ''),
         exception instanceof Error ? exception.stack : undefined,
       );
       if (nodeEnv === 'production') {

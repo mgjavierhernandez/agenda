@@ -2,7 +2,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useCommunication, usePublishCommunication, useDeactivateCommunication } from '../hooks';
 import { useMarkCommunicationOpened } from '@/modules/communication-recipients/hooks';
-import { useCommunicationAttachments, useCreateCommunicationAttachment } from '@/modules/files/hooks';
+import {
+  useCommunicationAttachments,
+  useCreateCommunicationAttachment,
+} from '@/modules/files/hooks';
 import { FileUploader } from '@/modules/files/components/FileUploader';
 import { AttachmentList } from '@/modules/files/components/AttachmentList';
 import { usePermissions } from '@/permissions/usePermissions';
@@ -16,7 +19,10 @@ import { PERMISSIONS } from '@/permissions/permission.constants';
 import type { CommunicationStatus, FileAsset } from '@/api/types';
 import { COMMUNICATION_STATUS_LABELS, COMMUNICATION_AUDIENCE_LABELS } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<CommunicationStatus, 'success' | 'warning' | 'default' | 'danger'> = {
+const STATUS_BADGE_VARIANT: Record<
+  CommunicationStatus,
+  'success' | 'warning' | 'default' | 'danger'
+> = {
   DRAFT: 'default',
   PUBLISHED: 'success',
   INACTIVE: 'danger',
@@ -31,7 +37,9 @@ export function CommunicationDetailPage() {
   const { data: communication, isLoading, error } = useCommunication(id ?? '');
   const publishMutation = usePublishCommunication();
   const deactivateMutation = useDeactivateCommunication();
-  const { data: attachments = [], refetch: refetchAttachments } = useCommunicationAttachments(id ?? '');
+  const { data: attachments = [], refetch: refetchAttachments } = useCommunicationAttachments(
+    id ?? '',
+  );
   const createAttachmentMutation = useCreateCommunicationAttachment();
   const canAttach = canManage && communication?.status === 'DRAFT';
   const markOpenedMutation = useMarkCommunicationOpened();
@@ -84,7 +92,11 @@ export function CommunicationDetailPage() {
   }
 
   if (!communication) {
-    return <ErrorState error={{ statusCode: 404, message: 'Comunicación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Comunicación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canEdit = canManage && communication.status === 'DRAFT';
@@ -103,11 +115,7 @@ export function CommunicationDetailPage() {
                 Editar
               </Button>
             )}
-            {canPublish && (
-              <Button onClick={() => setConfirmAction('publish')}>
-                Publicar
-              </Button>
-            )}
+            {canPublish && <Button onClick={() => setConfirmAction('publish')}>Publicar</Button>}
             {canDeactivate && (
               <Button variant="danger" onClick={() => setConfirmAction('deactivate')}>
                 Desactivar
@@ -119,7 +127,9 @@ export function CommunicationDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Comunicación</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Información de la Comunicación
+          </h3>
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Título</dt>
@@ -131,7 +141,9 @@ export function CommunicationDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Audiencia</dt>
-              <dd className="text-gray-900">{COMMUNICATION_AUDIENCE_LABELS[communication.audience]}</dd>
+              <dd className="text-gray-900">
+                {COMMUNICATION_AUDIENCE_LABELS[communication.audience]}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Estado</dt>
@@ -153,7 +165,9 @@ export function CommunicationDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Institución</dt>
-              <dd className="text-gray-900 font-mono text-xs break-all">{communication.institutionId}</dd>
+              <dd className="text-gray-900 font-mono text-xs break-all">
+                {communication.institutionId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Publicado</dt>
@@ -190,9 +204,7 @@ export function CommunicationDetailPage() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Archivos adjuntos</h3>
-          {canAttach && (
-            <span className="text-sm text-gray-500">Máx. 10 archivos, 10 MB c/u</span>
-          )}
+          {canAttach && <span className="text-sm text-gray-500">Máx. 10 archivos, 10 MB c/u</span>}
         </div>
         <AttachmentList
           attachments={attachments}
@@ -228,8 +240,10 @@ export function CommunicationDetailPage() {
               {confirmAction === 'deactivate' && 'Confirmar desactivación'}
             </h3>
             <p className="text-gray-600 mb-6">
-              {confirmAction === 'publish' && `¿Deseas publicar la comunicación "${communication.title}"? Los destinatarios podrán recibirla según la audiencia seleccionada.`}
-              {confirmAction === 'deactivate' && `¿Deseas desactivar la comunicación "${communication.title}"? Esta acción no se puede revertir.`}
+              {confirmAction === 'publish' &&
+                `¿Deseas publicar la comunicación "${communication.title}"? Los destinatarios podrán recibirla según la audiencia seleccionada.`}
+              {confirmAction === 'deactivate' &&
+                `¿Deseas desactivar la comunicación "${communication.title}"? Esta acción no se puede revertir.`}
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setConfirmAction(null)}>

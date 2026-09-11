@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -52,11 +48,10 @@ export class StudentsService {
       });
     } catch (err) {
       // Carrera check-then-create bajo concurrencia: el constraint único manda.
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2002'
-      ) {
-        throw new ConflictException('Student with this document already exists in this institution');
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new ConflictException(
+          'Student with this document already exists in this institution',
+        );
       }
       throw err;
     }
@@ -83,7 +78,10 @@ export class StudentsService {
     institutionId: string,
     query: ListStudentsQueryDto,
     userId?: string,
-  ): Promise<{ data: Student[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Student[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -194,7 +192,9 @@ export class StudentsService {
       });
 
       if (duplicate) {
-        throw new ConflictException('Student with this document already exists in this institution');
+        throw new ConflictException(
+          'Student with this document already exists in this institution',
+        );
       }
     }
 
@@ -216,9 +216,10 @@ export class StudentsService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === StudentStatus.INACTIVE
-        ? 'STUDENT_DEACTIVATED'
-        : 'STUDENT_UPDATED',
+      action:
+        dto.status && dto.status === StudentStatus.INACTIVE
+          ? 'STUDENT_DEACTIVATED'
+          : 'STUDENT_UPDATED',
       entityType: 'Student',
       entityId: student.id,
       oldValues: {

@@ -48,9 +48,7 @@ export class SignaturesService {
         },
       });
       if (!membership) {
-        throw new BadRequestException(
-          `User ${userId} is not a member of this institution`,
-        );
+        throw new BadRequestException(`User ${userId} is not a member of this institution`);
       }
     }
 
@@ -83,10 +81,7 @@ export class SignaturesService {
     return full!;
   }
 
-  private async checkCompletion(
-    signatureRequestId: string,
-    institutionId: string,
-  ): Promise<void> {
+  private async checkCompletion(signatureRequestId: string, institutionId: string): Promise<void> {
     const pendingCount = await this.prisma.signatureRecipient.count({
       where: {
         signatureRequestId,
@@ -230,9 +225,7 @@ export class SignaturesService {
         institutionId,
         recipients: { some: { userId } },
         status: { notIn: [SignatureRequestStatus.DRAFT, SignatureRequestStatus.INACTIVE] },
-        ...(query.status
-          ? { status: query.status }
-          : {}),
+        ...(query.status ? { status: query.status } : {}),
         ...(query.search
           ? {
               OR: [
@@ -268,9 +261,7 @@ export class SignaturesService {
       this.prisma.signatureRequest.count({ where }),
     ]);
 
-    const checkedData = await Promise.all(
-      data.map((r) => this.checkExpiration(institutionId, r)),
-    );
+    const checkedData = await Promise.all(data.map((r) => this.checkExpiration(institutionId, r)));
 
     return {
       data: checkedData,
@@ -775,17 +766,23 @@ export class SignaturesService {
 
         // In-app notification (reuse existing notification system).
         this.notificationsService
-          .create(institutionId, {
-            type: NotificationType.SIGNATURE_REQUEST,
-            title,
-            message,
-            userId: recipient.userId,
-            entityType: 'SignatureRequest',
-            entityId: request.id,
-          }, 'system')
+          .create(
+            institutionId,
+            {
+              type: NotificationType.SIGNATURE_REQUEST,
+              title,
+              message,
+              userId: recipient.userId,
+              entityType: 'SignatureRequest',
+              entityId: request.id,
+            },
+            'system',
+          )
           .catch((err: unknown) => {
             const em = err instanceof Error ? err.message : String(err);
-            this.logger.warn(`[signature ${request.id}] notification to ${recipient.userId} failed: ${em}`);
+            this.logger.warn(
+              `[signature ${request.id}] notification to ${recipient.userId} failed: ${em}`,
+            );
           });
 
         // Email (fire-and-forget).

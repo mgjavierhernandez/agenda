@@ -51,7 +51,11 @@ export function SchoolGradeDetailPage() {
   }
 
   if (!grade) {
-    return <ErrorState error={{ statusCode: 404, message: 'Grado no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Grado no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canEdit = canManage;
@@ -114,15 +118,11 @@ export function SchoolGradeDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Creado</dt>
-              <dd className="text-gray-900">
-                {new Date(grade.createdAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(grade.createdAt).toLocaleString('es-CO')}</dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Última actualización</dt>
-              <dd className="text-gray-900">
-                {new Date(grade.updatedAt).toLocaleString('es-CO')}
-              </dd>
+              <dd className="text-gray-900">{new Date(grade.updatedAt).toLocaleString('es-CO')}</dd>
             </div>
           </dl>
         </Card>
@@ -137,9 +137,7 @@ export function SchoolGradeDetailPage() {
       {confirmDeactivate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Card className="w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Confirmar desactivación
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
               ¿Deseas desactivar el grado "{grade.name}"? Esta acción cambiará su estado a Inactivo.
             </p>

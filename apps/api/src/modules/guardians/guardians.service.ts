@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { getUserRoleNames, hasFullAccess } from '../../common/auth/academic-scope';
@@ -44,7 +49,13 @@ export class GuardiansService {
     }
 
     const existing = await this.prisma.guardianStudent.findUnique({
-      where: { institutionId_guardianUserId_studentId: { institutionId, guardianUserId, studentId: dto.studentId } },
+      where: {
+        institutionId_guardianUserId_studentId: {
+          institutionId,
+          guardianUserId,
+          studentId: dto.studentId,
+        },
+      },
     });
     if (existing) {
       throw new ConflictException('Guardian is already linked to this student');
@@ -82,7 +93,10 @@ export class GuardiansService {
     institutionId: string,
     guardianUserId: string,
     query: ListGuardiansQueryDto,
-  ): Promise<{ data: (GuardianStudent & { student: Student })[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: (GuardianStudent & { student: Student })[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -159,7 +173,9 @@ export class GuardiansService {
     ipAddress?: string,
   ): Promise<GuardianStudent> {
     const guardianStudent = await this.prisma.guardianStudent.findUnique({
-      where: { institutionId_guardianUserId_studentId: { institutionId, guardianUserId, studentId } },
+      where: {
+        institutionId_guardianUserId_studentId: { institutionId, guardianUserId, studentId },
+      },
     });
 
     if (!guardianStudent) {

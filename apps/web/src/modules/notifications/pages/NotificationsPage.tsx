@@ -185,7 +185,11 @@ export function NotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <EmptyState
-          title={debouncedSearch || statusFilter || typeFilter ? 'No se encontraron notificaciones' : 'No hay notificaciones'}
+          title={
+            debouncedSearch || statusFilter || typeFilter
+              ? 'No se encontraron notificaciones'
+              : 'No hay notificaciones'
+          }
           description={
             debouncedSearch || statusFilter || typeFilter
               ? 'No encontramos notificaciones que coincidan con los filtros aplicados.'
@@ -217,10 +221,16 @@ export function NotificationsPage() {
                       <td className="px-4 py-3">
                         <span className="text-lg">{TYPE_ICONS[notif.type]}</span>
                       </td>
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={notif.title}>
+                      <td
+                        className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                        title={notif.title}
+                      >
                         {notif.title}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 max-w-[300px] truncate" title={notif.message}>
+                      <td
+                        className="px-4 py-3 text-gray-600 max-w-[300px] truncate"
+                        title={notif.message}
+                      >
                         {notif.message}
                       </td>
                       <td className="px-4 py-3">
@@ -262,13 +272,19 @@ export function NotificationsPage() {
 
           <div className="md:hidden space-y-3">
             {notifications.map((notif) => (
-              <div key={notif.id} onClick={() => navigate(`/notifications/${notif.id}`)} className="cursor-pointer">
+              <div
+                key={notif.id}
+                onClick={() => navigate(`/notifications/${notif.id}`)}
+                className="cursor-pointer"
+              >
                 <Card>
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3 min-w-0">
                       <span className="text-lg mt-0.5">{TYPE_ICONS[notif.type]}</span>
                       <div className="space-y-1 min-w-0">
-                        <p className={`font-semibold text-gray-900 text-lg truncate ${notif.status === 'UNREAD' ? 'text-blue-900' : ''}`}>
+                        <p
+                          className={`font-semibold text-gray-900 text-lg truncate ${notif.status === 'UNREAD' ? 'text-blue-900' : ''}`}
+                        >
                           {notif.title}
                         </p>
                         <p className="text-sm text-gray-500 truncate max-w-[250px]">
@@ -293,11 +309,7 @@ export function NotificationsPage() {
                         Marcar leído
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => handleDelete(notif.id, e)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={(e) => handleDelete(notif.id, e)}>
                       Eliminar
                     </Button>
                   </div>

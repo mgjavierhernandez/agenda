@@ -12,11 +12,12 @@ import { Spinner } from '@/components/ui/Spinner';
 import { PERMISSIONS } from '@/permissions/permission.constants';
 import type { Institution } from '@/api/types';
 
-const INSTITUTION_STATUS_VARIANT: Record<Institution['status'], 'success' | 'default' | 'danger'> = {
-  ACTIVE: 'success',
-  INACTIVE: 'default',
-  SUSPENDED: 'danger',
-};
+const INSTITUTION_STATUS_VARIANT: Record<Institution['status'], 'success' | 'default' | 'danger'> =
+  {
+    ACTIVE: 'success',
+    INACTIVE: 'default',
+    SUSPENDED: 'danger',
+  };
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) {

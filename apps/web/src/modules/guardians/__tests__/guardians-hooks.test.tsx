@@ -7,7 +7,12 @@ import { useGuardiansByStudent } from '../hooks/useGuardiansByStudent';
 import { useLinkGuardian } from '../hooks/useLinkGuardian';
 import { useUnlinkGuardian } from '../hooks/useUnlinkGuardian';
 import { apiClient } from '@/api/client';
-import type { GuardianStudentWithStudent, GuardianStudent, PaginatedApiResponse, DocumentType } from '@/api/types';
+import type {
+  GuardianStudentWithStudent,
+  GuardianStudent,
+  PaginatedApiResponse,
+  DocumentType,
+} from '@/api/types';
 
 vi.mock('@/api/client', () => ({
   apiClient: {
@@ -88,7 +93,10 @@ describe('Guardians hooks', () => {
     });
 
     it('sends search param', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useGuardianStudents({ page: 1, limit: 20, search: 'juan' }), {
         wrapper: createWrapper(),

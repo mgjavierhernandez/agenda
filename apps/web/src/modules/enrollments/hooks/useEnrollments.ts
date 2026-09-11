@@ -14,7 +14,10 @@ export function useEnrollments(params: ListEnrollmentsParams = {}) {
   if (academicPeriodId) searchParams.set('academicPeriodId', academicPeriodId);
 
   return useQuery<PaginatedApiResponse<Enrollment>>({
-    queryKey: ['enrollments', { page, limit, studentId, courseId, schoolGradeId, academicPeriodId }],
+    queryKey: [
+      'enrollments',
+      { page, limit, studentId, courseId, schoolGradeId, academicPeriodId },
+    ],
     queryFn: () => apiClient.get(`/enrollments?${searchParams.toString()}`),
   });
 }

@@ -39,7 +39,11 @@ export function StudentDetailPage() {
   }
 
   if (!student) {
-    return <ErrorState error={{ statusCode: 404, message: 'Estudiante no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Estudiante no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   return (
@@ -69,11 +73,15 @@ export function StudentDetailPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Nombre completo</dt>
-              <dd className="text-gray-900">{student.firstName} {student.lastName}</dd>
+              <dd className="text-gray-900">
+                {student.firstName} {student.lastName}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Documento</dt>
-              <dd className="text-gray-900">{student.documentType}: {student.documentNumber}</dd>
+              <dd className="text-gray-900">
+                {student.documentType}: {student.documentNumber}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de nacimiento</dt>
@@ -129,7 +137,8 @@ export function StudentDetailPage() {
           <Card className="w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desactivar al estudiante {student.firstName} {student.lastName}? Esta acción puede revertirse editando el estudiante.
+              ¿Deseas desactivar al estudiante {student.firstName} {student.lastName}? Esta acción
+              puede revertirse editando el estudiante.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>

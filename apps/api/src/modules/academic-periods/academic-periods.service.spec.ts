@@ -39,10 +39,7 @@ describe('AcademicPeriodsService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new AcademicPeriodsService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new AcademicPeriodsService(prismaMock as never, auditServiceMock as never);
   });
 
   describe('create', () => {
@@ -170,9 +167,9 @@ describe('AcademicPeriodsService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.academicPeriod.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'ap-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'ap-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -293,12 +290,7 @@ describe('AcademicPeriodsService', () => {
         });
 
       await expect(
-        service.update(
-          institutionId,
-          'ap-1',
-          { code: '2026B' },
-          userId,
-        ),
+        service.update(institutionId, 'ap-1', { code: '2026B' }, userId),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -353,17 +345,15 @@ describe('AcademicPeriodsService', () => {
         status: AcademicPeriodStatus.CLOSED,
       });
 
-      await expect(
-        service.deactivate(institutionId, 'ap-1', userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.deactivate(institutionId, 'ap-1', userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
   describe('PROMPT 90: close academic period (OPEN -> CLOSED)', () => {
     it('should close an ACTIVE period and set authority fields server-side', async () => {
-      prismaMock.$queryRaw.mockResolvedValue([
-        { id: 'ap-1', status: AcademicPeriodStatus.ACTIVE },
-      ]);
+      prismaMock.$queryRaw.mockResolvedValue([{ id: 'ap-1', status: AcademicPeriodStatus.ACTIVE }]);
       prismaMock.academicPeriod.update.mockResolvedValue({
         id: 'ap-1',
         institutionId,
@@ -399,22 +389,20 @@ describe('AcademicPeriodsService', () => {
     });
 
     it('should reject closing an already CLOSED period -> BadRequestException', async () => {
-      prismaMock.$queryRaw.mockResolvedValue([
-        { id: 'ap-1', status: AcademicPeriodStatus.CLOSED },
-      ]);
+      prismaMock.$queryRaw.mockResolvedValue([{ id: 'ap-1', status: AcademicPeriodStatus.CLOSED }]);
 
-      await expect(
-        service.close(institutionId, 'ap-1', userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.close(institutionId, 'ap-1', userId)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(prismaMock.academicPeriod.update).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException for cross-tenant/missing period', async () => {
       prismaMock.$queryRaw.mockResolvedValue([]);
 
-      await expect(
-        service.close(institutionId, 'other-tenant-ap', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.close(institutionId, 'other-tenant-ap', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -427,9 +415,9 @@ describe('AcademicPeriodsService', () => {
         status: AcademicPeriodStatus.CLOSED,
       });
 
-      await expect(
-        service.update(institutionId, 'ap-1', { name: 'X' }, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.update(institutionId, 'ap-1', { name: 'X' }, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject setting status=CLOSED via the update endpoint -> BadRequestException', async () => {
@@ -441,12 +429,7 @@ describe('AcademicPeriodsService', () => {
       });
 
       await expect(
-        service.update(
-          institutionId,
-          'ap-1',
-          { status: AcademicPeriodStatus.CLOSED },
-          userId,
-        ),
+        service.update(institutionId, 'ap-1', { status: AcademicPeriodStatus.CLOSED }, userId),
       ).rejects.toThrow(BadRequestException);
     });
   });

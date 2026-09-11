@@ -1,4 +1,12 @@
-﻿import { Injectable, Inject, BadRequestException, UnauthorizedException, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+﻿import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  UnauthorizedException,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma';
@@ -96,7 +104,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const { newAccessToken, newRefreshToken } = await this.tokenService.rotateRefreshToken(refreshToken);
+    const { newAccessToken, newRefreshToken } =
+      await this.tokenService.rotateRefreshToken(refreshToken);
 
     return {
       accessToken: newAccessToken,
@@ -167,11 +176,13 @@ export class AuthService {
     }
 
     return {
-      message: 'Si existe una cuenta asociada al correo indicado, recibirás instrucciones para restablecer tu contraseña.',
+      message:
+        'Si existe una cuenta asociada al correo indicado, recibirás instrucciones para restablecer tu contraseña.',
     };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     const resetToken = await this.prisma.passwordResetToken.findUnique({
       where: { tokenHash },
@@ -245,7 +256,10 @@ export class AuthService {
     return { message: 'Password has been reset successfully' };
   }
 
-  async selfRegister(dto: SelfRegisterDto, ipAddress?: string): Promise<{ message: string; status: 'PENDING' }> {
+  async selfRegister(
+    dto: SelfRegisterDto,
+    ipAddress?: string,
+  ): Promise<{ message: string; status: 'PENDING' }> {
     const normalizedEmail = dto.email.trim().toLowerCase();
 
     const institution = dto.institutionId
@@ -348,7 +362,9 @@ export class AuthService {
                 create: {
                   institutionId: institution.id,
                   documentType: dto.profile.documentType ?? null,
-                  documentNumber: dto.profile.documentNumber ? dto.profile.documentNumber.trim() : null,
+                  documentNumber: dto.profile.documentNumber
+                    ? dto.profile.documentNumber.trim()
+                    : null,
                   phone: dto.profile.phone ?? null,
                   address: dto.profile.address ?? null,
                   birthDate: dto.profile.birthDate ? new Date(dto.profile.birthDate) : null,
@@ -405,7 +421,12 @@ export class AuthService {
     if (!documentType || !cleanNumber) return null;
 
     const unclaimed = await this.prisma.student.findFirst({
-      where: { institutionId, documentType: documentType as never, documentNumber: cleanNumber, userId: null },
+      where: {
+        institutionId,
+        documentType: documentType as never,
+        documentNumber: cleanNumber,
+        userId: null,
+      },
       select: { id: true },
     });
     if (!unclaimed) return null;
@@ -447,7 +468,9 @@ export class AuthService {
     });
 
     if (!byEmail) {
-      throw new ForbiddenException('No account is linked to this Google identity. Request access first.');
+      throw new ForbiddenException(
+        'No account is linked to this Google identity. Request access first.',
+      );
     }
 
     if (byEmail.status !== UserStatus.ACTIVE) {
@@ -470,7 +493,11 @@ export class AuthService {
     return this.issueTokens({ id: byEmail.id, email: byEmail.email, status: byEmail.status });
   }
 
-  private async issueTokens(user: { id: string; email: string; status: UserStatus }): Promise<LoginResult> {
+  private async issueTokens(user: {
+    id: string;
+    email: string;
+    status: UserStatus;
+  }): Promise<LoginResult> {
     const accessToken = this.tokenService.generateAccessToken(user.id);
     const refreshToken = this.tokenService.generateRefreshToken();
 

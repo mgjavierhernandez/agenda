@@ -5,7 +5,14 @@ import { ClassroomType } from '@prisma/client';
 describe('ClassroomsService (GAP-6)', () => {
   let service: ClassroomsService;
   let prismaMock: {
-    classroom: { findUnique: jest.Mock; findFirst: jest.Mock; findMany: jest.Mock; count: jest.Mock; create: jest.Mock; update: jest.Mock };
+    classroom: {
+      findUnique: jest.Mock;
+      findFirst: jest.Mock;
+      findMany: jest.Mock;
+      count: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+    };
   };
   let auditServiceMock: { log: jest.Mock };
 
@@ -14,8 +21,12 @@ describe('ClassroomsService (GAP-6)', () => {
   beforeEach(() => {
     prismaMock = {
       classroom: {
-        findUnique: jest.fn(), findFirst: jest.fn(), findMany: jest.fn(),
-        count: jest.fn(), create: jest.fn(), update: jest.fn(),
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        count: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
       },
     };
     auditServiceMock = { log: jest.fn() };
@@ -24,7 +35,11 @@ describe('ClassroomsService (GAP-6)', () => {
 
   it('should create a classroom', async () => {
     prismaMock.classroom.findUnique.mockResolvedValue(null);
-    prismaMock.classroom.create.mockResolvedValue({ id: 'r-1', code: 'A-101', type: ClassroomType.AULA });
+    prismaMock.classroom.create.mockResolvedValue({
+      id: 'r-1',
+      code: 'A-101',
+      type: ClassroomType.AULA,
+    });
 
     const result = await service.create(
       institutionId,

@@ -112,7 +112,10 @@ describe('Student Follow-Ups (Observador) e2e', () => {
     await prisma.$disconnect();
   });
 
-  const instHeader = () => ({ Authorization: `Bearer ${adminToken}`, 'X-Institution-Id': demoInstitutionId });
+  const instHeader = () => ({
+    Authorization: `Bearer ${adminToken}`,
+    'X-Institution-Id': demoInstitutionId,
+  });
 
   describe('Observador flow (create follow-up -> entry -> citation -> signature)', () => {
     it('creates a follow-up for the student', async () => {
@@ -146,7 +149,11 @@ describe('Student Follow-Ups (Observador) e2e', () => {
       const res = await request(app.getHttpServer())
         .post(`/api/v1/student-follow-ups/${createdFollowUpId}/citations`)
         .set(instHeader())
-        .send({ scheduledAt: future, reason: 'Citación a acudiente', objective: 'Tratar conducta' });
+        .send({
+          scheduledAt: future,
+          reason: 'Citación a acudiente',
+          objective: 'Tratar conducta',
+        });
       expect(res.status).toBe(201);
       expect(res.body.status).toBe('SCHEDULED');
       createdCitationId = res.body.id;

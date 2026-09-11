@@ -47,7 +47,8 @@ vi.mock('@/auth/auth.store', () => ({
 
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
-    hasPermission: (code: string) => code === 'tasks:read' || code === 'tasks:manage' || code === 'grades:manage',
+    hasPermission: (code: string) =>
+      code === 'tasks:read' || code === 'tasks:manage' || code === 'grades:manage',
     hasAnyPermission: () => true,
     hasAllPermissions: () => true,
     permissionCodes: ['tasks:read', 'tasks:manage', 'grades:manage'],
@@ -56,7 +57,8 @@ vi.mock('@/permissions/usePermissions', () => ({
 
 vi.mock('@/api/errors', () => ({
   getErrorMessage: (err: unknown) => {
-    if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+    if (err && typeof err === 'object' && 'message' in err)
+      return String((err as { message: unknown }).message);
     return 'Ocurrió un error inesperado';
   },
   getRequestId: () => null,

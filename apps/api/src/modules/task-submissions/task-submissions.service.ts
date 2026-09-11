@@ -7,8 +7,17 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { resolveAccessibleStudentIds, getUserRoleNames, hasFullAccess } from '../../common/auth/academic-scope';
-import { CreateSubmissionDto, UpdateSubmissionDto, GradeSubmissionDto, ListSubmissionsQueryDto } from './dto/task-submission.dto';
+import {
+  resolveAccessibleStudentIds,
+  getUserRoleNames,
+  hasFullAccess,
+} from '../../common/auth/academic-scope';
+import {
+  CreateSubmissionDto,
+  UpdateSubmissionDto,
+  GradeSubmissionDto,
+  ListSubmissionsQueryDto,
+} from './dto/task-submission.dto';
 import { TaskSubmission, TaskSubmissionStatus, FileAssetStatus, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -43,7 +52,12 @@ export class TaskSubmissionsService {
     if (student?.userId === userId) return assignment;
 
     const teaches = await this.prisma.teacherAssignment.findFirst({
-      where: { institutionId, teacherUserId: userId, courseId: assignment.task.courseId, status: 'ACTIVE' },
+      where: {
+        institutionId,
+        teacherUserId: userId,
+        courseId: assignment.task.courseId,
+        status: 'ACTIVE',
+      },
       select: { id: true },
     });
     if (teaches) return assignment;
@@ -58,7 +72,11 @@ export class TaskSubmissionsService {
     currentUserId: string,
     ipAddress?: string,
   ): Promise<TaskSubmission> {
-    const assignment = await this.assertAssignmentAccess(institutionId, taskAssignmentId, currentUserId);
+    const assignment = await this.assertAssignmentAccess(
+      institutionId,
+      taskAssignmentId,
+      currentUserId,
+    );
 
     const existing = await this.prisma.taskSubmission.findUnique({
       where: { taskAssignmentId },
@@ -80,7 +98,13 @@ export class TaskSubmissionsService {
     });
 
     if (dto.fileAssetIds && dto.fileAssetIds.length > 0) {
-      await this.attachFiles(institutionId, submission.id, dto.fileAssetIds, currentUserId, ipAddress);
+      await this.attachFiles(
+        institutionId,
+        submission.id,
+        dto.fileAssetIds,
+        currentUserId,
+        ipAddress,
+      );
     }
 
     await this.auditService.log({
@@ -115,7 +139,10 @@ export class TaskSubmissionsService {
     institutionId: string,
     query: ListSubmissionsQueryDto,
     userId?: string,
-  ): Promise<{ data: TaskSubmission[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: TaskSubmission[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -176,7 +203,13 @@ export class TaskSubmissionsService {
     });
 
     if (dto.fileAssetIds && dto.fileAssetIds.length > 0) {
-      await this.attachFiles(institutionId, submission.id, dto.fileAssetIds, currentUserId, ipAddress);
+      await this.attachFiles(
+        institutionId,
+        submission.id,
+        dto.fileAssetIds,
+        currentUserId,
+        ipAddress,
+      );
     }
 
     await this.auditService.log({

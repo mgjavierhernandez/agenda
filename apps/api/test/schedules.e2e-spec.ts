@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus, DayOfWeek } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Schedules Module (e2e)', () => {
   let app: INestApplication;
@@ -39,7 +40,8 @@ describe('Schedules Module (e2e)', () => {
 
   const testCreatedScheduleIds: string[] = [];
 
-  const teacherAssignmentExists = () => Boolean(taTeacherUserId && taCourseId && taSubjectId && taAcademicPeriodId);
+  const teacherAssignmentExists = () =>
+    Boolean(taTeacherUserId && taCourseId && taSubjectId && taAcademicPeriodId);
 
   beforeAll(async () => {
     prisma = new PrismaClient();

@@ -47,10 +47,7 @@ export class TasksController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new task' })
   @ApiResponse({ status: 201, description: 'Task created successfully' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() createTaskDto: CreateTaskDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() createTaskDto: CreateTaskDto) {
     return this.tasksService.create(
       req.tenant!.institutionId,
       createTaskDto,
@@ -63,23 +60,36 @@ export class TasksController {
   @RequirePermission('tasks:read')
   @ApiOperation({ summary: 'List tasks with optional filters' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved successfully' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search by title or description' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by title or description',
+  })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by status' })
   @ApiQuery({ name: 'courseId', required: false, type: String, description: 'Filter by course ID' })
-  @ApiQuery({ name: 'subjectId', required: false, type: String, description: 'Filter by subject ID' })
-  @ApiQuery({ name: 'dueDateFrom', required: false, type: String, description: 'Filter by due date from' })
-  @ApiQuery({ name: 'dueDateTo', required: false, type: String, description: 'Filter by due date to' })
+  @ApiQuery({
+    name: 'subjectId',
+    required: false,
+    type: String,
+    description: 'Filter by subject ID',
+  })
+  @ApiQuery({
+    name: 'dueDateFrom',
+    required: false,
+    type: String,
+    description: 'Filter by due date from',
+  })
+  @ApiQuery({
+    name: 'dueDateTo',
+    required: false,
+    type: String,
+    description: 'Filter by due date to',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListTasksQueryDto,
-  ) {
-    return this.tasksService.findAll(
-      req.tenant!.institutionId,
-      query,
-      req.user.userId,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListTasksQueryDto) {
+    return this.tasksService.findAll(req.tenant!.institutionId, query, req.user.userId);
   }
 
   @Get(':id')
@@ -88,15 +98,8 @@ export class TasksController {
   @ApiParam({ name: 'id', description: 'Task UUID' })
   @ApiResponse({ status: 200, description: 'Task found' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.tasksService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch(':id')
@@ -125,16 +128,8 @@ export class TasksController {
   @ApiParam({ name: 'id', description: 'Task UUID' })
   @ApiResponse({ status: 200, description: 'Task published successfully' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async publish(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.tasksService.publish(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async publish(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.publish(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Patch(':id/close')
@@ -143,16 +138,8 @@ export class TasksController {
   @ApiParam({ name: 'id', description: 'Task UUID' })
   @ApiResponse({ status: 200, description: 'Task closed successfully' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async close(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.tasksService.close(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async close(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.close(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Patch(':id/deactivate')
@@ -161,16 +148,8 @@ export class TasksController {
   @ApiParam({ name: 'id', description: 'Task UUID' })
   @ApiResponse({ status: 200, description: 'Task deactivated successfully' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.tasksService.deactivate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Post(':id/attachments')
@@ -203,10 +182,7 @@ export class TasksController {
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.filesService.listTaskAttachments(
-      req.tenant!.institutionId,
-      id,
-    );
+    return this.filesService.listTaskAttachments(req.tenant!.institutionId, id);
   }
 
   @Delete(':id/attachments/:attachmentId')

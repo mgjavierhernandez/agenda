@@ -14,13 +14,19 @@ import { PERMISSIONS } from '@/permissions/permission.constants';
 import type { CommunicationStatus, CommunicationAudience } from '@/api/types';
 import { COMMUNICATION_STATUS_LABELS, COMMUNICATION_AUDIENCE_LABELS } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<CommunicationStatus, 'success' | 'warning' | 'default' | 'danger'> = {
+const STATUS_BADGE_VARIANT: Record<
+  CommunicationStatus,
+  'success' | 'warning' | 'default' | 'danger'
+> = {
   DRAFT: 'default',
   PUBLISHED: 'success',
   INACTIVE: 'danger',
 };
 
-const AUDIENCE_BADGE_VARIANT: Record<CommunicationAudience, 'info' | 'success' | 'warning' | 'default'> = {
+const AUDIENCE_BADGE_VARIANT: Record<
+  CommunicationAudience,
+  'info' | 'success' | 'warning' | 'default'
+> = {
   ALL: 'default',
   TEACHERS: 'success',
   PARENTS: 'warning',
@@ -77,9 +83,7 @@ export function CommunicationsPage() {
         description="Gestionar comunicaciones institucionales"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/communications/new')}>
-              Nueva comunicación
-            </Button>
+            <Button onClick={() => navigate('/communications/new')}>Nueva comunicación</Button>
           ) : undefined
         }
       />
@@ -149,7 +153,11 @@ export function CommunicationsPage() {
         </div>
       ) : communications.length === 0 ? (
         <EmptyState
-          title={debouncedSearch || statusFilter || audienceFilter ? 'No se encontraron comunicaciones' : 'No hay comunicaciones registradas'}
+          title={
+            debouncedSearch || statusFilter || audienceFilter
+              ? 'No se encontraron comunicaciones'
+              : 'No hay comunicaciones registradas'
+          }
           description={
             debouncedSearch || statusFilter || audienceFilter
               ? 'No encontramos comunicaciones que coincidan con los filtros aplicados.'
@@ -178,7 +186,10 @@ export function CommunicationsPage() {
                 <tbody>
                   {communications.map((comm) => (
                     <tr key={comm.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={comm.title}>
+                      <td
+                        className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                        title={comm.title}
+                      >
                         {comm.title}
                       </td>
                       <td className="px-4 py-3">
@@ -217,9 +228,7 @@ export function CommunicationsPage() {
               <Card key={comm.id}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-lg truncate">
-                      {comm.title}
-                    </p>
+                    <p className="font-semibold text-gray-900 text-lg truncate">{comm.title}</p>
                     <p className="text-sm text-gray-500">
                       {new Date(comm.createdAt).toLocaleDateString('es-CO')}
                     </p>

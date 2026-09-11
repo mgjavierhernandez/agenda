@@ -100,7 +100,9 @@ describe('File upload hooks', () => {
     it('fetches task attachments', async () => {
       vi.mocked(apiClient.get).mockResolvedValue([mockTaskAttachment]);
 
-      const { result } = renderHook(() => useTaskAttachments('task-1'), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useTaskAttachments('task-1'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toHaveLength(1);
@@ -122,7 +124,9 @@ describe('File upload hooks', () => {
       result.current.mutate({ taskId: 'task-1', fileAssetId: 'file-1' });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(apiClient.post).toHaveBeenCalledWith('/tasks/task-1/attachments', { fileAssetId: 'file-1' });
+      expect(apiClient.post).toHaveBeenCalledWith('/tasks/task-1/attachments', {
+        fileAssetId: 'file-1',
+      });
     });
   });
 
@@ -143,7 +147,9 @@ describe('File upload hooks', () => {
     it('fetches communication attachments', async () => {
       vi.mocked(apiClient.get).mockResolvedValue([mockCommAttachment]);
 
-      const { result } = renderHook(() => useCommunicationAttachments('comm-1'), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useCommunicationAttachments('comm-1'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toHaveLength(1);
@@ -159,12 +165,16 @@ describe('File upload hooks', () => {
     it('creates a communication attachment', async () => {
       vi.mocked(apiClient.post).mockResolvedValue(mockCommAttachment);
 
-      const { result } = renderHook(() => useCreateCommunicationAttachment(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useCreateCommunicationAttachment(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate({ communicationId: 'comm-1', fileAssetId: 'file-1' });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(apiClient.post).toHaveBeenCalledWith('/communications/comm-1/attachments', { fileAssetId: 'file-1' });
+      expect(apiClient.post).toHaveBeenCalledWith('/communications/comm-1/attachments', {
+        fileAssetId: 'file-1',
+      });
     });
   });
 
@@ -172,7 +182,9 @@ describe('File upload hooks', () => {
     it('deletes a communication attachment', async () => {
       vi.mocked(apiClient.delete).mockResolvedValue({ success: true });
 
-      const { result } = renderHook(() => useDeleteCommunicationAttachment(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useDeleteCommunicationAttachment(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate({ communicationId: 'comm-1', attachmentId: 'att-2' });
 

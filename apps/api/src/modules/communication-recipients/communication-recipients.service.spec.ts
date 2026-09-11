@@ -33,10 +33,7 @@ describe('CommunicationRecipientsService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new CommunicationRecipientsService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new CommunicationRecipientsService(prismaMock as never, auditServiceMock as never);
   });
 
   describe('markAsRead', () => {
@@ -72,9 +69,9 @@ describe('CommunicationRecipientsService', () => {
     it('should throw if not found', async () => {
       prismaMock.communicationRecipient.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.markAsRead(institutionId, 'r-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.markAsRead(institutionId, 'r-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should only mark the caller own recipient row (IDOR)', async () => {

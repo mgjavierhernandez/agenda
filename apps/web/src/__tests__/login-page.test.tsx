@@ -44,7 +44,10 @@ describe('LoginPage', () => {
   it('shows error on failed login', async () => {
     const user = userEvent.setup();
     const { apiClient } = await import('@/api/client');
-    vi.mocked(apiClient.post).mockRejectedValueOnce({ statusCode: 401, message: 'Invalid credentials' });
+    vi.mocked(apiClient.post).mockRejectedValueOnce({
+      statusCode: 401,
+      message: 'Invalid credentials',
+    });
 
     renderLoginPage();
     await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com');

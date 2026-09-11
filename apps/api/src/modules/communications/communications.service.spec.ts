@@ -115,9 +115,9 @@ describe('CommunicationsService', () => {
 
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.communication.findFirst.mockResolvedValue(null);
-      await expect(
-        service.findOne(institutionId, 'other-tenant-comm'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'other-tenant-comm')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -188,7 +188,13 @@ describe('CommunicationsService', () => {
   describe('findAllVisible', () => {
     it('should only return PUBLISHED communications visible to user role', async () => {
       prismaMock.communication.findMany.mockResolvedValue([
-        { id: 'c1', institutionId, audience: CommunicationAudience.ALL, status: CommunicationStatus.PUBLISHED, expiresAt: null },
+        {
+          id: 'c1',
+          institutionId,
+          audience: CommunicationAudience.ALL,
+          status: CommunicationStatus.PUBLISHED,
+          expiresAt: null,
+        },
       ]);
       prismaMock.communication.count.mockResolvedValue(1);
       authzServiceMock.getUserRoles.mockResolvedValue([{ name: 'STUDENT' }]);
@@ -199,7 +205,13 @@ describe('CommunicationsService', () => {
 
     it('should filter out communications for other audiences', async () => {
       prismaMock.communication.findMany.mockResolvedValue([
-        { id: 'c1', institutionId, audience: CommunicationAudience.TEACHERS, status: CommunicationStatus.PUBLISHED, expiresAt: null },
+        {
+          id: 'c1',
+          institutionId,
+          audience: CommunicationAudience.TEACHERS,
+          status: CommunicationStatus.PUBLISHED,
+          expiresAt: null,
+        },
       ]);
       prismaMock.communication.count.mockResolvedValue(1);
       authzServiceMock.getUserRoles.mockResolvedValue([{ name: 'PARENT' }]);
@@ -243,9 +255,9 @@ describe('CommunicationsService', () => {
         expiresAt: null,
       });
 
-      await expect(
-        service.findOneVisible(institutionId, 'comm-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOneVisible(institutionId, 'comm-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for wrong audience', async () => {
@@ -258,16 +270,16 @@ describe('CommunicationsService', () => {
       });
       authzServiceMock.getUserRoles.mockResolvedValue([{ name: 'PARENT' }]);
 
-      await expect(
-        service.findOneVisible(institutionId, 'comm-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOneVisible(institutionId, 'comm-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for cross-tenant', async () => {
       prismaMock.communication.findFirst.mockResolvedValue(null);
-      await expect(
-        service.findOneVisible(institutionId, 'other-comm', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOneVisible(institutionId, 'other-comm', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -288,7 +300,12 @@ describe('CommunicationsService', () => {
         content: 'New content',
       });
 
-      const result = await service.update(institutionId, 'comm-1', { title: 'New', content: 'New content' }, userId);
+      const result = await service.update(
+        institutionId,
+        'comm-1',
+        { title: 'New', content: 'New content' },
+        userId,
+      );
       expect(result.title).toBe('New');
       expect(auditServiceMock.log).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'COMMUNICATION_UPDATED' }),
@@ -397,16 +414,16 @@ describe('CommunicationsService', () => {
         expiresAt: null,
       });
 
-      await expect(
-        service.publish(institutionId, 'comm-1', userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.publish(institutionId, 'comm-1', userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException for cross-tenant', async () => {
       prismaMock.communication.findFirst.mockResolvedValue(null);
-      await expect(
-        service.publish(institutionId, 'other-comm', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.publish(institutionId, 'other-comm', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -445,9 +462,9 @@ describe('CommunicationsService', () => {
 
     it('should throw NotFoundException for cross-tenant', async () => {
       prismaMock.communication.findFirst.mockResolvedValue(null);
-      await expect(
-        service.deactivate(institutionId, 'other-comm', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.deactivate(institutionId, 'other-comm', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -518,9 +535,9 @@ describe('CommunicationsService', () => {
         expiresAt: pastDate,
       });
 
-      await expect(
-        service.findOneVisible(institutionId, 'comm-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOneVisible(institutionId, 'comm-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

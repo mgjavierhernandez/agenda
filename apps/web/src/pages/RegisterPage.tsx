@@ -5,7 +5,12 @@ import { getErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { DOCUMENT_TYPE_LABELS, SELF_REGISTER_ROLE_LABELS, type DocumentType, type SelfRegisterRole } from '@/api/types';
+import {
+  DOCUMENT_TYPE_LABELS,
+  SELF_REGISTER_ROLE_LABELS,
+  type DocumentType,
+  type SelfRegisterRole,
+} from '@/api/types';
 
 export function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -62,8 +67,8 @@ export function RegisterPage() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
         <h1 className="text-xl font-semibold text-gray-900 mb-4">Solicitud recibida</h1>
         <p className="text-sm text-gray-600 mb-6">
-          Tu solicitud de acceso quedó pendiente de aprobación por el administrador de la institución.
-          Te avisaremos cuando sea aprobada.
+          Tu solicitud de acceso quedó pendiente de aprobación por el administrador de la
+          institución. Te avisaremos cuando sea aprobada.
         </p>
         <Link to="/login" className="text-sm font-medium text-blue-600 hover:text-blue-800">
           Volver al inicio de sesión
@@ -77,15 +82,51 @@ export function RegisterPage() {
       <h1 className="text-xl font-semibold text-gray-900 mb-6">Solicitar acceso</h1>
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Nombre" placeholder="Nombre" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-          <Input label="Apellido" placeholder="Apellido" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+          <Input
+            label="Nombre"
+            placeholder="Nombre"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+          <Input
+            label="Apellido"
+            placeholder="Apellido"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
         </div>
-        <Input label="Correo electrónico" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-        <PasswordInput label="Contraseña" placeholder="Mínimo 8 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
-        <Input label="Institución (código)" placeholder="Ej: antonio-narino" value={institutionSlug} onChange={(e) => setInstitutionSlug(e.target.value)} required />
+        <Input
+          label="Correo electrónico"
+          type="email"
+          placeholder="tu@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+        />
+        <PasswordInput
+          label="Contraseña"
+          placeholder="Mínimo 8 caracteres"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+        />
+        <Input
+          label="Institución (código)"
+          placeholder="Ej: antonio-narino"
+          value={institutionSlug}
+          onChange={(e) => setInstitutionSlug(e.target.value)}
+          required
+        />
         <div>
           <label htmlFor="requestedRole" className="block text-sm font-medium text-gray-700 mb-1">
-            Soy<span className="text-red-500 ml-1" aria-hidden="true">*</span>
+            Soy
+            <span className="text-red-500 ml-1" aria-hidden="true">
+              *
+            </span>
           </label>
           <select
             id="requestedRole"
@@ -96,7 +137,9 @@ export function RegisterPage() {
           >
             <option value="">Seleccione…</option>
             {(Object.keys(SELF_REGISTER_ROLE_LABELS) as SelfRegisterRole[]).map((r) => (
-              <option key={r} value={r}>{SELF_REGISTER_ROLE_LABELS[r]}</option>
+              <option key={r} value={r}>
+                {SELF_REGISTER_ROLE_LABELS[r]}
+              </option>
             ))}
           </select>
         </div>
@@ -113,18 +156,38 @@ export function RegisterPage() {
             >
               <option value="">Seleccione…</option>
               {(Object.keys(DOCUMENT_TYPE_LABELS) as DocumentType[]).map((dt) => (
-                <option key={dt} value={dt}>{DOCUMENT_TYPE_LABELS[dt]}</option>
+                <option key={dt} value={dt}>
+                  {DOCUMENT_TYPE_LABELS[dt]}
+                </option>
               ))}
             </select>
           </div>
-          <Input label="Número de documento" placeholder="Número de documento" value={documentNumber} onChange={(e) => setDocumentNumber(e.target.value)} />
+          <Input
+            label="Número de documento"
+            placeholder="Número de documento"
+            value={documentNumber}
+            onChange={(e) => setDocumentNumber(e.target.value)}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Teléfono" placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <Input label="Profesión" placeholder="Profesión" value={profession} onChange={(e) => setProfession(e.target.value)} />
+          <Input
+            label="Teléfono"
+            placeholder="Teléfono"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <Input
+            label="Profesión"
+            placeholder="Profesión"
+            value={profession}
+            onChange={(e) => setProfession(e.target.value)}
+          />
         </div>
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3" role="alert">
+          <div
+            className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3"
+            role="alert"
+          >
             {error}
           </div>
         )}

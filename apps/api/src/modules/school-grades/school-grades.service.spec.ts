@@ -33,10 +33,7 @@ describe('SchoolGradesService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new SchoolGradesService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new SchoolGradesService(prismaMock as never, auditServiceMock as never);
   });
 
   describe('create', () => {
@@ -139,9 +136,9 @@ describe('SchoolGradesService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.schoolGrade.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'grade-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'grade-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -241,12 +238,7 @@ describe('SchoolGradesService', () => {
         });
 
       await expect(
-        service.update(
-          institutionId,
-          'grade-1',
-          { code: '2DA' },
-          userId,
-        ),
+        service.update(institutionId, 'grade-1', { code: '2DA' }, userId),
       ).rejects.toThrow(ConflictException);
     });
   });

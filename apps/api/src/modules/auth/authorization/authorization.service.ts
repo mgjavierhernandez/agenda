@@ -111,10 +111,7 @@ export class AuthorizationService {
     return Array.from(permissions);
   }
 
-  private async getTenantPermissionCodes(
-    userId: string,
-    institutionId: string,
-  ): Promise<string[]> {
+  private async getTenantPermissionCodes(userId: string, institutionId: string): Promise<string[]> {
     const userRoles = await this.prisma.userRole.findMany({
       where: {
         userInstitution: {

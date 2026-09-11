@@ -12,13 +12,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
@@ -45,10 +39,7 @@ export class SubjectsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 409, description: 'Conflict' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() createSubjectDto: CreateSubjectDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() createSubjectDto: CreateSubjectDto) {
     return this.subjectsService.create(
       req.tenant!.institutionId,
       createSubjectDto,
@@ -64,14 +55,8 @@ export class SubjectsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListSubjectsQueryDto,
-  ) {
-    return this.subjectsService.findAll(
-      req.tenant!.institutionId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListSubjectsQueryDto) {
+    return this.subjectsService.findAll(req.tenant!.institutionId, query);
   }
 
   @Get(':id')
@@ -83,14 +68,8 @@ export class SubjectsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Subject not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.subjectsService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.subjectsService.findOne(req.tenant!.institutionId, id);
   }
 
   @Patch(':id')
@@ -126,15 +105,7 @@ export class SubjectsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Subject not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.subjectsService.deactivate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.subjectsService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

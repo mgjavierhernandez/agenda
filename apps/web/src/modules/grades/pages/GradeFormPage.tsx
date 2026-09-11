@@ -61,7 +61,8 @@ export function GradeFormPage() {
     if (!subjectId.trim()) newErrors.subjectId = 'La asignatura es requerida';
     const numValue = parseFloat(value);
     if (!value.trim()) newErrors.value = 'El valor es requerido';
-    else if (isNaN(numValue) || numValue < 0 || numValue > 5) newErrors.value = 'El valor debe estar entre 0 y 5';
+    else if (isNaN(numValue) || numValue < 0 || numValue > 5)
+      newErrors.value = 'El valor debe estar entre 0 y 5';
     if (!period.trim()) newErrors.period = 'El período es requerido';
     else if (period.length > 50) newErrors.period = 'Máximo 50 caracteres';
     if (evaluationType.length > 50) newErrors.evaluationType = 'Máximo 50 caracteres';
@@ -118,7 +119,11 @@ export function GradeFormPage() {
   }
 
   if (isEditing && !existingGrade) {
-    return <ErrorState error={{ statusCode: 404, message: 'Calificación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Calificación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -127,7 +132,11 @@ export function GradeFormPage() {
     <div className="space-y-6 max-w-2xl">
       <PageHeader
         title={isEditing ? 'Editar calificación' : 'Nueva calificación'}
-        description={isEditing ? 'Actualizar información de la calificación' : 'Registrar una nueva calificación'}
+        description={
+          isEditing
+            ? 'Actualizar información de la calificación'
+            : 'Registrar una nueva calificación'
+        }
       />
 
       <Card>
@@ -249,7 +258,9 @@ export function GradeFormPage() {
               rows={3}
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
             />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
           </div>
 
           <div>

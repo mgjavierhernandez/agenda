@@ -1,8 +1,4 @@
-import {
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { FollowUpCategoriesService } from './follow-up-categories.service';
 
 type PrismaMock = {
@@ -55,7 +51,15 @@ describe('FollowUpCategoriesService', () => {
   describe('create', () => {
     it('should create a category', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
-      const created = { id: categoryId, institutionId, name: 'Académico', description: null, active: true, createdAt: new Date(), updatedAt: new Date() };
+      const created = {
+        id: categoryId,
+        institutionId,
+        name: 'Académico',
+        description: null,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       prismaMock.followUpCategory.create.mockResolvedValue(created);
 
       const result = await service.create(institutionId, { name: 'Académico' }, userId);
@@ -77,7 +81,13 @@ describe('FollowUpCategoriesService', () => {
     it('should trim name', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
       prismaMock.followUpCategory.create.mockResolvedValue({
-        id: categoryId, institutionId, name: 'Académico', description: null, active: true, createdAt: new Date(), updatedAt: new Date(),
+        id: categoryId,
+        institutionId,
+        name: 'Académico',
+        description: null,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       await service.create(institutionId, { name: '  Académico  ' }, userId);
@@ -90,16 +100,22 @@ describe('FollowUpCategoriesService', () => {
     it('should reject duplicate name within same institution', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue({ id: 'existing' });
 
-      await expect(
-        service.create(institutionId, { name: 'Académico' }, userId),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.create(institutionId, { name: 'Académico' }, userId)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should allow same name in different institution', async () => {
       const otherInstitution = '00000000-0000-0000-0000-000000000099';
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
       prismaMock.followUpCategory.create.mockResolvedValue({
-        id: categoryId, institutionId: otherInstitution, name: 'Académico', description: null, active: true, createdAt: new Date(), updatedAt: new Date(),
+        id: categoryId,
+        institutionId: otherInstitution,
+        name: 'Académico',
+        description: null,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       const result = await service.create(otherInstitution, { name: 'Académico' }, userId);
@@ -110,7 +126,13 @@ describe('FollowUpCategoriesService', () => {
     it('should include description when provided', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
       prismaMock.followUpCategory.create.mockResolvedValue({
-        id: categoryId, institutionId, name: 'Académico', description: 'Test desc', active: true, createdAt: new Date(), updatedAt: new Date(),
+        id: categoryId,
+        institutionId,
+        name: 'Académico',
+        description: 'Test desc',
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       await service.create(institutionId, { name: 'Académico', description: 'Test desc' }, userId);
@@ -149,22 +171,26 @@ describe('FollowUpCategoriesService', () => {
     it('should throw NotFoundException for non-existent category', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, categoryId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, categoryId)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException for cross-tenant access', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, categoryId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, categoryId)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
-    const existing = { id: categoryId, institutionId, name: 'Académico', description: null, active: true, createdAt: new Date(), updatedAt: new Date() };
+    const existing = {
+      id: categoryId,
+      institutionId,
+      name: 'Académico',
+      description: null,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
     it('should update a category', async () => {
       prismaMock.followUpCategory.findFirst
@@ -172,7 +198,12 @@ describe('FollowUpCategoriesService', () => {
         .mockResolvedValueOnce(null);
       prismaMock.followUpCategory.update.mockResolvedValue({ ...existing, name: 'Nuevo Nombre' });
 
-      const result = await service.update(institutionId, categoryId, { name: 'Nuevo Nombre' }, userId);
+      const result = await service.update(
+        institutionId,
+        categoryId,
+        { name: 'Nuevo Nombre' },
+        userId,
+      );
 
       expect(result.name).toBe('Nuevo Nombre');
       expect(auditServiceMock.log).toHaveBeenCalled();
@@ -216,7 +247,15 @@ describe('FollowUpCategoriesService', () => {
   });
 
   describe('remove', () => {
-    const existing = { id: categoryId, institutionId, name: 'Académico', description: null, active: true, createdAt: new Date(), updatedAt: new Date() };
+    const existing = {
+      id: categoryId,
+      institutionId,
+      name: 'Académico',
+      description: null,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
     it('should delete a category when not in use', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(existing);
@@ -235,17 +274,17 @@ describe('FollowUpCategoriesService', () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(existing);
       prismaMock.studentFollowUp.count.mockResolvedValue(3);
 
-      await expect(
-        service.remove(institutionId, categoryId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.remove(institutionId, categoryId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject delete for non-existent category', async () => {
       prismaMock.followUpCategory.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.remove(institutionId, categoryId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.remove(institutionId, categoryId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

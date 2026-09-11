@@ -20,21 +20,25 @@ export class AgendaController {
   @ApiQuery({ name: 'start', required: true, type: String, description: 'Start date (ISO 8601)' })
   @ApiQuery({ name: 'end', required: true, type: String, description: 'End date (ISO 8601)' })
   @ApiQuery({ name: 'view', required: false, enum: AgendaView, description: 'View mode' })
-  @ApiQuery({ name: 'eventTypes', required: false, enum: AgendaEventType, isArray: true, description: 'Filter by event types' })
+  @ApiQuery({
+    name: 'eventTypes',
+    required: false,
+    enum: AgendaEventType,
+    isArray: true,
+    description: 'Filter by event types',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (max 500)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (max 500)',
+  })
   @ApiResponse({ status: 200, description: 'Agenda events retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid date range' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  async getAgenda(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListAgendaQueryDto,
-  ) {
-    return this.agendaService.getAgenda(
-      req.tenant!.institutionId,
-      req.user.userId,
-      query,
-    );
+  async getAgenda(@Request() req: AuthenticatedRequest, @Query() query: ListAgendaQueryDto) {
+    return this.agendaService.getAgenda(req.tenant!.institutionId, req.user.userId, query);
   }
 }

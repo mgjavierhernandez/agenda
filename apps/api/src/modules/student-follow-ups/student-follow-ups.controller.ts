@@ -22,10 +22,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
-import {
-  TenantContextGuard,
-  AuthenticatedRequest,
-} from '../auth/tenant/tenant-context.guard';
+import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { StudentFollowUpsService } from './student-follow-ups.service';
@@ -73,24 +70,15 @@ export class StudentFollowUpsController {
     @Request() req: AuthenticatedRequest,
     @Body() dto: CreateFollowUpCategoryDto,
   ) {
-    return this.categoriesService.create(
-      req.tenant!.institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+    return this.categoriesService.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
   }
 
   @Get('categories')
   @RequirePermission('student-follow-ups:categories')
   @ApiOperation({ summary: 'List follow-up categories' })
   @ApiResponse({ status: 200, description: 'Categories retrieved successfully' })
-  async findCategories(
-    @Request() req: AuthenticatedRequest,
-  ) {
-    return this.categoriesService.findAll(
-      req.tenant!.institutionId,
-    );
+  async findCategories(@Request() req: AuthenticatedRequest) {
+    return this.categoriesService.findAll(req.tenant!.institutionId);
   }
 
   @Get('categories/:id')
@@ -103,10 +91,7 @@ export class StudentFollowUpsController {
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.categoriesService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+    return this.categoriesService.findOne(req.tenant!.institutionId, id);
   }
 
   @Patch('categories/:id')
@@ -142,12 +127,7 @@ export class StudentFollowUpsController {
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.categoriesService.remove(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+    return this.categoriesService.remove(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   // ============================================================
@@ -161,16 +141,8 @@ export class StudentFollowUpsController {
   @ApiResponse({ status: 201, description: 'Follow-up created successfully' })
   @ApiResponse({ status: 404, description: 'Student or category not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateStudentFollowUpDto,
-  ) {
-    return this.service.create(
-      req.tenant!.institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateStudentFollowUpDto) {
+    return this.service.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
   }
 
   @Get()
@@ -183,8 +155,16 @@ export class StudentFollowUpsController {
   @ApiQuery({ name: 'studentId', required: false, type: String })
   @ApiQuery({ name: 'type', required: false, enum: ['ACADEMICO', 'CONVIVENCIA', 'FORMATIVO'] })
   @ApiQuery({ name: 'severity', required: false, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] })
-  @ApiQuery({ name: 'status', required: false, enum: ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'PENDING_FOLLOW_UP', 'RESOLVED', 'CLOSED'] })
-  @ApiQuery({ name: 'confidentiality', required: false, enum: ['PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'SENSITIVE'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'PENDING_FOLLOW_UP', 'RESOLVED', 'CLOSED'],
+  })
+  @ApiQuery({
+    name: 'confidentiality',
+    required: false,
+    enum: ['PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'SENSITIVE'],
+  })
   @ApiQuery({ name: 'categoryId', required: false, type: String })
   @ApiQuery({ name: 'createdById', required: false, type: String })
   @ApiQuery({ name: 'createdFrom', required: false, type: String })
@@ -193,11 +173,7 @@ export class StudentFollowUpsController {
     @Request() req: AuthenticatedRequest,
     @Query() query: ListStudentFollowUpsQueryDto,
   ) {
-    return this.service.findAll(
-      req.tenant!.institutionId,
-      query,
-      req.user.userId,
-    );
+    return this.service.findAll(req.tenant!.institutionId, query, req.user.userId);
   }
 
   @Get(':id')
@@ -206,15 +182,8 @@ export class StudentFollowUpsController {
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Follow-up found' })
   @ApiResponse({ status: 404, description: 'Follow-up not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch(':id')
@@ -229,13 +198,7 @@ export class StudentFollowUpsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateStudentFollowUpDto,
   ) {
-    return this.service.update(
-      req.tenant!.institutionId,
-      id,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+    return this.service.update(req.tenant!.institutionId, id, dto, req.user.userId, req.ip);
   }
 
   @Post(':id/close')
@@ -246,16 +209,8 @@ export class StudentFollowUpsController {
   @ApiResponse({ status: 200, description: 'Follow-up closed successfully' })
   @ApiResponse({ status: 404, description: 'Follow-up not found' })
   @ApiResponse({ status: 400, description: 'Follow-up already closed' })
-  async close(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.close(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async close(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.close(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   // ============================================================
@@ -270,16 +225,8 @@ export class StudentFollowUpsController {
   @ApiResponse({ status: 200, description: 'Follow-up escalated successfully' })
   @ApiResponse({ status: 404, description: 'Follow-up not found' })
   @ApiResponse({ status: 400, description: 'Invalid status transition' })
-  async escalate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.escalate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async escalate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.escalate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Post(':id/follow-up')
@@ -290,16 +237,8 @@ export class StudentFollowUpsController {
   @ApiResponse({ status: 200, description: 'Follow-up transitioned successfully' })
   @ApiResponse({ status: 404, description: 'Follow-up not found' })
   @ApiResponse({ status: 400, description: 'Invalid status transition' })
-  async followUp(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.followUp(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async followUp(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.followUp(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Post(':id/resolve')
@@ -310,16 +249,8 @@ export class StudentFollowUpsController {
   @ApiResponse({ status: 200, description: 'Follow-up resolved successfully' })
   @ApiResponse({ status: 404, description: 'Follow-up not found' })
   @ApiResponse({ status: 400, description: 'Invalid status transition' })
-  async resolve(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.resolve(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async resolve(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.resolve(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Post(':id/reopen')
@@ -331,16 +262,8 @@ export class StudentFollowUpsController {
   @ApiResponse({ status: 404, description: 'Follow-up not found' })
   @ApiResponse({ status: 400, description: 'Record is not closed' })
   @ApiResponse({ status: 403, description: 'Only ADMIN can reopen' })
-  async reopen(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.reopen(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async reopen(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.reopen(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   // ============================================================
@@ -403,12 +326,7 @@ export class StudentFollowUpsController {
     @Param('followUpId', ParseUUIDPipe) followUpId: string,
     @Param('entryId', ParseUUIDPipe) entryId: string,
   ) {
-    return this.service.findEntry(
-      req.tenant!.institutionId,
-      followUpId,
-      entryId,
-      req.user.userId,
-    );
+    return this.service.findEntry(req.tenant!.institutionId, followUpId, entryId, req.user.userId);
   }
 
   @Patch(':followUpId/entries/:entryId')
@@ -562,11 +480,7 @@ export class StudentFollowUpsController {
     @Request() req: AuthenticatedRequest,
     @Param('followUpId', ParseUUIDPipe) followUpId: string,
   ) {
-    return this.service.findAttachments(
-      req.tenant!.institutionId,
-      followUpId,
-      req.user.userId,
-    );
+    return this.service.findAttachments(req.tenant!.institutionId, followUpId, req.user.userId);
   }
 
   @Delete(':followUpId/attachments/:attachmentId')

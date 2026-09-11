@@ -61,11 +61,19 @@ export function LoginPage() {
           disabled={isSubmitting || isGoogleLoading}
         />
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3" role="alert">
+          <div
+            className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3"
+            role="alert"
+          >
             {error}
           </div>
         )}
-        <Button type="submit" isLoading={isSubmitting} className="w-full" disabled={isGoogleLoading}>
+        <Button
+          type="submit"
+          isLoading={isSubmitting}
+          className="w-full"
+          disabled={isGoogleLoading}
+        >
           Entrar
         </Button>
         <Button

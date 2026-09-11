@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  useAgendaEvent,
-  useCreateAgendaEvent,
-  useUpdateAgendaEvent,
-} from '../hooks';
+import { useAgendaEvent, useCreateAgendaEvent, useUpdateAgendaEvent } from '../hooks';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -48,7 +44,8 @@ export function AgendaEventFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
-  const canManage = hasPermission(PERMISSIONS.AGENDA_CREATE) || hasPermission(PERMISSIONS.AGENDA_UPDATE);
+  const canManage =
+    hasPermission(PERMISSIONS.AGENDA_CREATE) || hasPermission(PERMISSIONS.AGENDA_UPDATE);
   const isEditMode = !!id;
 
   const { data: existingEvent, isLoading: isLoadingEvent } = useAgendaEvent(id ?? '');
@@ -92,7 +89,11 @@ export function AgendaEventFormPage() {
   }
 
   if (isEditMode && !existingEvent) {
-    return <ErrorState error={{ statusCode: 404, message: 'Evento no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Evento no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (isEditMode && existingEvent && existingEvent.status === 'CANCELLED') {
@@ -156,14 +157,14 @@ export function AgendaEventFormPage() {
           startAt: new Date(startAt).toISOString(),
           endAt: new Date(endAt).toISOString(),
         }
-      : {
+      : ({
           title: title.trim(),
           description: description.trim() === '' ? null : description.trim(),
           location: location.trim() === '' ? null : location.trim(),
           audience,
           startAt: new Date(startAt).toISOString(),
           endAt: new Date(endAt).toISOString(),
-        } satisfies CreateAgendaEventInput;
+        } satisfies CreateAgendaEventInput);
 
     try {
       if (isEditMode && id) {
@@ -184,7 +185,9 @@ export function AgendaEventFormPage() {
     <div className="space-y-6">
       <PageHeader
         title={isEditMode ? 'Editar evento' : 'Nuevo evento'}
-        description={isEditMode ? 'Actualizar la información del evento' : 'Crear un nuevo evento en la agenda'}
+        description={
+          isEditMode ? 'Actualizar la información del evento' : 'Crear un nuevo evento en la agenda'
+        }
       />
 
       {apiError && (
@@ -217,7 +220,9 @@ export function AgendaEventFormPage() {
                 placeholder="Detalles del evento (opcional)"
                 className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-              {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
+              {errors.description && (
+                <p className="text-sm text-red-600 mt-1">{errors.description}</p>
+              )}
             </div>
 
             <Input

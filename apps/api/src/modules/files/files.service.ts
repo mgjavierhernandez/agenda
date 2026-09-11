@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
@@ -48,7 +43,10 @@ export class FilesService {
   }
 
   private getMaxCommunicationAttachments(): number {
-    return this.configService.get<number>('MAX_COMMUNICATION_ATTACHMENTS', MAX_COMMUNICATION_ATTACHMENTS);
+    return this.configService.get<number>(
+      'MAX_COMMUNICATION_ATTACHMENTS',
+      MAX_COMMUNICATION_ATTACHMENTS,
+    );
   }
 
   async uploadFile(
@@ -62,7 +60,9 @@ export class FilesService {
     }
 
     if (file.size > this.getMaxFileSizeBytes()) {
-      throw new BadRequestException(`File exceeds maximum size of ${this.configService.get<number>('FILE_MAX_SIZE_MB', MAX_FILE_SIZE_MB)}MB`);
+      throw new BadRequestException(
+        `File exceeds maximum size of ${this.configService.get<number>('FILE_MAX_SIZE_MB', MAX_FILE_SIZE_MB)}MB`,
+      );
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
@@ -117,7 +117,10 @@ export class FilesService {
     return fileAsset;
   }
 
-  async getDownloadStream(institutionId: string, fileAssetId: string): Promise<{ stream: import('stream').Readable; fileAsset: FileAsset }> {
+  async getDownloadStream(
+    institutionId: string,
+    fileAssetId: string,
+  ): Promise<{ stream: import('stream').Readable; fileAsset: FileAsset }> {
     const fileAsset = await this.findOne(institutionId, fileAssetId);
     const stream = await this.storageProvider.read(fileAsset.storageKey);
     return { stream, fileAsset };
@@ -179,7 +182,9 @@ export class FilesService {
       where: { taskId, institutionId },
     });
     if (attachmentCount >= this.getMaxTaskAttachments()) {
-      throw new BadRequestException(`Task cannot have more than ${this.getMaxTaskAttachments()} attachments`);
+      throw new BadRequestException(
+        `Task cannot have more than ${this.getMaxTaskAttachments()} attachments`,
+      );
     }
 
     const existing = await this.prisma.taskAttachment.findUnique({
@@ -257,7 +262,11 @@ export class FilesService {
       action: 'TASK_ATTACHMENT_DELETED',
       entityType: 'TaskAttachment',
       entityId: attachmentId,
-      oldValues: { taskId, fileAssetId: attachment.fileAssetId, originalName: attachment.fileAsset.originalName },
+      oldValues: {
+        taskId,
+        fileAssetId: attachment.fileAssetId,
+        originalName: attachment.fileAsset.originalName,
+      },
       ipAddress,
     });
 
@@ -284,7 +293,9 @@ export class FilesService {
       where: { communicationId, institutionId },
     });
     if (attachmentCount >= this.getMaxCommunicationAttachments()) {
-      throw new BadRequestException(`Communication cannot have more than ${this.getMaxCommunicationAttachments()} attachments`);
+      throw new BadRequestException(
+        `Communication cannot have more than ${this.getMaxCommunicationAttachments()} attachments`,
+      );
     }
 
     const existing = await this.prisma.communicationAttachment.findUnique({
@@ -362,7 +373,11 @@ export class FilesService {
       action: 'COMMUNICATION_ATTACHMENT_DELETED',
       entityType: 'CommunicationAttachment',
       entityId: attachmentId,
-      oldValues: { communicationId, fileAssetId: attachment.fileAssetId, originalName: attachment.fileAsset.originalName },
+      oldValues: {
+        communicationId,
+        fileAssetId: attachment.fileAssetId,
+        originalName: attachment.fileAsset.originalName,
+      },
       ipAddress,
     });
 

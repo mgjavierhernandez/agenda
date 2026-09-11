@@ -9,24 +9,14 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { Response } from 'express';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { ReportsService, ReportFileResult } from './reports.service';
 import { ReportsQueryDto, ReportsExportQueryDto } from './dto/reports-query.dto';
-import {
-  StudentReportDto,
-  StudentBulletinDto,
-  CourseReportDto,
-} from './dto/reports-response.dto';
+import { StudentReportDto, StudentBulletinDto, CourseReportDto } from './dto/reports-response.dto';
 
 @ApiTags('Reports')
 @ApiBearerAuth('bearer')
@@ -176,10 +166,7 @@ export class ReportsController {
     const safeFilename = result.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
     res.setHeader('Content-Type', result.contentType);
     res.setHeader('Content-Length', result.buffer.length);
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${safeFilename}"`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
     res.send(result.buffer);
   }
 }

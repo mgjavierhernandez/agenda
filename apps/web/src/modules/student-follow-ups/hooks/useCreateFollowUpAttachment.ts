@@ -4,10 +4,17 @@ import type { FollowUpAttachment, CreateFollowUpAttachmentInput } from '@/api/ty
 
 export function useCreateFollowUpAttachment() {
   const queryClient = useQueryClient();
-  return useMutation<FollowUpAttachment, Error, { followUpId: string; data: CreateFollowUpAttachmentInput }>({
-    mutationFn: ({ followUpId, data }) => apiClient.post(`/student-follow-ups/${followUpId}/attachments`, data),
+  return useMutation<
+    FollowUpAttachment,
+    Error,
+    { followUpId: string; data: CreateFollowUpAttachmentInput }
+  >({
+    mutationFn: ({ followUpId, data }) =>
+      apiClient.post(`/student-follow-ups/${followUpId}/attachments`, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['student-follow-up-attachments', variables.followUpId] });
+      queryClient.invalidateQueries({
+        queryKey: ['student-follow-up-attachments', variables.followUpId],
+      });
     },
   });
 }

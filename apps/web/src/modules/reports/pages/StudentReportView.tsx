@@ -58,7 +58,8 @@ export function StudentReportView({
             <div className="sm:col-span-2">
               <p className="text-xs font-medium uppercase text-gray-500">Curso</p>
               <p className="text-sm font-semibold text-gray-900">
-                {enrollment.courseName} <span className="text-gray-500">({enrollment.courseCode})</span>
+                {enrollment.courseName}{' '}
+                <span className="text-gray-500">({enrollment.courseCode})</span>
               </p>
             </div>
             <div>
@@ -95,14 +96,14 @@ export function StudentReportView({
                   <tr key={subject.subjectId} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{subject.subjectName}</td>
                     <td className="px-4 py-3 text-gray-600">
-                      {subject.teacher ? `${subject.teacher.firstName} ${subject.teacher.lastName}` : '—'}
+                      {subject.teacher
+                        ? `${subject.teacher.firstName} ${subject.teacher.lastName}`
+                        : '—'}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {subject.grades.length === 0
                         ? '—'
-                        : subject.grades
-                            .map((g) => `${g.period}: ${g.value}`)
-                            .join(', ')}
+                        : subject.grades.map((g) => `${g.period}: ${g.value}`).join(', ')}
                     </td>
                     <td className="px-4 py-3 font-semibold text-gray-900">
                       {formatAverage(subject.simpleAverage)}

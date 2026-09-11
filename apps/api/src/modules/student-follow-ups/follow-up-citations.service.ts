@@ -6,9 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import {
-  StudentFollowUpAuthorizationService,
-} from '../../common/auth/student-follow-up-authorization';
+import { StudentFollowUpAuthorizationService } from '../../common/auth/student-follow-up-authorization';
 import { CreateFollowUpCitationDto } from './dto/create-follow-up-citation.dto';
 import { UpdateFollowUpCitationDto } from './dto/update-follow-up-citation.dto';
 import { ListFollowUpCitationsQueryDto } from './dto/list-follow-up-citations-query.dto';
@@ -23,11 +21,7 @@ export class FollowUpCitationsService {
     private readonly authorizationService: StudentFollowUpAuthorizationService,
   ) {}
 
-  private async getAndAuthorizeFollowUp(
-    institutionId: string,
-    followUpId: string,
-    userId: string,
-  ) {
+  private async getAndAuthorizeFollowUp(institutionId: string, followUpId: string, userId: string) {
     const followUp = await this.prisma.studentFollowUp.findFirst({
       where: { id: followUpId, institutionId },
       include: { student: true },
@@ -37,11 +31,7 @@ export class FollowUpCitationsService {
       throw new NotFoundException('Follow-up not found');
     }
 
-    const access = await this.authorizationService.canRead(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canRead(userId, institutionId, followUpId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -57,9 +47,7 @@ export class FollowUpCitationsService {
 
   private assertFollowUpMutable(followUp: { status: string }) {
     if (followUp.status === 'CLOSED') {
-      throw new BadRequestException(
-        'Cannot modify citations on a closed follow-up',
-      );
+      throw new BadRequestException('Cannot modify citations on a closed follow-up');
     }
   }
 
@@ -70,17 +58,9 @@ export class FollowUpCitationsService {
     userId: string,
     ipAddress?: string,
   ): Promise<FollowUpCitation> {
-    const followUp = await this.getAndAuthorizeFollowUp(
-      institutionId,
-      followUpId,
-      userId,
-    );
+    const followUp = await this.getAndAuthorizeFollowUp(institutionId, followUpId, userId);
 
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       throw new ForbiddenException('Access denied');
     }
@@ -89,9 +69,7 @@ export class FollowUpCitationsService {
 
     const scheduledAt = new Date(dto.scheduledAt);
     if (scheduledAt.getTime() <= Date.now()) {
-      throw new BadRequestException(
-        'Citation scheduled time must be in the future',
-      );
+      throw new BadRequestException('Citation scheduled time must be in the future');
     }
 
     const citation = await this.prisma.followUpCitation.create({
@@ -139,7 +117,10 @@ export class FollowUpCitationsService {
     followUpId: string,
     query: ListFollowUpCitationsQueryDto,
     userId: string,
-  ): Promise<{ data: FollowUpCitation[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: FollowUpCitation[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     await this.getAndAuthorizeFollowUp(institutionId, followUpId, userId);
 
     const page = query.page || 1;
@@ -203,17 +184,9 @@ export class FollowUpCitationsService {
     userId: string,
     ipAddress?: string,
   ): Promise<FollowUpCitation> {
-    const followUp = await this.getAndAuthorizeFollowUp(
-      institutionId,
-      followUpId,
-      userId,
-    );
+    const followUp = await this.getAndAuthorizeFollowUp(institutionId, followUpId, userId);
 
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       throw new ForbiddenException('Access denied');
     }
@@ -255,9 +228,7 @@ export class FollowUpCitationsService {
     });
 
     const statusChanged = dto.status && dto.status !== existing.status;
-    const auditAction = statusChanged
-      ? `CITATION_${dto.status}`
-      : 'CITATION_UPDATED';
+    const auditAction = statusChanged ? `CITATION_${dto.status}` : 'CITATION_UPDATED';
 
     await this.auditService.log({
       userId,
@@ -302,17 +273,9 @@ export class FollowUpCitationsService {
     userId: string,
     ipAddress?: string,
   ): Promise<void> {
-    const followUp = await this.getAndAuthorizeFollowUp(
-      institutionId,
-      followUpId,
-      userId,
-    );
+    const followUp = await this.getAndAuthorizeFollowUp(institutionId, followUpId, userId);
 
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       throw new ForbiddenException('Access denied');
     }

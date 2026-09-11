@@ -77,9 +77,7 @@ export function GradesPage() {
         }
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/grades/new')}>
-              Nueva calificación
-            </Button>
+            <Button onClick={() => navigate('/grades/new')}>Nueva calificación</Button>
           ) : undefined
         }
       />
@@ -160,7 +158,11 @@ export function GradesPage() {
         </div>
       ) : grades.length === 0 ? (
         <EmptyState
-          title={debouncedSearch ? 'No se encontraron calificaciones' : 'No hay calificaciones registradas'}
+          title={
+            debouncedSearch
+              ? 'No se encontraron calificaciones'
+              : 'No hay calificaciones registradas'
+          }
           description={
             debouncedSearch
               ? 'No encontramos calificaciones que coincidan con tu búsqueda.'
@@ -232,16 +234,10 @@ export function GradesPage() {
               <Card key={grade.id}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="font-semibold text-gray-900 text-lg">
-                      {grade.value}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Período: {grade.period}
-                    </p>
+                    <p className="font-semibold text-gray-900 text-lg">{grade.value}</p>
+                    <p className="text-sm text-gray-500">Período: {grade.period}</p>
                     {grade.evaluationType && (
-                      <p className="text-sm text-gray-500">
-                        Tipo: {grade.evaluationType}
-                      </p>
+                      <p className="text-sm text-gray-500">Tipo: {grade.evaluationType}</p>
                     )}
                     <p className="text-xs text-gray-500 font-mono">
                       Estudiante: {grade.studentId.slice(0, 8)}…
@@ -252,11 +248,7 @@ export function GradesPage() {
                   </Badge>
                 </div>
                 <div className="mt-3 flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/grades/${grade.id}`)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => navigate(`/grades/${grade.id}`)}>
                     Ver detalle
                   </Button>
                 </div>

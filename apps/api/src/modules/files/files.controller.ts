@@ -39,7 +39,12 @@ export class FilesController {
 
   @Post()
   @RequirePermission('files:upload')
-  @UseInterceptors(FileInterceptor('file', { storage: undefined, limits: { fileSize: MAX_FILE_SIZE_MB * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: undefined,
+      limits: { fileSize: MAX_FILE_SIZE_MB * 1024 * 1024 },
+    }),
+  )
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Upload a file' })
   @ApiConsumes('multipart/form-data')
@@ -53,16 +58,8 @@ export class FilesController {
     },
   })
   @ApiResponse({ status: 201, description: 'File uploaded successfully' })
-  async upload(
-    @Request() req: AuthenticatedRequest,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.filesService.uploadFile(
-      req.tenant!.institutionId,
-      req.user.userId,
-      file,
-      req.ip,
-    );
+  async upload(@Request() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File) {
+    return this.filesService.uploadFile(req.tenant!.institutionId, req.user.userId, file, req.ip);
   }
 
   @Get(':id')
@@ -71,10 +68,7 @@ export class FilesController {
   @ApiParam({ name: 'id', description: 'File UUID' })
   @ApiResponse({ status: 200, description: 'File metadata retrieved successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.filesService.findOne(req.tenant!.institutionId, id);
   }
 
@@ -109,16 +103,8 @@ export class FilesController {
   @ApiParam({ name: 'id', description: 'File UUID' })
   @ApiResponse({ status: 200, description: 'File deleted successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
-  async delete(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    await this.filesService.deleteFile(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async delete(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    await this.filesService.deleteFile(req.tenant!.institutionId, id, req.user.userId, req.ip);
     return { message: 'File deleted successfully' };
   }
 }

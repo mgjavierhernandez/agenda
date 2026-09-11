@@ -41,10 +41,7 @@ describe('EnrollmentsService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new EnrollmentsService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new EnrollmentsService(prismaMock as never, auditServiceMock as never);
   });
 
   describe('create', () => {
@@ -215,9 +212,9 @@ describe('EnrollmentsService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.enrollment.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'enrollment-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'enrollment-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

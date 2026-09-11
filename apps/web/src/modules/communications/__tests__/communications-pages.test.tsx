@@ -81,14 +81,20 @@ describe('CommunicationsPage', () => {
   });
 
   it('renders the page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<CommunicationsPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Comunicaciones')).toBeInTheDocument();
   });
 
   it('renders empty state when no communications', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<CommunicationsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -109,7 +115,10 @@ describe('CommunicationsPage', () => {
   });
 
   it('shows new communication button for managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<CommunicationsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -166,14 +175,20 @@ describe('CommunicationInboxPage', () => {
   });
 
   it('renders inbox page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<CommunicationInboxPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Bandeja de entrada')).toBeInTheDocument();
   });
 
   it('shows empty state when no recipients', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<CommunicationInboxPage />, { wrapper: createWrapper() });
     await waitFor(() => {

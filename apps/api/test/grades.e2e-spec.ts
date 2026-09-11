@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Grades Module (e2e)', () => {
   let app: INestApplication;
@@ -236,7 +237,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: 'FAIL',
         })
         .expect(403);
@@ -251,7 +252,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: 'FAIL',
           institutionId: secondInstitutionId,
         })
@@ -267,7 +268,7 @@ describe('Grades Module (e2e)', () => {
           studentId: secondStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: 'CROSS',
         })
         .expect(404);
@@ -282,7 +283,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: secondCourseId,
           subjectId: demoSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: 'CROSS',
         })
         .expect(404);
@@ -297,7 +298,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: secondSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: 'CROSS',
         })
         .expect(404);
@@ -321,7 +322,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 6.00,
+          value: 6.0,
           period: 'FAIL',
         })
         .expect(400);
@@ -474,7 +475,7 @@ describe('Grades Module (e2e)', () => {
           .patch(`/api/v1/grades/${otherGrade.id}`)
           .set('Authorization', `Bearer ${adminToken}`)
           .set('X-Institution-Id', demoInstitutionId)
-          .send({ value: 1.00 })
+          .send({ value: 1.0 })
           .expect(404);
       }
     });
@@ -484,7 +485,7 @@ describe('Grades Module (e2e)', () => {
         .patch(`/api/v1/grades/${createdGradeId}`)
         .set('Authorization', `Bearer ${parentToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .send({ value: 1.00 })
+        .send({ value: 1.0 })
         .expect(403);
     });
   });
@@ -626,7 +627,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: 'BYPASS',
           institutionId: secondInstitutionId,
         })
@@ -690,7 +691,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 3.00,
+          value: 3.0,
           period: closedPeriodCode,
         })
         .expect(400);
@@ -706,7 +707,7 @@ describe('Grades Module (e2e)', () => {
           studentId: demoStudentId,
           courseId: demoCourseId,
           subjectId: demoSubjectId,
-          value: 4.00,
+          value: 4.0,
           period: openPeriodCode ?? 'Q1',
         })
         .expect(201);

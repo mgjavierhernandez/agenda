@@ -65,7 +65,10 @@ describe('Signatures hooks', () => {
     });
 
     it('sends search and filter params', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useSignatures({ page: 2, limit: 10, search: 'test', status: 'PUBLISHED' }), {
         wrapper: createWrapper(),
@@ -139,7 +142,9 @@ describe('Signatures hooks', () => {
       });
 
       expect(res).toEqual(updated);
-      expect(apiClient.patch).toHaveBeenCalledWith('/signature-requests/sig-1', { title: 'Título actualizado' });
+      expect(apiClient.patch).toHaveBeenCalledWith('/signature-requests/sig-1', {
+        title: 'Título actualizado',
+      });
     });
   });
 

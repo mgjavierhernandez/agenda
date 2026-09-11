@@ -77,9 +77,7 @@ export function TasksPage() {
         }
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/tasks/new')}>
-              Nueva tarea
-            </Button>
+            <Button onClick={() => navigate('/tasks/new')}>Nueva tarea</Button>
           ) : undefined
         }
       />
@@ -130,7 +128,11 @@ export function TasksPage() {
         </div>
       ) : tasks.length === 0 ? (
         <EmptyState
-          title={debouncedSearch || statusFilter ? 'No se encontraron tareas' : 'No hay tareas registradas'}
+          title={
+            debouncedSearch || statusFilter
+              ? 'No se encontraron tareas'
+              : 'No hay tareas registradas'
+          }
           description={
             debouncedSearch || statusFilter
               ? 'No encontramos tareas que coincidan con los filtros aplicados.'
@@ -161,7 +163,10 @@ export function TasksPage() {
                 <tbody>
                   {tasks.map((task) => (
                     <tr key={task.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={task.title}>
+                      <td
+                        className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                        title={task.title}
+                      >
                         {task.title}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs" title={task.courseId}>
@@ -202,9 +207,7 @@ export function TasksPage() {
               <Card key={task.id}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-lg truncate">
-                      {task.title}
-                    </p>
+                    <p className="font-semibold text-gray-900 text-lg truncate">{task.title}</p>
                     <p className="text-sm text-gray-500">
                       Vence: {new Date(task.dueDate).toLocaleDateString('es-CO')}
                     </p>
@@ -217,11 +220,7 @@ export function TasksPage() {
                   </Badge>
                 </div>
                 <div className="mt-3 flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/tasks/${task.id}`)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => navigate(`/tasks/${task.id}`)}>
                     Ver detalle
                   </Button>
                 </div>

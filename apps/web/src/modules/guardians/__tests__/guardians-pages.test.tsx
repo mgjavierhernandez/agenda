@@ -80,14 +80,20 @@ describe('GuardiansPage', () => {
   });
 
   it('renders the page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<GuardiansPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Acudientes')).toBeInTheDocument();
   });
 
   it('renders empty state when no links', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<GuardiansPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -132,7 +138,10 @@ describe('GuardiansPage', () => {
   });
 
   it('shows new link button for managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<GuardiansPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -141,7 +150,10 @@ describe('GuardiansPage', () => {
   });
 
   it('hides new link button for non-managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
     mockHasPermission.mockImplementation((perm: string) => perm !== 'guardians:manage');
 
     render(<GuardiansPage />, { wrapper: createWrapper() });

@@ -62,7 +62,12 @@ export class SmtpEmailProvider implements EmailProvider {
     await this.deliver({ to: data.to, ...rendered });
   }
 
-  private async deliver(data: { to: string; subject: string; text: string; html: string }): Promise<void> {
+  private async deliver(data: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<void> {
     try {
       await this.transporter.sendMail({
         from: this.from,

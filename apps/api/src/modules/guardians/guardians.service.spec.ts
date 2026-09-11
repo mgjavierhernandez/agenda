@@ -58,10 +58,7 @@ describe('GuardiansService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new GuardiansService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new GuardiansService(prismaMock as never, auditServiceMock as never);
 
     mockedGetUserRoleNames.mockReset();
     mockedHasFullAccess.mockReset();
@@ -73,7 +70,11 @@ describe('GuardiansService', () => {
   describe('linkStudent', () => {
     it('should link a guardian to a student successfully', async () => {
       prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
-      prismaMock.userInstitution.findFirst.mockResolvedValue({ userId: guardianUserId, institutionId, status: 'ACTIVE' });
+      prismaMock.userInstitution.findFirst.mockResolvedValue({
+        userId: guardianUserId,
+        institutionId,
+        status: 'ACTIVE',
+      });
       prismaMock.guardianStudent.findUnique.mockResolvedValue(null);
       prismaMock.guardianStudent.create.mockResolvedValue({
         id: 'gs-1',
@@ -133,8 +134,13 @@ describe('GuardiansService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should throw ConflictException for duplicate link', async () => {      prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
-      prismaMock.userInstitution.findFirst.mockResolvedValue({ userId: guardianUserId, institutionId, status: 'ACTIVE' });
+    it('should throw ConflictException for duplicate link', async () => {
+      prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
+      prismaMock.userInstitution.findFirst.mockResolvedValue({
+        userId: guardianUserId,
+        institutionId,
+        status: 'ACTIVE',
+      });
       prismaMock.guardianStudent.findUnique.mockResolvedValue({
         id: 'existing',
         institutionId,
@@ -190,7 +196,10 @@ describe('GuardiansService', () => {
       prismaMock.guardianStudent.findMany.mockResolvedValue([]);
       prismaMock.guardianStudent.count.mockResolvedValue(0);
 
-      const result = await service.findStudentsByGuardian(institutionId, guardianUserId, { page: 2, limit: 10 });
+      const result = await service.findStudentsByGuardian(institutionId, guardianUserId, {
+        page: 2,
+        limit: 10,
+      });
 
       expect(result.meta.page).toBe(2);
       expect(result.meta.limit).toBe(10);
@@ -248,9 +257,9 @@ describe('GuardiansService', () => {
     it('should throw NotFoundException for cross-tenant student', async () => {
       prismaMock.student.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findByStudent(institutionId, 'other-tenant-student'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findByStudent(institutionId, 'other-tenant-student')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -319,7 +328,13 @@ describe('GuardiansService', () => {
 
       expect(prismaMock.guardianStudent.findUnique).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { institutionId_guardianUserId_studentId: { institutionId: 'other-tenant', guardianUserId, studentId } },
+          where: {
+            institutionId_guardianUserId_studentId: {
+              institutionId: 'other-tenant',
+              guardianUserId,
+              studentId,
+            },
+          },
         }),
       );
     });

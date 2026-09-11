@@ -77,14 +77,22 @@ describe('NotificationsPage', () => {
   });
 
   it('renders the page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 }, unreadCount: 0 });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      unreadCount: 0,
+    });
 
     render(<NotificationsPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Notificaciones')).toBeInTheDocument();
   });
 
   it('renders empty state when no notifications', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 }, unreadCount: 0 });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      unreadCount: 0,
+    });
 
     render(<NotificationsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -166,7 +174,10 @@ describe('NotificationsPage', () => {
 
     render(<NotificationsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getAllByText('Tienes una nueva solicitud de firma: Autorización de excursión.').length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText('Tienes una nueva solicitud de firma: Autorización de excursión.')
+          .length,
+      ).toBeGreaterThan(0);
     });
   });
 });
@@ -193,7 +204,9 @@ describe('NotificationDetailPage', () => {
     render(<NotificationDetailPage />, { wrapper: createWrapper(['/notifications/notif-1']) });
 
     await waitFor(() => {
-      expect(screen.getByText('Tienes una nueva solicitud de firma: Autorización de excursión.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Tienes una nueva solicitud de firma: Autorización de excursión.'),
+      ).toBeInTheDocument();
     });
   });
 

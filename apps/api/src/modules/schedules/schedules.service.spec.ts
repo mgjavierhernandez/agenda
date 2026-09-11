@@ -72,16 +72,21 @@ describe('SchedulesService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new SchedulesService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new SchedulesService(prismaMock as never, auditServiceMock as never);
 
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
-    prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId, name: 'Matemáticas' });
+    prismaMock.subject.findFirst.mockResolvedValue({
+      id: subjectId,
+      institutionId,
+      name: 'Matemáticas',
+    });
     prismaMock.academicPeriod.findFirst.mockResolvedValue({ id: academicPeriodId, institutionId });
     prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId });
-    prismaMock.classroom.findFirst.mockResolvedValue({ id: classroomId, institutionId, status: 'ACTIVE' });
+    prismaMock.classroom.findFirst.mockResolvedValue({
+      id: classroomId,
+      institutionId,
+      status: 'ACTIVE',
+    });
     prismaMock.scheduleBlock.findFirst.mockResolvedValue({ id: blockId, institutionId });
 
     mockedResolveCourses.mockReset();
@@ -137,34 +142,30 @@ describe('SchedulesService', () => {
     it('should reject course from another tenant', async () => {
       prismaMock.course.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.create(institutionId, baseCreate(), userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, baseCreate(), userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should reject subject from another tenant', async () => {
       prismaMock.subject.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.create(institutionId, baseCreate(), userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, baseCreate(), userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should reject academic period from another tenant', async () => {
       prismaMock.academicPeriod.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.create(institutionId, baseCreate(), userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, baseCreate(), userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should reject startTime >= endTime', async () => {
       await expect(
-        service.create(
-          institutionId,
-          baseCreate({ startTime: '09:30', endTime: '08:00' }),
-          userId,
-        ),
+        service.create(institutionId, baseCreate({ startTime: '09:30', endTime: '08:00' }), userId),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -176,11 +177,7 @@ describe('SchedulesService', () => {
       });
 
       await expect(
-        service.create(
-          institutionId,
-          baseCreate({ startTime: '09:00', endTime: '10:00' }),
-          userId,
-        ),
+        service.create(institutionId, baseCreate({ startTime: '09:00', endTime: '10:00' }), userId),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -189,11 +186,7 @@ describe('SchedulesService', () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(
-          institutionId,
-          baseCreate({ teacherUserId }),
-          userId,
-        ),
+        service.create(institutionId, baseCreate({ teacherUserId }), userId),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -202,11 +195,7 @@ describe('SchedulesService', () => {
       prismaMock.classroom.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(
-          institutionId,
-          baseCreate({ classroomId }),
-          userId,
-        ),
+        service.create(institutionId, baseCreate({ classroomId }), userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -214,13 +203,9 @@ describe('SchedulesService', () => {
       prismaMock.schedule.findFirst.mockResolvedValue(null);
       prismaMock.scheduleBlock.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.create(
-          institutionId,
-          baseCreate({ blockId }),
-          userId,
-        ),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, baseCreate({ blockId }), userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -242,9 +227,9 @@ describe('SchedulesService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.schedule.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'schedule-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'schedule-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -366,7 +351,9 @@ describe('SchedulesService', () => {
       prismaMock.course.findMany.mockResolvedValue([{ id: courseId, name: 'Curso 1' }]);
       prismaMock.subject.findMany.mockResolvedValue([{ id: subjectId, name: 'Matemáticas' }]);
       prismaMock.classroom.findMany.mockResolvedValue([{ id: classroomId, name: 'Aula 101' }]);
-      prismaMock.user.findMany.mockResolvedValue([{ id: teacherUserId, firstName: 'Ana', lastName: 'López' }]);
+      prismaMock.user.findMany.mockResolvedValue([
+        { id: teacherUserId, firstName: 'Ana', lastName: 'López' },
+      ]);
     }
 
     it('should export scoped schedules as PDF', async () => {
@@ -493,7 +480,12 @@ describe('SchedulesService', () => {
       prismaMock.schedule.findFirst.mockResolvedValue(existingSchedule);
 
       await expect(
-        service.update(institutionId, 'schedule-1', { startTime: '10:00', endTime: '09:00' }, userId),
+        service.update(
+          institutionId,
+          'schedule-1',
+          { startTime: '10:00', endTime: '09:00' },
+          userId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });

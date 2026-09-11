@@ -20,7 +20,8 @@ export class LinkGuardianDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
-    description: 'Guardian user UUID. Defaults to the caller. Allows administrators to link any guardian.',
+    description:
+      'Guardian user UUID. Defaults to the caller. Allows administrators to link any guardian.',
   })
   @IsOptional()
   @IsUUID()

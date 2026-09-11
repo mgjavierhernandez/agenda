@@ -6,22 +6,14 @@ export type CommitmentWithOverdue = Commitment & {
 
 function isDateOnlyOverdue(dueDate: Date): boolean {
   const now = new Date();
-  const nowDateOnly = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
+  const nowDateOnly = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const dueDateOnly = new Date(
-    Date.UTC(
-      dueDate.getUTCFullYear(),
-      dueDate.getUTCMonth(),
-      dueDate.getUTCDate(),
-    ),
+    Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate()),
   );
   return nowDateOnly > dueDateOnly;
 }
 
-export function deriveCommitmentStatus(
-  commitment: Commitment,
-): CommitmentStatus {
+export function deriveCommitmentStatus(commitment: Commitment): CommitmentStatus {
   if (
     commitment.status === CommitmentStatus.COMPLETED ||
     commitment.status === CommitmentStatus.CANCELLED
@@ -29,10 +21,7 @@ export function deriveCommitmentStatus(
     return commitment.status;
   }
 
-  if (
-    commitment.dueDate &&
-    isDateOnlyOverdue(commitment.dueDate)
-  ) {
+  if (commitment.dueDate && isDateOnlyOverdue(commitment.dueDate)) {
     return CommitmentStatus.OVERDUE;
   }
 

@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
-import type { PaginatedApiResponse, GuardianStudentWithStudent, ListGuardiansParams } from '@/api/types';
+import type {
+  PaginatedApiResponse,
+  GuardianStudentWithStudent,
+  ListGuardiansParams,
+} from '@/api/types';
 
 export function useGuardianStudents(params: ListGuardiansParams = {}) {
   const { page = 1, limit = 20, search } = params;

@@ -54,11 +54,24 @@ export function buildReportPdf(payload: PdfReportPayload): Promise<Buffer> {
 }
 
 function renderHeader(doc: PDFKit.PDFDocument, payload: PdfReportPayload): void {
-  doc.font('Helvetica-Bold').fontSize(18).fillColor('#1e293b').text(payload.institutionName, { align: 'center' });
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(18)
+    .fillColor('#1e293b')
+    .text(payload.institutionName, { align: 'center' });
   doc.moveDown(0.4);
-  doc.font('Helvetica-Bold').fontSize(13).fillColor('#0f172a').text(payload.title, { align: 'center' });
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(13)
+    .fillColor('#0f172a')
+    .text(payload.title, { align: 'center' });
   doc.moveDown(0.2);
-  doc.strokeColor('#cbd5e1').lineWidth(1).moveTo(MARGIN, doc.y).lineTo(PAGE_WIDTH - MARGIN, doc.y).stroke();
+  doc
+    .strokeColor('#cbd5e1')
+    .lineWidth(1)
+    .moveTo(MARGIN, doc.y)
+    .lineTo(PAGE_WIDTH - MARGIN, doc.y)
+    .stroke();
   doc.moveDown(0.6);
 
   doc.font('Helvetica-Bold').fontSize(9).fillColor('#475569');
@@ -76,7 +89,11 @@ function renderHeader(doc: PDFKit.PDFDocument, payload: PdfReportPayload): void 
 
 function renderAcademicTable(doc: PDFKit.PDFDocument, sections: PdfAcademicSection[]): void {
   if (sections.length === 0) {
-    doc.font('Helvetica').fontSize(10).fillColor('#334155').text('No hay calificaciones registradas para el periodo seleccionado.');
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .fillColor('#334155')
+      .text('No hay calificaciones registradas para el periodo seleccionado.');
     doc.moveDown(0.5);
     return;
   }
@@ -93,7 +110,11 @@ function renderAcademicTable(doc: PDFKit.PDFDocument, sections: PdfAcademicSecti
     doc.moveDown(0.15);
 
     if (section.rows.length === 0) {
-      doc.font('Helvetica').fontSize(9).fillColor('#64748b').text('Sin calificaciones.', { indent: 12 });
+      doc
+        .font('Helvetica')
+        .fontSize(9)
+        .fillColor('#64748b')
+        .text('Sin calificaciones.', { indent: 12 });
       doc.moveDown(0.2);
     } else {
       doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#64748b');
@@ -115,12 +136,17 @@ function renderAcademicTable(doc: PDFKit.PDFDocument, sections: PdfAcademicSecti
       }
     }
 
-    if (section.simpleAverage !== null && section.simpleAverage !== undefined && section.rows.length > 0) {
+    if (
+      section.simpleAverage !== null &&
+      section.simpleAverage !== undefined &&
+      section.rows.length > 0
+    ) {
       doc.moveDown(0.1);
-      doc.font('Helvetica-Oblique').fontSize(9).fillColor('#475569').text(
-        `Promedio simple del período: ${section.simpleAverage.toFixed(2)}`,
-        { indent: 12 },
-      );
+      doc
+        .font('Helvetica-Oblique')
+        .fontSize(9)
+        .fillColor('#475569')
+        .text(`Promedio simple del período: ${section.simpleAverage.toFixed(2)}`, { indent: 12 });
       doc.moveDown(0.1);
     }
     doc.moveDown(0.25);
@@ -143,7 +169,11 @@ function renderSummary(
     doc.font('Helvetica').fontSize(10).fillColor('#334155').text('Sin datos disponibles.');
   } else {
     for (const line of lines) {
-      doc.font('Helvetica').fontSize(10).fillColor('#334155').text(line.label, MARGIN + 12, doc.y, { width: 260, continued: false });
+      doc
+        .font('Helvetica')
+        .fontSize(10)
+        .fillColor('#334155')
+        .text(line.label, MARGIN + 12, doc.y, { width: 260, continued: false });
       doc.x = MARGIN + 12 + 260;
       doc.text(line.value);
       doc.moveDown(0.15);
@@ -155,10 +185,19 @@ function renderSummary(
 function renderFootnotes(doc: PDFKit.PDFDocument, footnotes: string[]): void {
   if (footnotes.length === 0) return;
   doc.moveDown(0.8);
-  doc.strokeColor('#cbd5e1').lineWidth(0.8).moveTo(MARGIN, doc.y).lineTo(PAGE_WIDTH - MARGIN, doc.y).stroke();
+  doc
+    .strokeColor('#cbd5e1')
+    .lineWidth(0.8)
+    .moveTo(MARGIN, doc.y)
+    .lineTo(PAGE_WIDTH - MARGIN, doc.y)
+    .stroke();
   doc.moveDown(0.4);
   for (const note of footnotes) {
-    doc.font('Helvetica-Oblique').fontSize(7.5).fillColor('#94a3b8').text(note, { width: CONTENT_WIDTH });
+    doc
+      .font('Helvetica-Oblique')
+      .fontSize(7.5)
+      .fillColor('#94a3b8')
+      .text(note, { width: CONTENT_WIDTH });
     doc.moveDown(0.15);
   }
 }

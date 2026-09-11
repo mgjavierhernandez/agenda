@@ -89,9 +89,7 @@ export function TaskAssignmentsPage() {
         }
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/task-assignments/new')}>
-              Nueva asignación
-            </Button>
+            <Button onClick={() => navigate('/task-assignments/new')}>Nueva asignación</Button>
           ) : undefined
         }
       />
@@ -171,7 +169,11 @@ export function TaskAssignmentsPage() {
         </div>
       ) : assignments.length === 0 ? (
         <EmptyState
-          title={statusFilter || taskFilter || studentFilter ? 'No se encontraron asignaciones' : 'No hay asignaciones registradas'}
+          title={
+            statusFilter || taskFilter || studentFilter
+              ? 'No se encontraron asignaciones'
+              : 'No hay asignaciones registradas'
+          }
           description={
             statusFilter || taskFilter || studentFilter
               ? 'No encontramos asignaciones que coincidan con los filtros aplicados.'
@@ -200,10 +202,16 @@ export function TaskAssignmentsPage() {
                 <tbody>
                   {assignments.map((assignment) => (
                     <tr key={assignment.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={getTaskTitle(assignment.taskId)}>
+                      <td
+                        className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                        title={getTaskTitle(assignment.taskId)}
+                      >
                         {getTaskTitle(assignment.taskId)}
                       </td>
-                      <td className="px-4 py-3 text-gray-900 max-w-[200px] truncate" title={getStudentName(assignment.studentId)}>
+                      <td
+                        className="px-4 py-3 text-gray-900 max-w-[200px] truncate"
+                        title={getStudentName(assignment.studentId)}
+                      >
                         {getStudentName(assignment.studentId)}
                       </td>
                       <td className="px-4 py-3">
@@ -240,9 +248,7 @@ export function TaskAssignmentsPage() {
                     <p className="font-semibold text-gray-900 truncate">
                       {getTaskTitle(assignment.taskId)}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {getStudentName(assignment.studentId)}
-                    </p>
+                    <p className="text-sm text-gray-500">{getStudentName(assignment.studentId)}</p>
                     <p className="text-xs text-gray-500">
                       {new Date(assignment.assignedAt).toLocaleDateString('es-CO')}
                     </p>

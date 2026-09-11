@@ -6,9 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import {
-  StudentFollowUpAuthorizationService,
-} from '../../common/auth/student-follow-up-authorization';
+import { StudentFollowUpAuthorizationService } from '../../common/auth/student-follow-up-authorization';
 import { CreateStudentFollowUpDto } from './dto/create-student-follow-up.dto';
 import { UpdateStudentFollowUpDto } from './dto/update-student-follow-up.dto';
 import { ListStudentFollowUpsQueryDto } from './dto/list-student-follow-ups-query.dto';
@@ -29,10 +27,7 @@ import {
   sendFollowUpNotification,
   sendCommitmentNotification,
 } from './follow-up-notification.helper';
-import {
-  deriveCommitmentStatus,
-  deriveCommitmentStatuses,
-} from './commitment-overdue.helper';
+import { deriveCommitmentStatus, deriveCommitmentStatuses } from './commitment-overdue.helper';
 
 @Injectable()
 export class StudentFollowUpsService {
@@ -48,11 +43,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canCreate(
-      userId,
-      institutionId,
-      dto.studentId,
-    );
+    const access = await this.authorizationService.canCreate(userId, institutionId, dto.studentId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -113,13 +104,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'CREATED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'CREATED',
+    );
 
     return followUp;
   }
@@ -145,8 +140,7 @@ export class StudentFollowUpsService {
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const visibleLevels =
-      this.authorizationService.getVisibleConfidentialityLevels(role);
+    const visibleLevels = this.authorizationService.getVisibleConfidentialityLevels(role);
 
     // Un filtro explícito nunca puede ampliar los niveles visibles del rol
     // (evita ?confidentiality=INTERNAL para eludir la restricción).
@@ -250,11 +244,7 @@ export class StudentFollowUpsService {
     followUpId: string,
     userId: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canRead(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canRead(userId, institutionId, followUpId);
 
     if (!access.allowed) {
       throw new NotFoundException('Follow-up not found');
@@ -292,11 +282,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
 
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
@@ -332,8 +318,7 @@ export class StudentFollowUpsService {
     const updateData: Prisma.StudentFollowUpUpdateInput = {};
     if (dto.type !== undefined) updateData.type = dto.type;
     if (dto.severity !== undefined) updateData.severity = dto.severity;
-    if (dto.confidentiality !== undefined)
-      updateData.confidentiality = dto.confidentiality;
+    if (dto.confidentiality !== undefined) updateData.confidentiality = dto.confidentiality;
     if (dto.categoryId !== undefined) {
       updateData.category = dto.categoryId
         ? { connect: { id: dto.categoryId } }
@@ -380,11 +365,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canClose(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canClose(userId, institutionId, followUpId);
 
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
@@ -440,13 +421,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'CLOSED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'CLOSED',
+    );
 
     return followUp;
   }
@@ -460,11 +445,7 @@ export class StudentFollowUpsService {
     followUpId: string,
     userId: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canRead(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canRead(userId, institutionId, followUpId);
     if (!access.allowed) {
       throw new NotFoundException('Follow-up not found');
     }
@@ -482,11 +463,7 @@ export class StudentFollowUpsService {
     followUpId: string,
     userId: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -543,13 +520,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'ENTRY_CREATED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'ENTRY_CREATED',
+    );
 
     return entry;
   }
@@ -695,9 +676,7 @@ export class StudentFollowUpsService {
       },
     });
     if (!responsibleMembership) {
-      throw new BadRequestException(
-        'Responsible user is not a member of this institution',
-      );
+      throw new BadRequestException('Responsible user is not a member of this institution');
     }
 
     const commitment = await this.prisma.commitment.create({
@@ -726,13 +705,18 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendCommitmentNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'COMMITMENT_CREATED', dto.responsibleUserId);
+    await sendCommitmentNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'COMMITMENT_CREATED',
+      dto.responsibleUserId,
+    );
 
     return commitment;
   }
@@ -840,9 +824,7 @@ export class StudentFollowUpsService {
         },
       });
       if (!responsibleMembership) {
-        throw new BadRequestException(
-          'Responsible user is not a member of this institution',
-        );
+        throw new BadRequestException('Responsible user is not a member of this institution');
       }
     }
 
@@ -889,13 +871,18 @@ export class StudentFollowUpsService {
     });
 
     const action = dto.status === 'COMPLETED' ? 'COMMITMENT_COMPLETED' : 'COMMITMENT_UPDATED';
-    await sendCommitmentNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, action, commitment.responsibleUserId);
+    await sendCommitmentNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      action,
+      commitment.responsibleUserId,
+    );
 
     return commitment;
   }
@@ -951,13 +938,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'ATTACHMENT_ADDED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'ATTACHMENT_ADDED',
+    );
 
     return attachment;
   }
@@ -1038,11 +1029,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -1061,9 +1048,7 @@ export class StudentFollowUpsService {
     }
 
     if (!this.isValidTransition(existing.status, FollowUpStatus.ESCALATED)) {
-      throw new BadRequestException(
-        `Cannot escalate from ${existing.status} status`,
-      );
+      throw new BadRequestException(`Cannot escalate from ${existing.status} status`);
     }
 
     const followUp = await this.prisma.studentFollowUp.update({
@@ -1082,13 +1067,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'ESCALATED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'ESCALATED',
+    );
 
     return followUp;
   }
@@ -1099,11 +1088,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -1143,13 +1128,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'FOLLOW_UP');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'FOLLOW_UP',
+    );
 
     return followUp;
   }
@@ -1160,11 +1149,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -1183,9 +1168,7 @@ export class StudentFollowUpsService {
     }
 
     if (!this.isValidTransition(existing.status, FollowUpStatus.RESOLVED)) {
-      throw new BadRequestException(
-        `Cannot resolve from ${existing.status} status`,
-      );
+      throw new BadRequestException(`Cannot resolve from ${existing.status} status`);
     }
 
     const followUp = await this.prisma.studentFollowUp.update({
@@ -1204,13 +1187,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'RESOLVED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'RESOLVED',
+    );
 
     return followUp;
   }
@@ -1221,10 +1208,7 @@ export class StudentFollowUpsService {
     userId: string,
     ipAddress?: string,
   ): Promise<StudentFollowUp> {
-    const access = await this.authorizationService.canManage(
-      userId,
-      institutionId,
-    );
+    const access = await this.authorizationService.canManage(userId, institutionId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');
@@ -1271,13 +1255,17 @@ export class StudentFollowUpsService {
       ipAddress,
     });
 
-    await sendFollowUpNotification(this.prisma, {
-      institutionId,
-      followUpId: followUp.id,
-      studentId: followUp.studentId,
-      confidentiality: followUp.confidentiality,
-      actorUserId: userId,
-    }, 'REOPENED');
+    await sendFollowUpNotification(
+      this.prisma,
+      {
+        institutionId,
+        followUpId: followUp.id,
+        studentId: followUp.studentId,
+        confidentiality: followUp.confidentiality,
+        actorUserId: userId,
+      },
+      'REOPENED',
+    );
 
     return followUp;
   }

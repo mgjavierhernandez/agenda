@@ -39,7 +39,9 @@ export class UsersService {
   private validateProfileDocumentPair(dto: UpsertUserProfileDto): void {
     const hasType = dto.documentType !== undefined && dto.documentType !== null;
     const hasNumber =
-      dto.documentNumber !== undefined && dto.documentNumber !== null && dto.documentNumber.trim() !== '';
+      dto.documentNumber !== undefined &&
+      dto.documentNumber !== null &&
+      dto.documentNumber.trim() !== '';
     if (hasType !== hasNumber) {
       throw new BadRequestException('documentType and documentNumber must be provided together');
     }
@@ -65,7 +67,11 @@ export class UsersService {
     }
   }
 
-  private toProfileData(institutionId: string, userId: string, dto: UpsertUserProfileDto): Prisma.UserProfileCreateInput {
+  private toProfileData(
+    institutionId: string,
+    userId: string,
+    dto: UpsertUserProfileDto,
+  ): Prisma.UserProfileCreateInput {
     return {
       user: { connect: { id: userId } },
       institution: { connect: { id: institutionId } },
@@ -102,7 +108,12 @@ export class UsersService {
     if (!documentType || !cleanNumber) return null;
 
     const unclaimed = await this.prisma.student.findFirst({
-      where: { institutionId, documentType: documentType as never, documentNumber: cleanNumber, userId: null },
+      where: {
+        institutionId,
+        documentType: documentType as never,
+        documentNumber: cleanNumber,
+        userId: null,
+      },
       select: { id: true },
     });
     if (!unclaimed) return null;
@@ -148,7 +159,9 @@ export class UsersService {
                 create: {
                   institutionId,
                   documentType: dto.profile.documentType ?? null,
-                  documentNumber: dto.profile.documentNumber ? dto.profile.documentNumber.trim() : null,
+                  documentNumber: dto.profile.documentNumber
+                    ? dto.profile.documentNumber.trim()
+                    : null,
                   phone: dto.profile.phone ?? null,
                   address: dto.profile.address ?? null,
                   birthDate: dto.profile.birthDate ? new Date(dto.profile.birthDate) : null,
@@ -173,7 +186,10 @@ export class UsersService {
         firstName: user.firstName,
         lastName: user.lastName,
         ...(dto.profile?.documentNumber
-          ? { documentType: dto.profile.documentType, documentNumber: dto.profile.documentNumber.trim() }
+          ? {
+              documentType: dto.profile.documentType,
+              documentNumber: dto.profile.documentNumber.trim(),
+            }
           : {}),
       },
       ipAddress,
@@ -252,12 +268,7 @@ export class UsersService {
       ipAddress,
     });
 
-    await this.linkStudentAccount(
-      institutionId,
-      id,
-      dto.documentType,
-      dto.documentNumber,
-    );
+    await this.linkStudentAccount(institutionId, id, dto.documentType, dto.documentNumber);
 
     return this.sanitizeProfile(profile);
   }
@@ -265,7 +276,10 @@ export class UsersService {
   async findAll(
     institutionId: string,
     query: ListUsersQueryDto,
-  ): Promise<{ data: Omit<User, 'passwordHash'>[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Omit<User, 'passwordHash'>[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -306,10 +320,7 @@ export class UsersService {
     };
   }
 
-  async findOne(
-    institutionId: string,
-    id: string,
-  ): Promise<Omit<User, 'passwordHash'>> {
+  async findOne(institutionId: string, id: string): Promise<Omit<User, 'passwordHash'>> {
     const membership = await this.prisma.userInstitution.findUnique({
       where: { userId_institutionId: { userId: id, institutionId } },
     });
@@ -373,7 +384,11 @@ export class UsersService {
       action: 'USER_UPDATED',
       entityType: 'User',
       entityId: user.id,
-      oldValues: { firstName: existing.firstName, lastName: existing.lastName, status: existing.status },
+      oldValues: {
+        firstName: existing.firstName,
+        lastName: existing.lastName,
+        status: existing.status,
+      },
       newValues: { firstName: user.firstName, lastName: user.lastName, status: user.status },
       ipAddress,
     });

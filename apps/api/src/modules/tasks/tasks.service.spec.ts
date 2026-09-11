@@ -1,7 +1,11 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TaskStatus } from '@prisma/client';
-import { resolveAccessibleStudentIds, resolveAccessibleCourseIds, getUserRoleNames } from '../../common/auth/academic-scope';
+import {
+  resolveAccessibleStudentIds,
+  resolveAccessibleCourseIds,
+  getUserRoleNames,
+} from '../../common/auth/academic-scope';
 
 jest.mock('../../common/auth/academic-scope', () => ({
   resolveAccessibleStudentIds: jest.fn(),
@@ -66,10 +70,7 @@ describe('TasksService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new TasksService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new TasksService(prismaMock as never, auditServiceMock as never);
 
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
     prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId });
@@ -124,11 +125,7 @@ describe('TasksService', () => {
       prismaMock.course.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(
-          institutionId,
-          { courseId, subjectId, title: 'Test', dueDate },
-          userId,
-        ),
+        service.create(institutionId, { courseId, subjectId, title: 'Test', dueDate }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -136,11 +133,7 @@ describe('TasksService', () => {
       prismaMock.subject.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(
-          institutionId,
-          { courseId, subjectId, title: 'Test', dueDate },
-          userId,
-        ),
+        service.create(institutionId, { courseId, subjectId, title: 'Test', dueDate }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -151,11 +144,7 @@ describe('TasksService', () => {
         status: TaskStatus.DRAFT,
       });
 
-      await service.create(
-        institutionId,
-        { courseId, subjectId, title: 'Test', dueDate },
-        userId,
-      );
+      await service.create(institutionId, { courseId, subjectId, title: 'Test', dueDate }, userId);
 
       const createCall = prismaMock.task.create.mock.calls[0][0];
       expect(createCall.data.status).toBe(TaskStatus.DRAFT);
@@ -180,9 +169,9 @@ describe('TasksService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.task.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'task-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'task-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -285,12 +274,7 @@ describe('TasksService', () => {
         title: 'New Title',
       });
 
-      const result = await service.update(
-        institutionId,
-        'task-1',
-        { title: 'New Title' },
-        userId,
-      );
+      const result = await service.update(institutionId, 'task-1', { title: 'New Title' }, userId);
 
       expect(result.title).toBe('New Title');
     });
@@ -310,9 +294,9 @@ describe('TasksService', () => {
         status: TaskStatus.PUBLISHED,
       });
 
-      await expect(
-        service.update(institutionId, 'task-1', { title: 'X' }, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.update(institutionId, 'task-1', { title: 'X' }, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should not allow modifying institutionId', async () => {
@@ -381,9 +365,9 @@ describe('TasksService', () => {
         status: TaskStatus.PUBLISHED,
       });
 
-      await expect(
-        service.publish(institutionId, 'task-1', userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.publish(institutionId, 'task-1', userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -415,9 +399,9 @@ describe('TasksService', () => {
         status: TaskStatus.DRAFT,
       });
 
-      await expect(
-        service.close(institutionId, 'task-1', userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.close(institutionId, 'task-1', userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -447,9 +431,9 @@ describe('TasksService', () => {
     it('should throw NotFoundException for cross-tenant deactivate', async () => {
       prismaMock.task.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.deactivate(institutionId, 'other-tenant-task', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.deactivate(institutionId, 'other-tenant-task', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -574,17 +558,27 @@ describe('TasksService', () => {
       mockedResolveStudents.mockResolvedValue(['own-1']);
       mockedResolveCourses.mockResolvedValue([]);
       mockedGetRoles.mockResolvedValue(['STUDENT']);
-      prismaMock.task.findFirst.mockResolvedValue({ id: 'task-x', institutionId, courseId: 'course-9' });
+      prismaMock.task.findFirst.mockResolvedValue({
+        id: 'task-x',
+        institutionId,
+        courseId: 'course-9',
+      });
       prismaMock.taskAssignment.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(institutionId, 'task-x', 'student-1')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'task-x', 'student-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should allow a task assigned to an accessible student', async () => {
       mockedResolveStudents.mockResolvedValue(['own-1']);
       mockedResolveCourses.mockResolvedValue([]);
       mockedGetRoles.mockResolvedValue(['STUDENT']);
-      prismaMock.task.findFirst.mockResolvedValue({ id: 'task-1', institutionId, courseId: 'course-1' });
+      prismaMock.task.findFirst.mockResolvedValue({
+        id: 'task-1',
+        institutionId,
+        courseId: 'course-1',
+      });
       prismaMock.taskAssignment.findFirst.mockResolvedValue({ id: 'ta-1' });
 
       const result = await service.findOne(institutionId, 'task-1', 'student-1');

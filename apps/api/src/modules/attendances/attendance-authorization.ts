@@ -75,7 +75,14 @@ export class AttendanceAuthorizationService {
     }
 
     if (role === 'TEACHER') {
-      if (!(await this.isTeacherAssigned(userId, institutionId, attendance.courseId, attendance.academicPeriodId))) {
+      if (
+        !(await this.isTeacherAssigned(
+          userId,
+          institutionId,
+          attendance.courseId,
+          attendance.academicPeriodId,
+        ))
+      ) {
         return { allowed: false, reason: 'NO_COURSE_RELATIONSHIP' };
       }
       return { allowed: true };
@@ -117,7 +124,14 @@ export class AttendanceAuthorizationService {
     }
 
     if (role === 'TEACHER') {
-      if (!(await this.isTeacherAssigned(userId, institutionId, attendance.courseId, attendance.academicPeriodId))) {
+      if (
+        !(await this.isTeacherAssigned(
+          userId,
+          institutionId,
+          attendance.courseId,
+          attendance.academicPeriodId,
+        ))
+      ) {
         return { allowed: false, reason: 'NO_COURSE_RELATIONSHIP' };
       }
       return { allowed: true };
@@ -144,11 +158,7 @@ export class AttendanceAuthorizationService {
     return { allowed: false, reason: 'INSUFFICIENT_PERMISSIONS' };
   }
 
-  buildListFilter(
-    userId: string,
-    institutionId: string,
-    role: string,
-  ): Record<string, unknown> {
+  buildListFilter(userId: string, institutionId: string, role: string): Record<string, unknown> {
     if (role === 'INSTITUTION_ADMIN') {
       return { institutionId };
     }

@@ -1,6 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { useTaskAssignment, useUpdateTaskAssignment, useDeactivateTaskAssignment, useMarkTaskAssignmentOpened } from '../hooks';
+import {
+  useTaskAssignment,
+  useUpdateTaskAssignment,
+  useDeactivateTaskAssignment,
+  useMarkTaskAssignmentOpened,
+} from '../hooks';
 import { useTaskSubmission, useSubmissionAttachments } from '@/modules/task-submissions/hooks';
 import { useTask } from '@/modules/tasks/hooks';
 import { useStudents } from '@/modules/students/hooks';
@@ -21,7 +26,10 @@ const STATUS_BADGE_VARIANT: Record<TaskAssignmentStatus, 'success' | 'warning' |
   CANCELLED: 'warning',
 };
 
-const SUBMISSION_STATUS_BADGE: Record<TaskSubmissionStatus, 'success' | 'warning' | 'default' | 'danger'> = {
+const SUBMISSION_STATUS_BADGE: Record<
+  TaskSubmissionStatus,
+  'success' | 'warning' | 'default' | 'danger'
+> = {
   PENDING: 'default',
   SUBMITTED: 'success',
   LATE: 'danger',
@@ -57,7 +65,9 @@ export function TaskAssignmentDetailPage() {
   const students = studentsData?.data ?? [];
   const student = assignment ? students.find((s) => s.id === assignment.studentId) : undefined;
 
-  const [confirmAction, setConfirmAction] = useState<'complete' | 'cancel' | 'deactivate' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'complete' | 'cancel' | 'deactivate' | null>(
+    null,
+  );
 
   const handleConfirmAction = async () => {
     if (!id || !confirmAction) return;
@@ -92,7 +102,11 @@ export function TaskAssignmentDetailPage() {
   }
 
   if (!assignment) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canComplete = canManage && assignment.status === 'ASSIGNED';
@@ -107,9 +121,7 @@ export function TaskAssignmentDetailPage() {
         actions={
           <div className="flex gap-2">
             {canComplete && (
-              <Button onClick={() => setConfirmAction('complete')}>
-                Marcar completada
-              </Button>
+              <Button onClick={() => setConfirmAction('complete')}>Marcar completada</Button>
             )}
             {canCancel && (
               <Button variant="secondary" onClick={() => setConfirmAction('cancel')}>
@@ -146,13 +158,17 @@ export function TaskAssignmentDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Estudiante</dt>
               <dd className="text-gray-900">
-                {student ? `${student.firstName} ${student.lastName}` : assignment.studentId.slice(0, 8) + '…'}
+                {student
+                  ? `${student.firstName} ${student.lastName}`
+                  : assignment.studentId.slice(0, 8) + '…'}
               </dd>
             </div>
             {assignment.enrollmentId && (
               <div>
                 <dt className="text-sm text-gray-500">Inscripción</dt>
-                <dd className="text-gray-900 font-mono text-xs break-all">{assignment.enrollmentId}</dd>
+                <dd className="text-gray-900 font-mono text-xs break-all">
+                  {assignment.enrollmentId}
+                </dd>
               </div>
             )}
           </dl>
@@ -191,17 +207,11 @@ export function TaskAssignmentDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Entrega</h3>
           {submission ? (
-            <Button
-              size="sm"
-              onClick={() => navigate(`/task-assignments/${id}`)}
-            >
+            <Button size="sm" onClick={() => navigate(`/task-assignments/${id}`)}>
               Ver entrega
             </Button>
           ) : (
-            <Button
-              size="sm"
-              onClick={() => navigate(`/task-submissions/${id}/new`)}
-            >
+            <Button size="sm" onClick={() => navigate(`/task-submissions/${id}/new`)}>
               Crear entrega
             </Button>
           )}
@@ -276,7 +286,8 @@ export function TaskAssignmentDetailPage() {
             <p className="text-gray-600 mb-6">
               {confirmAction === 'complete' && '¿Deseas marcar esta asignación como completada?'}
               {confirmAction === 'cancel' && '¿Deseas cancelar esta asignación?'}
-              {confirmAction === 'deactivate' && '¿Deseas desactivar esta asignación? Esta acción puede revertirse editando la asignación.'}
+              {confirmAction === 'deactivate' &&
+                '¿Deseas desactivar esta asignación? Esta acción puede revertirse editando la asignación.'}
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setConfirmAction(null)}>

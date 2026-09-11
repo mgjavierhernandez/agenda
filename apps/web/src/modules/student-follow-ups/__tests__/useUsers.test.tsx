@@ -25,8 +25,20 @@ const createWrapper = () => {
 
 const mockUsersResponse = {
   data: [
-    { id: 'user-1', email: 'admin@test.com', firstName: 'Admin', lastName: 'User', status: 'ACTIVE' },
-    { id: 'user-2', email: 'teacher@test.com', firstName: 'Teacher', lastName: 'User', status: 'ACTIVE' },
+    {
+      id: 'user-1',
+      email: 'admin@test.com',
+      firstName: 'Admin',
+      lastName: 'User',
+      status: 'ACTIVE',
+    },
+    {
+      id: 'user-2',
+      email: 'teacher@test.com',
+      firstName: 'Teacher',
+      lastName: 'User',
+      status: 'ACTIVE',
+    },
   ],
   meta: { total: 2, page: 1, limit: 200, totalPages: 1 },
 };

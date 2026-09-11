@@ -35,10 +35,7 @@ describe('CoursesService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new CoursesService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new CoursesService(prismaMock as never, auditServiceMock as never);
   });
 
   describe('create', () => {
@@ -83,11 +80,7 @@ describe('CoursesService', () => {
       });
 
       await expect(
-        service.create(
-          institutionId,
-          { code: 'MAT-001', name: 'Matemáticas' },
-          userId,
-        ),
+        service.create(institutionId, { code: 'MAT-001', name: 'Matemáticas' }, userId),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -116,19 +109,30 @@ describe('CoursesService', () => {
       prismaMock.course.findUnique.mockResolvedValue(null);
       prismaMock.schoolGrade.findFirst.mockResolvedValue({ id: 'grade-1' });
       prismaMock.course.create.mockResolvedValue({
-        id: 'course-1', institutionId, code: '2A', name: 'Segundo A',
+        id: 'course-1',
+        institutionId,
+        code: '2A',
+        name: 'Segundo A',
       });
 
       await service.create(
         institutionId,
-        { code: '2A', name: 'Segundo A', level: EducationLevel.PRIMARIA, section: 'A', schoolGradeId: 'grade-1' },
+        {
+          code: '2A',
+          name: 'Segundo A',
+          level: EducationLevel.PRIMARIA,
+          section: 'A',
+          schoolGradeId: 'grade-1',
+        },
         userId,
       );
 
       expect(prismaMock.course.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            level: 'PRIMARIA', section: 'A', schoolGradeId: 'grade-1',
+            level: 'PRIMARIA',
+            section: 'A',
+            schoolGradeId: 'grade-1',
           }),
         }),
       );
@@ -139,7 +143,11 @@ describe('CoursesService', () => {
       prismaMock.schoolGrade.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(institutionId, { code: '2A', name: 'Segundo A', schoolGradeId: 'missing' }, userId),
+        service.create(
+          institutionId,
+          { code: '2A', name: 'Segundo A', schoolGradeId: 'missing' },
+          userId,
+        ),
       ).rejects.toThrow(NotFoundException);
       expect(prismaMock.course.create).not.toHaveBeenCalled();
     });
@@ -163,9 +171,9 @@ describe('CoursesService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.course.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'course-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'course-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -301,12 +309,7 @@ describe('CoursesService', () => {
         });
 
       await expect(
-        service.update(
-          institutionId,
-          'course-1',
-          { code: 'CIE-001' },
-          userId,
-        ),
+        service.update(institutionId, 'course-1', { code: 'CIE-001' }, userId),
       ).rejects.toThrow(ConflictException);
     });
   });

@@ -7,7 +7,15 @@ import { EnrollmentsPage } from '../pages/EnrollmentsPage';
 import { EnrollmentDetailPage } from '../pages/EnrollmentDetailPage';
 import { EnrollmentFormPage } from '../pages/EnrollmentFormPage';
 import { apiClient } from '@/api/client';
-import type { Enrollment, PaginatedApiResponse, Student, Course, SchoolGrade, AcademicPeriod, DocumentType } from '@/api/types';
+import type {
+  Enrollment,
+  PaginatedApiResponse,
+  Student,
+  Course,
+  SchoolGrade,
+  AcademicPeriod,
+  DocumentType,
+} from '@/api/types';
 
 vi.mock('@/api/client', () => ({
   apiClient: {
@@ -133,25 +141,37 @@ const mockRelatedData = () => {
       return Promise.resolve(mockStudent);
     }
     if (u.startsWith('/students')) {
-      return Promise.resolve({ data: [mockStudent], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockStudent],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/courses/')) {
       return Promise.resolve(mockCourse);
     }
     if (u.startsWith('/courses')) {
-      return Promise.resolve({ data: [mockCourse], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockCourse],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/school-grades/')) {
       return Promise.resolve(mockSchoolGrade);
     }
     if (u.startsWith('/school-grades')) {
-      return Promise.resolve({ data: [mockSchoolGrade], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockSchoolGrade],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     if (u.startsWith('/academic-periods/')) {
       return Promise.resolve(mockPeriod);
     }
     if (u.startsWith('/academic-periods')) {
-      return Promise.resolve({ data: [mockPeriod], meta: { total: 1, page: 1, limit: 200, totalPages: 1 } });
+      return Promise.resolve({
+        data: [mockPeriod],
+        meta: { total: 1, page: 1, limit: 200, totalPages: 1 },
+      });
     }
     return Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
   });

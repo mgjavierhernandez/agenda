@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { resolveAccessibleCourseIds } from '../../common/auth/academic-scope';
@@ -82,7 +78,10 @@ export class CoursesService {
     institutionId: string,
     query: ListCoursesQueryDto,
     userId?: string,
-  ): Promise<{ data: Course[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Course[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -211,9 +210,10 @@ export class CoursesService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === CourseStatus.INACTIVE
-        ? 'COURSE_DEACTIVATED'
-        : 'COURSE_UPDATED',
+      action:
+        dto.status && dto.status === CourseStatus.INACTIVE
+          ? 'COURSE_DEACTIVATED'
+          : 'COURSE_UPDATED',
       entityType: 'Course',
       entityId: course.id,
       oldValues: {

@@ -17,7 +17,11 @@ import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { ClassroomsService } from './classrooms.service';
-import { CreateClassroomDto, UpdateClassroomDto, ListClassroomsQueryDto } from './dto/classroom.dto';
+import {
+  CreateClassroomDto,
+  UpdateClassroomDto,
+  ListClassroomsQueryDto,
+} from './dto/classroom.dto';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('Classrooms')
@@ -33,30 +37,16 @@ export class ClassroomsController {
   @Post()
   @RequirePermission('schedules:manage')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateClassroomDto,
-  ) {
-    return this.classroomsService.create(
-      req.tenant!.institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateClassroomDto) {
+    return this.classroomsService.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'List classrooms' })
   @ApiResponse({ status: 200, description: 'Paginated list of classrooms' })
   @Get()
   @RequirePermission('schedules:read')
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListClassroomsQueryDto,
-  ) {
-    return this.classroomsService.findAll(
-      req.tenant!.institutionId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListClassroomsQueryDto) {
+    return this.classroomsService.findAll(req.tenant!.institutionId, query);
   }
 
   @ApiOperation({ summary: 'Get classroom by ID' })
@@ -65,14 +55,8 @@ export class ClassroomsController {
   @ApiResponse({ status: 404, description: 'Classroom not found' })
   @Get(':id')
   @RequirePermission('schedules:read')
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.classroomsService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.classroomsService.findOne(req.tenant!.institutionId, id);
   }
 
   @ApiOperation({ summary: 'Update classroom' })
@@ -101,10 +85,7 @@ export class ClassroomsController {
   @ApiResponse({ status: 404, description: 'Classroom not found' })
   @Patch(':id/deactivate')
   @RequirePermission('schedules:manage')
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.classroomsService.deactivate(
       req.tenant!.institutionId,
       id,

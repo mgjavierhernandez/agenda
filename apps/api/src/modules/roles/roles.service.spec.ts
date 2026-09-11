@@ -13,8 +13,22 @@ describe('RolesService', () => {
 
   it('should return tenant roles with assignable flags', async () => {
     prismaMock.role.findMany.mockResolvedValue([
-      { id: 'r-1', name: 'TEACHER', description: 'Teacher', isSystem: true, roleType: 'TENANT', institutionId },
-      { id: 'r-2', name: 'CUSTOM', description: 'Custom role', isSystem: false, roleType: 'TENANT', institutionId },
+      {
+        id: 'r-1',
+        name: 'TEACHER',
+        description: 'Teacher',
+        isSystem: true,
+        roleType: 'TENANT',
+        institutionId,
+      },
+      {
+        id: 'r-2',
+        name: 'CUSTOM',
+        description: 'Custom role',
+        isSystem: false,
+        roleType: 'TENANT',
+        institutionId,
+      },
     ]);
 
     const result = await service.findAll(institutionId);

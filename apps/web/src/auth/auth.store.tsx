@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from 'react';
 import { apiClient } from '@/api/client';
 import { queryClient } from '@/api/query-client';
 import type { AuthUser, LoginResponse, RefreshResponse, Institution } from '@/api/types';
@@ -114,9 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const promise = (async () => {
       try {
-        const storedRefreshToken = refreshToken || (() => {
-          try { return sessionStorage.getItem(STORAGE_KEYS.refreshToken); } catch { return null; }
-        })();
+        const storedRefreshToken =
+          refreshToken ||
+          (() => {
+            try {
+              return sessionStorage.getItem(STORAGE_KEYS.refreshToken);
+            } catch {
+              return null;
+            }
+          })();
         if (!storedRefreshToken) {
           clearSession();
           return false;
@@ -140,25 +154,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return promise;
   }, [refreshToken, clearSession]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await apiClient.post<LoginResponse>('/auth/login', { email, password });
-    setUser(res.user);
-    setAccessToken(res.accessToken);
-    setRefreshToken(res.refreshToken);
-    apiClient.setAccessToken(res.accessToken);
-    storeTokens(res.accessToken, res.refreshToken);
-    const insts = await fetchInstitutions();
-    if (insts.length === 1) {
-      await selectInstitution(insts[0].id);
-    } else if (insts.length === 0) {
-      throw new Error('No institutions available for this account');
-    }
-  }, [fetchInstitutions, selectInstitution]);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await apiClient.post<LoginResponse>('/auth/login', { email, password });
+      setUser(res.user);
+      setAccessToken(res.accessToken);
+      setRefreshToken(res.refreshToken);
+      apiClient.setAccessToken(res.accessToken);
+      storeTokens(res.accessToken, res.refreshToken);
+      const insts = await fetchInstitutions();
+      if (insts.length === 1) {
+        await selectInstitution(insts[0].id);
+      } else if (insts.length === 0) {
+        throw new Error('No institutions available for this account');
+      }
+    },
+    [fetchInstitutions, selectInstitution],
+  );
 
   const logout = useCallback(async () => {
-    const storedRefresh = refreshToken || (() => {
-      try { return sessionStorage.getItem(STORAGE_KEYS.refreshToken); } catch { return null; }
-    })();
+    const storedRefresh =
+      refreshToken ||
+      (() => {
+        try {
+          return sessionStorage.getItem(STORAGE_KEYS.refreshToken);
+        } catch {
+          return null;
+        }
+      })();
     if (storedRefresh) {
       try {
         await apiClient.post('/auth/logout', { refreshToken: storedRefresh });
@@ -183,11 +206,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRefreshToken(stored.refreshToken);
 
       try {
-        const profile = await apiClient.get<{ id: string; email: string; status: string }>('/auth/profile');
+        const profile = await apiClient.get<{ id: string; email: string; status: string }>(
+          '/auth/profile',
+        );
         if (cancelled) return;
-        setUser({ id: profile.id, email: profile.email, status: profile.status as AuthUser['status'] });
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          status: profile.status as AuthUser['status'],
+        });
         const storedInstId = (() => {
-          try { return sessionStorage.getItem(STORAGE_KEYS.selectedInstitutionId); } catch { return null; }
+          try {
+            return sessionStorage.getItem(STORAGE_KEYS.selectedInstitutionId);
+          } catch {
+            return null;
+          }
         })();
         if (storedInstId) {
           apiClient.setInstitutionId(storedInstId);
@@ -199,9 +232,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const refreshed = await refreshSession();
         if (!cancelled && refreshed) {
           try {
-            const profile = await apiClient.get<{ id: string; email: string; status: string }>('/auth/profile');
+            const profile = await apiClient.get<{ id: string; email: string; status: string }>(
+              '/auth/profile',
+            );
             if (!cancelled) {
-              setUser({ id: profile.id, email: profile.email, status: profile.status as AuthUser['status'] });
+              setUser({
+                id: profile.id,
+                email: profile.email,
+                status: profile.status as AuthUser['status'],
+              });
               await fetchInstitutions();
             }
           } catch {
@@ -213,7 +252,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
     restore();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Set up 401 handler

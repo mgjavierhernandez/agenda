@@ -64,11 +64,18 @@ describe('Teacher Assignments hooks', () => {
     });
 
     it('sends filter params', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
-
-      renderHook(() => useTeacherAssignments({ page: 1, limit: 10, teacherUserId: 'user-1', courseId: 'cou-1' }), {
-        wrapper: createWrapper(),
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
       });
+
+      renderHook(
+        () =>
+          useTeacherAssignments({ page: 1, limit: 10, teacherUserId: 'user-1', courseId: 'cou-1' }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
       const callUrl = vi.mocked(apiClient.get).mock.calls[0][0] as string;
@@ -77,7 +84,10 @@ describe('Teacher Assignments hooks', () => {
     });
 
     it('omits undefined filters', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useTeacherAssignments({ page: 1, limit: 20 }), {
         wrapper: createWrapper(),
@@ -153,7 +163,9 @@ describe('Teacher Assignments hooks', () => {
       });
 
       expect(res.status).toBe('INACTIVE');
-      expect(apiClient.patch).toHaveBeenCalledWith('/teacher-assignments/ta-1', { status: 'INACTIVE' });
+      expect(apiClient.patch).toHaveBeenCalledWith('/teacher-assignments/ta-1', {
+        status: 'INACTIVE',
+      });
     });
   });
 

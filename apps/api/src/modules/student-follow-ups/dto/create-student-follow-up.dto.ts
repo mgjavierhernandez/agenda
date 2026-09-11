@@ -8,11 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  FollowUpType,
-  FollowUpSeverity,
-  FollowUpConfidentiality,
-} from '@prisma/client';
+import { FollowUpType, FollowUpSeverity, FollowUpConfidentiality } from '@prisma/client';
 
 export class CreateStudentFollowUpDto {
   @ApiProperty({ description: 'UUID of the student' })

@@ -3,7 +3,10 @@
  * quoting rules: fields containing a comma, quote, CR or LF are wrapped in
  * double quotes and embedded quotes are doubled. Uses CRLF row separators.
  */
-export function toCsv(headers: string[], rows: Array<Array<string | number | null | undefined>>): Buffer {
+export function toCsv(
+  headers: string[],
+  rows: Array<Array<string | number | null | undefined>>,
+): Buffer {
   const escapeField = (value: string | number | null | undefined): string => {
     if (value === null || value === undefined) return '';
     const text = String(value);

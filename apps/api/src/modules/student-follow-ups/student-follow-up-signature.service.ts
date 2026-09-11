@@ -6,9 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import {
-  StudentFollowUpAuthorizationService,
-} from '../../common/auth/student-follow-up-authorization';
+import { StudentFollowUpAuthorizationService } from '../../common/auth/student-follow-up-authorization';
 import { SignaturesService } from '../signatures/signatures.service';
 import { RequestFollowUpSignatureDto } from './dto/request-follow-up-signature.dto';
 import { SignatureRequest, SignatureRecipient } from '@prisma/client';
@@ -36,11 +34,7 @@ export class StudentFollowUpSignatureService {
       throw new NotFoundException('Follow-up not found');
     }
 
-    const access = await this.authorizationService.canUpdate(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canUpdate(userId, institutionId, followUpId);
     if (!access.allowed) {
       throw new ForbiddenException('Access denied');
     }
@@ -55,11 +49,7 @@ export class StudentFollowUpSignatureService {
     userId: string,
     ipAddress?: string,
   ): Promise<SignatureRequest & { recipients: SignatureRecipient[] }> {
-    const followUp = await this.getAndAuthorizeFollowUpForWrite(
-      institutionId,
-      followUpId,
-      userId,
-    );
+    const followUp = await this.getAndAuthorizeFollowUpForWrite(institutionId, followUpId, userId);
 
     if (dto.followUpEntryId) {
       const entry = await this.prisma.followUpEntry.findFirst({
@@ -80,9 +70,7 @@ export class StudentFollowUpSignatureService {
           where: { userId: uid, institutionId, status: 'ACTIVE' },
         });
         if (!membership) {
-          throw new BadRequestException(
-            `User ${uid} is not a member of this institution`,
-          );
+          throw new BadRequestException(`User ${uid} is not a member of this institution`);
         }
       }
 
@@ -152,11 +140,7 @@ export class StudentFollowUpSignatureService {
     followUpId: string,
     userId: string,
   ): Promise<(SignatureRequest & { recipients: SignatureRecipient[] })[]> {
-    const access = await this.authorizationService.canRead(
-      userId,
-      institutionId,
-      followUpId,
-    );
+    const access = await this.authorizationService.canRead(userId, institutionId, followUpId);
     if (!access.allowed) {
       if (access.reason === 'SUPER_ADMIN_NO_ACCESS') {
         throw new ForbiddenException('Access denied');

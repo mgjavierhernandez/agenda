@@ -71,7 +71,10 @@ describe('ChildContext', () => {
   });
 
   it('provides empty children when no guardian links exist', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 50, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 50, totalPages: 0 },
+    });
 
     render(
       <ChildProvider>
@@ -203,7 +206,10 @@ describe('ChildSelector', () => {
   });
 
   it('renders nothing when no children exist', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 50, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 50, totalPages: 0 },
+    });
 
     const { container } = render(
       <ChildProvider>

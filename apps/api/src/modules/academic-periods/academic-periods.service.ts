@@ -36,7 +36,9 @@ export class AcademicPeriodsService {
     });
 
     if (existing) {
-      throw new ConflictException('Academic period with this code already exists in this institution');
+      throw new ConflictException(
+        'Academic period with this code already exists in this institution',
+      );
     }
 
     const academicPeriod = await this.prisma.academicPeriod.create({
@@ -71,7 +73,10 @@ export class AcademicPeriodsService {
   async findAll(
     institutionId: string,
     query: ListAcademicPeriodsQueryDto,
-  ): Promise<{ data: AcademicPeriod[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: AcademicPeriod[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -174,7 +179,9 @@ export class AcademicPeriodsService {
       });
 
       if (duplicate) {
-        throw new ConflictException('Academic period with this code already exists in this institution');
+        throw new ConflictException(
+          'Academic period with this code already exists in this institution',
+        );
       }
     }
 
@@ -193,9 +200,10 @@ export class AcademicPeriodsService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === AcademicPeriodStatus.INACTIVE
-        ? 'ACADEMIC_PERIOD_DEACTIVATED'
-        : 'ACADEMIC_PERIOD_UPDATED',
+      action:
+        dto.status && dto.status === AcademicPeriodStatus.INACTIVE
+          ? 'ACADEMIC_PERIOD_DEACTIVATED'
+          : 'ACADEMIC_PERIOD_UPDATED',
       entityType: 'AcademicPeriod',
       entityId: academicPeriod.id,
       oldValues: {
@@ -240,9 +248,7 @@ export class AcademicPeriodsService {
     ipAddress?: string,
   ): Promise<AcademicPeriod> {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<
-        Array<{ id: string; status: string }>
-      >`
+      const rows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
         SELECT id, status FROM academic_periods
         WHERE id = ${academicPeriodId}::uuid
           AND institution_id = ${institutionId}::uuid

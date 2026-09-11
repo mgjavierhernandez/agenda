@@ -1,8 +1,4 @@
-import {
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AttendancesService } from './attendances.service';
 import { AttendanceStatus } from '@prisma/client';
 
@@ -164,50 +160,50 @@ describe('AttendancesService', () => {
     it('should reject TEACHER not assigned to the course', async () => {
       authzMock.getUserRole.mockResolvedValue('TEACHER');
       authzMock.canCreate.mockResolvedValue({ allowed: false, reason: 'NO_COURSE_RELATIONSHIP' });
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should reject PARENT attempting to create', async () => {
       authzMock.getUserRole.mockResolvedValue('PARENT');
       authzMock.canCreate.mockResolvedValue({ allowed: false, reason: 'INSUFFICIENT_PERMISSIONS' });
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject STUDENT attempting to create', async () => {
       authzMock.getUserRole.mockResolvedValue('STUDENT');
       authzMock.canCreate.mockResolvedValue({ allowed: false, reason: 'INSUFFICIENT_PERMISSIONS' });
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should reject SUPER_ADMIN attempting to create', async () => {
       authzMock.getUserRole.mockResolvedValue('SUPER_ADMIN');
       authzMock.canCreate.mockResolvedValue({ allowed: false, reason: 'SUPER_ADMIN_NO_ACCESS' });
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw NotFound when student does not belong to the tenant', async () => {
       allowAll();
       prismaMock.student.findFirst.mockResolvedValue(null);
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFound when course does not belong to the tenant', async () => {
       allowAll();
       prismaMock.student.findFirst.mockResolvedValue({ id: studentId });
       prismaMock.course.findFirst.mockResolvedValue(null);
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequest when academic period is CLOSED', async () => {
@@ -216,9 +212,9 @@ describe('AttendancesService', () => {
       prismaMock.course.findFirst.mockResolvedValue({ id: courseId });
       prismaMock.academicPeriod.findFirst.mockResolvedValue({ id: periodId });
       prismaMock.$queryRaw.mockResolvedValue([{ id: periodId, status: 'CLOSED' }]);
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject duplicate attendance for the same student/course/date', async () => {
@@ -227,9 +223,9 @@ describe('AttendancesService', () => {
       prismaMock.course.findFirst.mockResolvedValue({ id: courseId });
       prismaMock.academicPeriod.findFirst.mockResolvedValue({ id: periodId });
       prismaMock.attendance.findUnique.mockResolvedValue({ id: 'existing-att' });
-      await expect(
-        service.create(institutionId, validCreateDto, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.create(institutionId, validCreateDto, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -247,45 +243,45 @@ describe('AttendancesService', () => {
 
     it('should throw NotFound when attendance belongs to another tenant', async () => {
       prismaMock.attendance.findFirst.mockResolvedValue(null);
-      await expect(
-        service.findOne(institutionId, 'att-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'att-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFound for PARENT on unlinked student', async () => {
       authzMock.getUserRole.mockResolvedValue('PARENT');
       prismaMock.attendance.findFirst.mockResolvedValue(baseAttendance);
       authzMock.canRead.mockResolvedValue({ allowed: false, reason: 'NO_STUDENT_RELATIONSHIP' });
-      await expect(
-        service.findOne(institutionId, 'att-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'att-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFound for TEACHER on unassigned course', async () => {
       authzMock.getUserRole.mockResolvedValue('TEACHER');
       prismaMock.attendance.findFirst.mockResolvedValue(baseAttendance);
       authzMock.canRead.mockResolvedValue({ allowed: false, reason: 'NO_COURSE_RELATIONSHIP' });
-      await expect(
-        service.findOne(institutionId, 'att-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'att-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFound for STUDENT on another student record', async () => {
       authzMock.getUserRole.mockResolvedValue('STUDENT');
       prismaMock.attendance.findFirst.mockResolvedValue(baseAttendance);
       authzMock.canRead.mockResolvedValue({ allowed: false, reason: 'NO_STUDENT_RELATIONSHIP' });
-      await expect(
-        service.findOne(institutionId, 'att-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'att-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should deny SUPER_ADMIN access', async () => {
       authzMock.getUserRole.mockResolvedValue('SUPER_ADMIN');
       prismaMock.attendance.findFirst.mockResolvedValue(baseAttendance);
       authzMock.canRead.mockResolvedValue({ allowed: false, reason: 'SUPER_ADMIN_NO_ACCESS' });
-      await expect(
-        service.findOne(institutionId, 'att-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'att-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -491,10 +487,7 @@ describe('AttendancesService', () => {
       prismaMock.course.findFirst.mockResolvedValue({ id: courseId });
       prismaMock.academicPeriod.findFirst.mockResolvedValue({ id: periodId });
       prismaMock.$queryRaw.mockResolvedValue([{ id: periodId, status: 'ACTIVE' }]);
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { studentId },
-        { studentId: 'student-2' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ studentId }, { studentId: 'student-2' }]);
       prismaMock.attendance.findMany.mockResolvedValue([]);
       prismaMock.attendance.createMany.mockResolvedValue({ count: 2 });
 

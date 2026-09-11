@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { CreateScheduleBlockDto } from './dto/create-schedule-block.dto';
@@ -33,7 +38,9 @@ export class ScheduleBlocksService {
     this.validateTimeRange(dto.startTime, dto.endTime);
 
     const existing = await this.prisma.scheduleBlock.findUnique({
-      where: { institutionId_name_dayOfWeek: { institutionId, name: dto.name, dayOfWeek: dto.dayOfWeek } },
+      where: {
+        institutionId_name_dayOfWeek: { institutionId, name: dto.name, dayOfWeek: dto.dayOfWeek },
+      },
     });
     if (existing) {
       throw new ConflictException('Schedule block with this name already exists for this day');
@@ -66,7 +73,10 @@ export class ScheduleBlocksService {
   async findAll(
     institutionId: string,
     query: ListScheduleBlocksQueryDto,
-  ): Promise<{ data: ScheduleBlock[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: ScheduleBlock[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -145,7 +155,10 @@ export class ScheduleBlocksService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === ScheduleStatus.INACTIVE ? 'SCHEDULE_BLOCK_DEACTIVATED' : 'SCHEDULE_BLOCK_UPDATED',
+      action:
+        dto.status && dto.status === ScheduleStatus.INACTIVE
+          ? 'SCHEDULE_BLOCK_DEACTIVATED'
+          : 'SCHEDULE_BLOCK_UPDATED',
       entityType: 'ScheduleBlock',
       entityId: block.id,
       oldValues: { name: existing.name, dayOfWeek: existing.dayOfWeek, status: existing.status },

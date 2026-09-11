@@ -64,9 +64,7 @@ export function AcademicPeriodsPage() {
         description="Gestionar los periodos académicos de la institución"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/academic-periods/new')}>
-              Nuevo periodo
-            </Button>
+            <Button onClick={() => navigate('/academic-periods/new')}>Nuevo periodo</Button>
           ) : undefined
         }
       />
@@ -127,12 +125,13 @@ export function AcademicPeriodsPage() {
                 <tbody>
                   {periods.map((period) => (
                     <tr key={period.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={period.name}>
+                      <td
+                        className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                        title={period.name}
+                      >
                         {period.name}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 font-mono text-xs">
-                        {period.code}
-                      </td>
+                      <td className="px-4 py-3 text-gray-600 font-mono text-xs">{period.code}</td>
                       <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                         {new Date(period.startDate).toLocaleDateString('es-CO')}
                       </td>
@@ -167,14 +166,11 @@ export function AcademicPeriodsPage() {
               <Card key={period.id}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-lg truncate">
-                      {period.name}
-                    </p>
-                    <p className="text-sm text-gray-500 font-mono">
-                      {period.code}
-                    </p>
+                    <p className="font-semibold text-gray-900 text-lg truncate">{period.name}</p>
+                    <p className="text-sm text-gray-500 font-mono">{period.code}</p>
                     <p className="text-sm text-gray-500">
-                      {new Date(period.startDate).toLocaleDateString('es-CO')} – {new Date(period.endDate).toLocaleDateString('es-CO')}
+                      {new Date(period.startDate).toLocaleDateString('es-CO')} –{' '}
+                      {new Date(period.endDate).toLocaleDateString('es-CO')}
                     </p>
                   </div>
                   <Badge variant={STATUS_BADGE_VARIANT[period.status]}>

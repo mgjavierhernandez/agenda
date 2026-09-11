@@ -25,12 +25,8 @@ export class AuditService {
         action: event.action,
         entityType: event.entityType,
         entityId: event.entityId ?? undefined,
-        oldValues: event.oldValues
-          ? (event.oldValues as Prisma.InputJsonValue)
-          : Prisma.JsonNull,
-        newValues: event.newValues
-          ? (event.newValues as Prisma.InputJsonValue)
-          : Prisma.JsonNull,
+        oldValues: event.oldValues ? (event.oldValues as Prisma.InputJsonValue) : Prisma.JsonNull,
+        newValues: event.newValues ? (event.newValues as Prisma.InputJsonValue) : Prisma.JsonNull,
         ipAddress: event.ipAddress ?? undefined,
       },
     });

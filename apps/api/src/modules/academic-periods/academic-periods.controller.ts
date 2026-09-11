@@ -12,13 +12,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
@@ -64,14 +58,8 @@ export class AcademicPeriodsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListAcademicPeriodsQueryDto,
-  ) {
-    return this.academicPeriodsService.findAll(
-      req.tenant!.institutionId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListAcademicPeriodsQueryDto) {
+    return this.academicPeriodsService.findAll(req.tenant!.institutionId, query);
   }
 
   @Get(':id')
@@ -83,14 +71,8 @@ export class AcademicPeriodsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Academic period not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.academicPeriodsService.findOne(
-      req.tenant!.institutionId,
-      id,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.academicPeriodsService.findOne(req.tenant!.institutionId, id);
   }
 
   @Patch(':id')
@@ -126,10 +108,7 @@ export class AcademicPeriodsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Academic period not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.academicPeriodsService.deactivate(
       req.tenant!.institutionId,
       id,
@@ -148,10 +127,7 @@ export class AcademicPeriodsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Academic period not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async close(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async close(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.academicPeriodsService.close(
       req.tenant!.institutionId,
       id,

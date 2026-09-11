@@ -152,7 +152,10 @@ export function UserProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="documentType"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Tipo de documento
               </label>
               <select
@@ -163,7 +166,9 @@ export function UserProfilePage() {
               >
                 <option value="">Seleccione…</option>
                 {DOCUMENT_TYPES.map((dt) => (
-                  <option key={dt} value={dt}>{DOCUMENT_TYPE_LABELS[dt]}</option>
+                  <option key={dt} value={dt}>
+                    {DOCUMENT_TYPE_LABELS[dt]}
+                  </option>
                 ))}
               </select>
             </div>
@@ -216,7 +221,12 @@ export function UserProfilePage() {
             />
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="secondary" disabled={!isDirty} onClick={() => void loadProfile()}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!isDirty}
+              onClick={() => void loadProfile()}
+            >
               Descartar
             </Button>
             <Button type="submit" isLoading={upsertProfile.isPending} disabled={!isDirty}>

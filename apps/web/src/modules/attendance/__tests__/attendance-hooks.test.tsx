@@ -66,7 +66,10 @@ describe('Attendance hooks', () => {
     });
 
     it('sends course, student, period and date filters', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(
         () =>

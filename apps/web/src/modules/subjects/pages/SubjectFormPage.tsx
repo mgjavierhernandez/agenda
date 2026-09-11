@@ -9,7 +9,13 @@ import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { getErrorMessage } from '@/api/errors';
-import type { SubjectStatus, CreateSubjectInput, UpdateSubjectInput, SubjectType, EducationLevel } from '@/api/types';
+import type {
+  SubjectStatus,
+  CreateSubjectInput,
+  UpdateSubjectInput,
+  SubjectType,
+  EducationLevel,
+} from '@/api/types';
 import { EDUCATION_LEVEL_LABELS, SUBJECT_TYPE_LABELS } from '@/api/types';
 
 export function SubjectFormPage() {
@@ -112,7 +118,11 @@ export function SubjectFormPage() {
   }
 
   if (isEditing && !existingSubject) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignatura no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignatura no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -122,7 +132,11 @@ export function SubjectFormPage() {
     <div className="space-y-6 max-w-2xl">
       <PageHeader
         title={isEditing ? 'Editar asignatura' : 'Nueva asignatura'}
-        description={isEditing ? 'Actualizar información de la asignatura' : 'Registrar una nueva asignatura dentro de la estructura académica'}
+        description={
+          isEditing
+            ? 'Actualizar información de la asignatura'
+            : 'Registrar una nueva asignatura dentro de la estructura académica'
+        }
       />
 
       <Card>
@@ -166,14 +180,18 @@ export function SubjectFormPage() {
                 rows={3}
                 className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
               />
-              {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
             </div>
           </fieldset>
 
           {/* SECCIÓN 2 — CLASIFICACIÓN ACADÉMICA */}
           <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold text-gray-900 mb-4">Clasificación académica</legend>
-            
+            <legend className="text-lg font-semibold text-gray-900 mb-4">
+              Clasificación académica
+            </legend>
+
             <div>
               <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">
                 Área curricular *
@@ -205,14 +223,15 @@ export function SubjectFormPage() {
                     <option value="">No hay áreas curriculares configuradas</option>
                   </select>
                   <p className="text-sm text-gray-500">
-                    Para asignar un área, primero debe 
+                    Para asignar un área, primero debe
                     <button
                       type="button"
                       onClick={() => navigate('/areas')}
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
                       crear un área curricular
-                    </button>.
+                    </button>
+                    .
                   </p>
                 </div>
               )}
@@ -246,7 +265,10 @@ export function SubjectFormPage() {
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="minimumLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="minimumLevel"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Nivel mínimo
                 </label>
                 <select
@@ -265,7 +287,10 @@ export function SubjectFormPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="maximumLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="maximumLevel"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Nivel máximo
                 </label>
                 <select
@@ -282,7 +307,9 @@ export function SubjectFormPage() {
                     </option>
                   ))}
                 </select>
-                {errors.maximumLevel && <p className="mt-1 text-sm text-red-600">{errors.maximumLevel}</p>}
+                {errors.maximumLevel && (
+                  <p className="mt-1 text-sm text-red-600">{errors.maximumLevel}</p>
+                )}
               </div>
             </div>
           </fieldset>

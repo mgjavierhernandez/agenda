@@ -49,11 +49,15 @@ describe('useFollowUpCommitments', () => {
     };
     vi.mocked(apiClient.get).mockResolvedValue(response);
 
-    const { result } = renderHook(() => useFollowUpCommitments('fu-1'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useFollowUpCommitments('fu-1'), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(response);
-    expect(apiClient.get).toHaveBeenCalledWith('/student-follow-ups/fu-1/commitments?page=1&limit=50');
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/student-follow-ups/fu-1/commitments?page=1&limit=50',
+    );
   });
 
   it('does not fetch when followUpId is empty', () => {
@@ -75,7 +79,9 @@ describe('useFollowUpCommitments', () => {
     };
     vi.mocked(apiClient.get).mockResolvedValue(response);
 
-    const { result } = renderHook(() => useFollowUpCommitments('fu-1'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useFollowUpCommitments('fu-1'), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.data[0].effectiveStatus).toBe('OVERDUE');

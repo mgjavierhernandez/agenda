@@ -1,4 +1,16 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsEnum, MaxLength, MinLength, IsInt, Min, Max, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEmail,
+  IsEnum,
+  MaxLength,
+  MinLength,
+  IsInt,
+  Min,
+  Max,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserStatus } from '@prisma/client';
@@ -30,7 +42,10 @@ export class CreateUserDto {
   @MaxLength(100)
   lastName!: string;
 
-  @ApiPropertyOptional({ type: UpsertUserProfileDto, description: 'Optional tenant-scoped personal/professional profile' })
+  @ApiPropertyOptional({
+    type: UpsertUserProfileDto,
+    description: 'Optional tenant-scoped personal/professional profile',
+  })
   @IsOptional()
   @ValidateNested()
   @Type(() => UpsertUserProfileDto)
@@ -50,7 +65,11 @@ export class UpdateUserDto {
   @MaxLength(100)
   lastName?: string;
 
-  @ApiPropertyOptional({ description: 'User email address', example: 'user@example.com', maxLength: 255 })
+  @ApiPropertyOptional({
+    description: 'User email address',
+    example: 'user@example.com',
+    maxLength: 255,
+  })
   @IsOptional()
   @IsEmail()
   @MaxLength(255)
@@ -83,7 +102,11 @@ export class ListUsersQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by status', enum: UserStatus, example: UserStatus.ACTIVE })
+  @ApiPropertyOptional({
+    description: 'Filter by status',
+    enum: UserStatus,
+    example: UserStatus.ACTIVE,
+  })
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;

@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Communications Module (e2e)', () => {
   let app: INestApplication;
@@ -386,7 +387,12 @@ describe('Communications Module (e2e)', () => {
       allAudienceCommId = await createComm('All Audience E2E', 'ALL');
 
       // Publish all
-      for (const id of [teacherOnlyCommId, parentOnlyCommId, studentOnlyCommId, allAudienceCommId]) {
+      for (const id of [
+        teacherOnlyCommId,
+        parentOnlyCommId,
+        studentOnlyCommId,
+        allAudienceCommId,
+      ]) {
         await request(app.getHttpServer())
           .patch(`/api/v1/communications/${id}/publish`)
           .set('Authorization', `Bearer ${adminToken}`)

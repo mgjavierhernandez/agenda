@@ -1,6 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useTeacherAssignment, useDeactivateTeacherAssignment, useUpdateTeacherAssignment } from '../hooks';
+import {
+  useTeacherAssignment,
+  useDeactivateTeacherAssignment,
+  useUpdateTeacherAssignment,
+} from '../hooks';
 import { useUsers } from '../hooks/useUsers';
 import { useCourse } from '@/modules/courses/hooks';
 import { useSubject } from '@/modules/subjects/hooks';
@@ -73,7 +77,11 @@ export function TeacherAssignmentDetailPage() {
   }
 
   if (!assignment) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canDeactivate = canManage && assignment.status === 'ACTIVE';
@@ -106,7 +114,11 @@ export function TeacherAssignmentDetailPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm text-gray-500">Profesor</dt>
-              <dd className="text-gray-900">{teacherName ? `${teacherName.firstName} ${teacherName.lastName}` : assignment.teacherUserId}</dd>
+              <dd className="text-gray-900">
+                {teacherName
+                  ? `${teacherName.firstName} ${teacherName.lastName}`
+                  : assignment.teacherUserId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Email del profesor</dt>
@@ -114,26 +126,38 @@ export function TeacherAssignmentDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Curso</dt>
-              <dd className="text-gray-900">{course ? `${course.name} (${course.code})` : assignment.courseId}</dd>
+              <dd className="text-gray-900">
+                {course ? `${course.name} (${course.code})` : assignment.courseId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Asignatura</dt>
-              <dd className="text-gray-900">{subject ? `${subject.name} (${subject.code})` : assignment.subjectId}</dd>
+              <dd className="text-gray-900">
+                {subject ? `${subject.name} (${subject.code})` : assignment.subjectId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Periodo académico</dt>
-              <dd className="text-gray-900">{academicPeriod ? `${academicPeriod.name} (${academicPeriod.code})` : assignment.academicPeriodId}</dd>
+              <dd className="text-gray-900">
+                {academicPeriod
+                  ? `${academicPeriod.name} (${academicPeriod.code})`
+                  : assignment.academicPeriodId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de inicio</dt>
               <dd className="text-gray-900">
-                {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                {assignment.startDate
+                  ? new Date(assignment.startDate).toLocaleDateString('es-CO')
+                  : '—'}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de fin</dt>
               <dd className="text-gray-900">
-                {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+                {assignment.endDate
+                  ? new Date(assignment.endDate).toLocaleDateString('es-CO')
+                  : '—'}
               </dd>
             </div>
             <div>
@@ -148,17 +172,23 @@ export function TeacherAssignmentDetailPage() {
               <dt className="text-sm text-gray-500">Origen de horarios</dt>
               <dd>
                 {(assignment as unknown as { autoBackfilled?: number }).autoBackfilled &&
-                Number((assignment as unknown as { autoBackfilled?: number }).autoBackfilled) > 0 ? (
+                Number((assignment as unknown as { autoBackfilled?: number }).autoBackfilled) >
+                  0 ? (
                   <span>
                     <Badge variant="info">Auto</Badge>{' '}
                     <span className="text-xs text-gray-500">
-                      {Number((assignment as unknown as { autoBackfilled?: number }).autoBackfilled)} horario(s) asignado(s) automáticamente al crear (informativo)
+                      {Number(
+                        (assignment as unknown as { autoBackfilled?: number }).autoBackfilled,
+                      )}{' '}
+                      horario(s) asignado(s) automáticamente al crear (informativo)
                     </span>
                   </span>
                 ) : (
                   <span>
                     <Badge variant="default">Manual</Badge>{' '}
-                    <span className="text-xs text-gray-500">Sin horarios auto-asignados registrados</span>
+                    <span className="text-xs text-gray-500">
+                      Sin horarios auto-asignados registrados
+                    </span>
                   </span>
                 )}
               </dd>
@@ -212,7 +242,11 @@ export function TeacherAssignmentDetailPage() {
               </Button>
               <Button
                 variant="danger"
-                isLoading={confirmAction === 'deactivate' ? deactivateMutation.isPending : updateMutation.isPending}
+                isLoading={
+                  confirmAction === 'deactivate'
+                    ? deactivateMutation.isPending
+                    : updateMutation.isPending
+                }
                 onClick={confirmAction === 'deactivate' ? handleDeactivate : handleActivate}
               >
                 {confirmAction === 'deactivate' ? 'Desactivar' : 'Activar'}

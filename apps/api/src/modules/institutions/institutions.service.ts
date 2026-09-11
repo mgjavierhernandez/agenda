@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { CreateInstitutionDto, UpdateInstitutionDto, ListInstitutionsQueryDto } from './dto/institution.dto';
+import {
+  CreateInstitutionDto,
+  UpdateInstitutionDto,
+  ListInstitutionsQueryDto,
+} from './dto/institution.dto';
 import { Institution, InstitutionStatus, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -49,7 +53,10 @@ export class InstitutionsService {
 
   async findAll(
     query: ListInstitutionsQueryDto,
-  ): Promise<{ data: Institution[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Institution[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;

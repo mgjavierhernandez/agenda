@@ -76,7 +76,10 @@ describe('Dashboard hooks', () => {
 
   describe('useDashboardStats', () => {
     it('fetches all stats in parallel', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 42, page: 1, limit: 1, totalPages: 1 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 42, page: 1, limit: 1, totalPages: 1 },
+      });
 
       const { result } = renderHook(() => useDashboardStats(true), { wrapper: createWrapper() });
 
@@ -97,7 +100,10 @@ describe('Dashboard hooks', () => {
     });
 
     it('returns 0 for all stats when no data', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 1, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 1, totalPages: 0 },
+      });
 
       const { result } = renderHook(() => useDashboardStats(true), { wrapper: createWrapper() });
 
@@ -139,7 +145,9 @@ describe('Dashboard hooks', () => {
     it('fetches recent notifications', async () => {
       vi.mocked(apiClient.get).mockResolvedValue(paginatedResponse([mockNotification]));
 
-      const { result } = renderHook(() => useRecentNotifications(true), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useRecentNotifications(true), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data?.data).toHaveLength(1);

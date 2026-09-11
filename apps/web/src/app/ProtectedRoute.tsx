@@ -14,7 +14,11 @@ export function ProtectedRoute() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (institutions.length > 1 && !selectedInstitutionId && location.pathname !== '/select-institution') {
+  if (
+    institutions.length > 1 &&
+    !selectedInstitutionId &&
+    location.pathname !== '/select-institution'
+  ) {
     return <Navigate to="/select-institution" replace />;
   }
 

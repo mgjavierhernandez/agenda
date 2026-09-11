@@ -65,7 +65,11 @@ describe('NotificationsService', () => {
 
   describe('create', () => {
     it('should create a notification for a valid user', async () => {
-      prismaMock.userInstitution.findFirst.mockResolvedValue({ userId, institutionId, status: 'ACTIVE' });
+      prismaMock.userInstitution.findFirst.mockResolvedValue({
+        userId,
+        institutionId,
+        status: 'ACTIVE',
+      });
       prismaMock.notification.create.mockResolvedValue(makeNotification(notificationId));
 
       const result = await service.create(
@@ -85,7 +89,11 @@ describe('NotificationsService', () => {
       prismaMock.userInstitution.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(institutionId, { type: NotificationType.GENERAL, title: 'Test', message: 'Msg', userId }, userId),
+        service.create(
+          institutionId,
+          { type: NotificationType.GENERAL, title: 'Test', message: 'Msg', userId },
+          userId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -95,7 +103,7 @@ describe('NotificationsService', () => {
       const notif = makeNotification(notificationId);
       prismaMock.notification.findMany.mockResolvedValue([notif]);
       prismaMock.notification.count
-        .mockResolvedValueOnce(1)  // total
+        .mockResolvedValueOnce(1) // total
         .mockResolvedValueOnce(1); // unread
 
       const result = await service.findAll(institutionId, userId, {});
@@ -143,9 +151,9 @@ describe('NotificationsService', () => {
     it('should throw NotFoundException when not found', async () => {
       prismaMock.notification.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, notificationId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, notificationId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -172,9 +180,9 @@ describe('NotificationsService', () => {
     it('should throw NotFoundException when not found', async () => {
       prismaMock.notification.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.markAsRead(institutionId, notificationId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.markAsRead(institutionId, notificationId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -192,17 +200,15 @@ describe('NotificationsService', () => {
       prismaMock.notification.findFirst.mockResolvedValue(makeNotification(notificationId));
       prismaMock.notification.delete.mockResolvedValue({});
 
-      await expect(
-        service.delete(institutionId, notificationId, userId),
-      ).resolves.toBeUndefined();
+      await expect(service.delete(institutionId, notificationId, userId)).resolves.toBeUndefined();
     });
 
     it('should throw NotFoundException when not found', async () => {
       prismaMock.notification.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.delete(institutionId, notificationId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.delete(institutionId, notificationId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

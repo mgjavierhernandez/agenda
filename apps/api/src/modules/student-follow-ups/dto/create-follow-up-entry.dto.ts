@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsEnum,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { FollowUpEntryType } from '@prisma/client';
 

@@ -72,10 +72,7 @@ describe('GradesService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new GradesService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new GradesService(prismaMock as never, auditServiceMock as never);
 
     prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
@@ -95,7 +92,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.50,
+        value: 4.5,
         period: 'Q1-2026',
         evaluationType: 'Parcial',
         description: null,
@@ -106,7 +103,14 @@ describe('GradesService', () => {
 
       const result = await service.create(
         institutionId,
-        { studentId, courseId, subjectId, value: 4.50, period: 'Q1-2026', evaluationType: 'Parcial' },
+        {
+          studentId,
+          courseId,
+          subjectId,
+          value: 4.5,
+          period: 'Q1-2026',
+          evaluationType: 'Parcial',
+        },
         userId,
       );
 
@@ -131,7 +135,7 @@ describe('GradesService', () => {
       await expect(
         service.create(
           institutionId,
-          { studentId, courseId, subjectId, value: 4.00, period: 'Q1-2026' },
+          { studentId, courseId, subjectId, value: 4.0, period: 'Q1-2026' },
           userId,
         ),
       ).rejects.toThrow(NotFoundException);
@@ -143,7 +147,7 @@ describe('GradesService', () => {
       await expect(
         service.create(
           institutionId,
-          { studentId, courseId, subjectId, value: 4.00, period: 'Q1-2026' },
+          { studentId, courseId, subjectId, value: 4.0, period: 'Q1-2026' },
           userId,
         ),
       ).rejects.toThrow(NotFoundException);
@@ -155,7 +159,7 @@ describe('GradesService', () => {
       await expect(
         service.create(
           institutionId,
-          { studentId, courseId, subjectId, value: 4.00, period: 'Q1-2026' },
+          { studentId, courseId, subjectId, value: 4.0, period: 'Q1-2026' },
           userId,
         ),
       ).rejects.toThrow(NotFoundException);
@@ -180,9 +184,9 @@ describe('GradesService', () => {
     it('should throw NotFoundException for cross-tenant resource', async () => {
       prismaMock.grade.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(institutionId, 'grade-from-other-tenant'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(institutionId, 'grade-from-other-tenant')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -291,7 +295,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.00,
+        value: 4.0,
         period: 'Q1-2026',
         evaluationType: 'Parcial',
         status: GradeStatus.ACTIVE,
@@ -299,24 +303,19 @@ describe('GradesService', () => {
       prismaMock.grade.update.mockResolvedValue({
         id: 'grade-1',
         institutionId,
-        value: 4.50,
+        value: 4.5,
       });
 
-      const result = await service.update(
-        institutionId,
-        'grade-1',
-        { value: 4.50 },
-        userId,
-      );
+      const result = await service.update(institutionId, 'grade-1', { value: 4.5 }, userId);
 
-      expect(result.value).toBe(4.50);
+      expect(result.value).toBe(4.5);
     });
 
     it('should throw NotFoundException for cross-tenant update', async () => {
       prismaMock.grade.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.update(institutionId, 'other-tenant-grade', { value: 4.00 }, userId),
+        service.update(institutionId, 'other-tenant-grade', { value: 4.0 }, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -327,7 +326,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.00,
+        value: 4.0,
         period: 'Q1-2026',
         status: GradeStatus.ACTIVE,
       });
@@ -336,7 +335,7 @@ describe('GradesService', () => {
         institutionId,
       });
 
-      await service.update(institutionId, 'grade-1', { value: 4.50 }, userId);
+      await service.update(institutionId, 'grade-1', { value: 4.5 }, userId);
 
       const updateCall = prismaMock.grade.update.mock.calls[0][0];
       expect(updateCall.data).not.toHaveProperty('institutionId');
@@ -349,7 +348,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.00,
+        value: 4.0,
         period: 'Q1-2026',
         status: GradeStatus.ACTIVE,
       });
@@ -372,7 +371,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.00,
+        value: 4.0,
         period: 'Q1-2026',
         status: GradeStatus.ACTIVE,
       });
@@ -392,7 +391,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.00,
+        value: 4.0,
         period: 'Q1-2026',
         status: GradeStatus.ACTIVE,
       });
@@ -415,9 +414,9 @@ describe('GradesService', () => {
     it('should throw NotFoundException for cross-tenant deactivate', async () => {
       prismaMock.grade.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.deactivate(institutionId, 'other-tenant-grade', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.deactivate(institutionId, 'other-tenant-grade', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -487,7 +486,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.50,
+        value: 4.5,
         period: 'Q1-2026',
         evaluationType: 'Parcial',
         description: null,
@@ -501,15 +500,20 @@ describe('GradesService', () => {
 
       await service.create(
         institutionId,
-        { studentId, courseId, subjectId, value: 4.50, period: 'Q1-2026', evaluationType: 'Parcial' },
+        {
+          studentId,
+          courseId,
+          subjectId,
+          value: 4.5,
+          period: 'Q1-2026',
+          evaluationType: 'Parcial',
+        },
         userId,
       );
 
-      expect(mockedFindGuardianUserIds).toHaveBeenCalledWith(
-        prismaMock as never,
-        institutionId,
-        [studentId],
-      );
+      expect(mockedFindGuardianUserIds).toHaveBeenCalledWith(prismaMock as never, institutionId, [
+        studentId,
+      ]);
       expect(prismaMock.notification.create).toHaveBeenCalledTimes(2);
       expect(prismaMock.notification.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -528,7 +532,7 @@ describe('GradesService', () => {
         studentId,
         courseId,
         subjectId,
-        value: 4.50,
+        value: 4.5,
         period: 'Q1-2026',
         evaluationType: 'Parcial',
         description: null,
@@ -540,7 +544,14 @@ describe('GradesService', () => {
 
       await service.create(
         institutionId,
-        { studentId, courseId, subjectId, value: 4.50, period: 'Q1-2026', evaluationType: 'Parcial' },
+        {
+          studentId,
+          courseId,
+          subjectId,
+          value: 4.5,
+          period: 'Q1-2026',
+          evaluationType: 'Parcial',
+        },
         userId,
       );
 

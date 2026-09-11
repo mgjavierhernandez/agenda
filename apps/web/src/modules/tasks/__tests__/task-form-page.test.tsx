@@ -37,7 +37,8 @@ vi.mock('@/modules/subjects/hooks', () => ({
 
 vi.mock('@/api/errors', () => ({
   getErrorMessage: (err: unknown) => {
-    if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+    if (err && typeof err === 'object' && 'message' in err)
+      return String((err as { message: unknown }).message);
     return 'Ocurrió un error inesperado';
   },
 }));

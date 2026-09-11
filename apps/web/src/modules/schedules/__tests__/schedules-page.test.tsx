@@ -24,7 +24,12 @@ vi.mock('../hooks', () => ({
 }));
 
 vi.mock('@/modules/children', () => ({
-  useParentStudentFilter: () => ({ isParent: false, studentId: undefined, selectedChild: null, children: [] }),
+  useParentStudentFilter: () => ({
+    isParent: false,
+    studentId: undefined,
+    selectedChild: null,
+    children: [],
+  }),
 }));
 
 vi.mock('../components/ScheduleMatrixView', () => ({
@@ -44,7 +49,8 @@ vi.mock('@/auth/auth.store', () => ({
 vi.mock('@/permissions/usePermissions', () => ({
   usePermissions: () => ({
     hasPermission: (code: string) => code === 'schedules:read' || code === 'schedules:manage',
-    hasAnyPermission: (...codes: string[]) => codes.some((c) => c === 'schedules:read' || c === 'schedules:manage'),
+    hasAnyPermission: (...codes: string[]) =>
+      codes.some((c) => c === 'schedules:read' || c === 'schedules:manage'),
     hasAllPermissions: () => true,
     permissionCodes: ['schedules:read', 'schedules:manage'],
   }),

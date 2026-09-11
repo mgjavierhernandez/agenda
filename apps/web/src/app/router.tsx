@@ -10,25 +10,69 @@ import { GoogleCallbackPage } from '@/pages/GoogleCallbackPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
-import { StudentsPage, StudentDetailPage, StudentFormPage, StudentImportPage } from '@/modules/students';
+import {
+  StudentsPage,
+  StudentDetailPage,
+  StudentFormPage,
+  StudentImportPage,
+} from '@/modules/students';
 import { CoursesPage, CourseDetailPage, CourseFormPage } from '@/modules/courses';
 import { SubjectsPage, SubjectDetailPage, SubjectFormPage } from '@/modules/subjects';
 import { AreasPage } from '@/modules/areas';
 import { GradesPage, GradeDetailPage, GradeFormPage } from '@/modules/grades';
-import { SchedulesPage, ScheduleDetailPage, ScheduleFormPage, ScheduleBlocksPage, ClassroomsPage } from '@/modules/schedules';
+import {
+  SchedulesPage,
+  ScheduleDetailPage,
+  ScheduleFormPage,
+  ScheduleBlocksPage,
+  ClassroomsPage,
+} from '@/modules/schedules';
 import { TasksPage, TaskDetailPage, TaskFormPage } from '@/modules/tasks';
-import { TaskAssignmentsPage, TaskAssignmentDetailPage, TaskAssignmentFormPage } from '@/modules/task-assignments';
-import { TaskSubmissionsPage, TaskSubmissionDetailPage, TaskSubmissionFormPage } from '@/modules/task-submissions';
-import { CommunicationsPage, CommunicationDetailPage, CommunicationFormPage } from '@/modules/communications';
+import {
+  TaskAssignmentsPage,
+  TaskAssignmentDetailPage,
+  TaskAssignmentFormPage,
+} from '@/modules/task-assignments';
+import {
+  TaskSubmissionsPage,
+  TaskSubmissionDetailPage,
+  TaskSubmissionFormPage,
+} from '@/modules/task-submissions';
+import {
+  CommunicationsPage,
+  CommunicationDetailPage,
+  CommunicationFormPage,
+} from '@/modules/communications';
 import { CommunicationInboxPage } from '@/modules/communication-recipients';
 import { SignaturesPage, SignatureDetailPage, SignatureFormPage } from '@/modules/signatures';
 import { NotificationsPage, NotificationDetailPage } from '@/modules/notifications';
-import { AcademicPeriodsPage, AcademicPeriodDetailPage, AcademicPeriodFormPage } from '@/modules/academic-periods';
-import { SchoolGradesPage, SchoolGradeDetailPage, SchoolGradeFormPage } from '@/modules/school-grades';
+import {
+  AcademicPeriodsPage,
+  AcademicPeriodDetailPage,
+  AcademicPeriodFormPage,
+} from '@/modules/academic-periods';
+import {
+  SchoolGradesPage,
+  SchoolGradeDetailPage,
+  SchoolGradeFormPage,
+} from '@/modules/school-grades';
 import { GuardiansPage, GuardiansFormPage } from '@/modules/guardians';
 import { EnrollmentsPage, EnrollmentDetailPage, EnrollmentFormPage } from '@/modules/enrollments';
-import { TeacherAssignmentsPage, TeacherAssignmentDetailPage, TeacherAssignmentFormPage, TeachersPage, CourseDirectorsPage, CourseDirectorDetailPage, CourseDirectorFormPage } from '@/modules/teacher-assignments';
-import { StudentFollowUpsPage, StudentFollowUpDetailPage, StudentFollowUpFormPage, FollowUpCategoriesPage } from '@/modules/student-follow-ups';
+import {
+  TeacherAssignmentsPage,
+  TeacherAssignmentDetailPage,
+  TeacherAssignmentFormPage,
+  TeachersPage,
+  CourseDirectorsPage,
+  CourseDirectorDetailPage,
+  CourseDirectorFormPage,
+} from '@/modules/teacher-assignments';
+import {
+  StudentFollowUpsPage,
+  StudentFollowUpDetailPage,
+  StudentFollowUpFormPage,
+  FollowUpCategoriesPage,
+} from '@/modules/student-follow-ups';
 import { AgendaPage, AgendaEventDetailPage, AgendaEventFormPage } from '@/modules/agenda';
 import { AttendanceListPage, AttendanceRegisterPage } from '@/modules/attendance';
 import { ReportsPage, CourseReportPage } from '@/modules/reports';

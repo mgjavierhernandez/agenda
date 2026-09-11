@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
@@ -63,9 +59,7 @@ export class GradesService {
     await this.validateRelations(institutionId, dto.studentId, dto.courseId, dto.subjectId);
 
     const grade = await this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<
-        Array<{ id: string; status: string }>
-      >`
+      const rows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
         SELECT id, status FROM academic_periods
         WHERE institution_id = ${institutionId}::uuid
           AND lower(code) = lower(${dto.period})
@@ -135,7 +129,10 @@ export class GradesService {
     institutionId: string,
     query: ListGradesQueryDto,
     userId?: string,
-  ): Promise<{ data: Grade[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Grade[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -238,9 +235,7 @@ export class GradesService {
 
     const grade = await this.prisma.$transaction(async (tx) => {
       const targetPeriodLabel = dto.period ?? existing.period;
-      const rows = await tx.$queryRaw<
-        Array<{ id: string; status: string }>
-      >`
+      const rows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
         SELECT id, status FROM academic_periods
         WHERE institution_id = ${institutionId}::uuid
           AND lower(code) = lower(${targetPeriodLabel})
@@ -258,9 +253,8 @@ export class GradesService {
       if (dto.value !== undefined) updateData.value = dto.value;
       if (dto.period !== undefined) {
         updateData.period = dto.period;
-        updateData.academicPeriod = rows.length > 0
-          ? { connect: { id: rows[0].id } }
-          : { disconnect: true };
+        updateData.academicPeriod =
+          rows.length > 0 ? { connect: { id: rows[0].id } } : { disconnect: true };
       }
       if (dto.evaluationType !== undefined) updateData.evaluationType = dto.evaluationType;
       if (dto.description !== undefined) updateData.description = dto.description;
@@ -275,9 +269,8 @@ export class GradesService {
     await this.auditService.log({
       userId,
       institutionId,
-      action: dto.status && dto.status === GradeStatus.INACTIVE
-        ? 'GRADE_DEACTIVATED'
-        : 'GRADE_UPDATED',
+      action:
+        dto.status && dto.status === GradeStatus.INACTIVE ? 'GRADE_DEACTIVATED' : 'GRADE_UPDATED',
       entityType: 'Grade',
       entityId: grade.id,
       oldValues: {
@@ -310,12 +303,6 @@ export class GradesService {
     userId: string,
     ipAddress?: string,
   ): Promise<Grade> {
-    return this.update(
-      institutionId,
-      gradeId,
-      { status: GradeStatus.INACTIVE },
-      userId,
-      ipAddress,
-    );
+    return this.update(institutionId, gradeId, { status: GradeStatus.INACTIVE }, userId, ipAddress);
   }
 }

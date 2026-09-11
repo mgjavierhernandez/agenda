@@ -26,7 +26,15 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { ListStudentsQueryDto } from './dto/list-students-query.dto';
 import { ImportStudentsOptionsDto } from './dto/import-students.dto';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 
 @ApiTags('Students')
 @ApiBearerAuth('bearer')
@@ -44,10 +52,7 @@ export class StudentsController {
   @Post()
   @RequirePermission('students:manage')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() createStudentDto: CreateStudentDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(
       req.tenant!.institutionId,
       createStudentDto,
@@ -60,15 +65,8 @@ export class StudentsController {
   @ApiResponse({ status: 200, description: 'Paginated list of students' })
   @Get()
   @RequirePermission('students:read')
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListStudentsQueryDto,
-  ) {
-    return this.studentsService.findAll(
-      req.tenant!.institutionId,
-      query,
-      req.user.userId,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListStudentsQueryDto) {
+    return this.studentsService.findAll(req.tenant!.institutionId, query, req.user.userId);
   }
 
   @ApiOperation({ summary: 'Bulk import students from CSV or XLSX (max 5MB)' })
@@ -79,8 +77,16 @@ export class StudentsController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary', description: 'CSV or XLSX file (max 5MB)' },
-        courseId: { type: 'string', format: 'uuid', description: 'Default course for rows without courseCode' },
-        academicPeriodId: { type: 'string', format: 'uuid', description: 'Academic period for enrollments' },
+        courseId: {
+          type: 'string',
+          format: 'uuid',
+          description: 'Default course for rows without courseCode',
+        },
+        academicPeriodId: {
+          type: 'string',
+          format: 'uuid',
+          description: 'Academic period for enrollments',
+        },
       },
       required: ['file'],
     },
@@ -114,15 +120,8 @@ export class StudentsController {
   @ApiResponse({ status: 404, description: 'Student not found' })
   @Get(':id')
   @RequirePermission('students:read')
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.studentsService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.studentsService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @ApiOperation({ summary: 'Update student' })
@@ -149,15 +148,7 @@ export class StudentsController {
   @ApiResponse({ status: 200, description: 'Student deactivated' })
   @Patch(':id/deactivate')
   @RequirePermission('students:manage')
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.studentsService.deactivate(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.studentsService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 }

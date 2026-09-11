@@ -41,14 +41,20 @@ export function ScheduleDetailPage() {
   }
 
   if (!schedule) {
-    return <ErrorState error={{ statusCode: 404, message: 'Horario no encontrado', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Horario no encontrado', timestamp: '', path: '' }}
+      />
+    );
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={`${DAY_OF_WEEK_LABELS[schedule.dayOfWeek]} — ${schedule.startTime} a ${schedule.endTime}`}
-        description={schedule.classroomId ? `Aula ${schedule.classroomId.slice(0, 8)}…` : 'Sin aula asignada'}
+        description={
+          schedule.classroomId ? `Aula ${schedule.classroomId.slice(0, 8)}…` : 'Sin aula asignada'
+        }
         actions={
           <div className="flex gap-2">
             {canManage && (
@@ -159,7 +165,9 @@ export function ScheduleDetailPage() {
           <Card className="w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h3>
             <p className="text-gray-600 mb-6">
-              ¿Deseas desactivar el horario de {DAY_OF_WEEK_LABELS[schedule.dayOfWeek]} ({schedule.startTime} — {schedule.endTime})? Esta acción puede revertirse editando el horario.
+              ¿Deseas desactivar el horario de {DAY_OF_WEEK_LABELS[schedule.dayOfWeek]} (
+              {schedule.startTime} — {schedule.endTime})? Esta acción puede revertirse editando el
+              horario.
             </p>
             <div className="flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>

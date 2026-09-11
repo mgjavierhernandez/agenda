@@ -67,9 +67,7 @@ export function SubjectsPage() {
         description="Gestionar asignaturas de la institución"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/subjects/new')}>
-              Nueva asignatura
-            </Button>
+            <Button onClick={() => navigate('/subjects/new')}>Nueva asignatura</Button>
           ) : undefined
         }
       />
@@ -139,7 +137,9 @@ export function SubjectsPage() {
         </div>
       ) : subjects.length === 0 ? (
         <EmptyState
-          title={debouncedSearch ? 'No se encontraron asignaturas' : 'No hay asignaturas registradas'}
+          title={
+            debouncedSearch ? 'No se encontraron asignaturas' : 'No hay asignaturas registradas'
+          }
           description={
             debouncedSearch
               ? 'No encontramos asignaturas que coincidan con tu búsqueda.'
@@ -177,16 +177,17 @@ export function SubjectsPage() {
                         {areasData?.data.find((a) => a.id === subject.areaId)?.name || '—'}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ?? subject.subjectType}
+                        {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ??
+                          subject.subjectType}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {subject.minimumLevel && subject.maximumLevel
                           ? `${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]} - ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
                           : subject.minimumLevel
-                          ? `Desde ${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]}`
-                          : subject.maximumLevel
-                          ? `Hasta ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
-                          : '—'}
+                            ? `Desde ${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]}`
+                            : subject.maximumLevel
+                              ? `Hasta ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
+                              : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={subject.status === 'ACTIVE' ? 'success' : 'default'}>
@@ -217,26 +218,25 @@ export function SubjectsPage() {
               <Card key={subject.id}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">
-                      {subject.name}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1 font-mono">
-                      {subject.code}
-                    </p>
+                    <p className="font-medium text-gray-900">{subject.name}</p>
+                    <p className="text-sm text-gray-500 mt-1 font-mono">{subject.code}</p>
                     <p className="text-xs text-gray-500 mt-1">
                       Área: {areasData?.data.find((a) => a.id === subject.areaId)?.name || '—'}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Tipo: {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ?? subject.subjectType}
+                      Tipo:{' '}
+                      {SUBJECT_TYPE_LABELS[subject.subjectType as SubjectType] ??
+                        subject.subjectType}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Nivel: {subject.minimumLevel && subject.maximumLevel
+                      Nivel:{' '}
+                      {subject.minimumLevel && subject.maximumLevel
                         ? `${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]} - ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
                         : subject.minimumLevel
-                        ? `Desde ${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]}`
-                        : subject.maximumLevel
-                        ? `Hasta ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
-                        : '—'}
+                          ? `Desde ${EDUCATION_LEVEL_LABELS[subject.minimumLevel as EducationLevel]}`
+                          : subject.maximumLevel
+                            ? `Hasta ${EDUCATION_LEVEL_LABELS[subject.maximumLevel as EducationLevel]}`
+                            : '—'}
                     </p>
                     {subject.description && (
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">

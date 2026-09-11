@@ -9,7 +9,8 @@ export function useFollowUpCommitments(followUpId: string, page = 1, limit = 50)
 
   return useQuery<PaginatedApiResponse<Commitment>>({
     queryKey: ['student-follow-up-commitments', followUpId, { page, limit }],
-    queryFn: () => apiClient.get(`/student-follow-ups/${followUpId}/commitments?${searchParams.toString()}`),
+    queryFn: () =>
+      apiClient.get(`/student-follow-ups/${followUpId}/commitments?${searchParams.toString()}`),
     enabled: !!followUpId,
   });
 }

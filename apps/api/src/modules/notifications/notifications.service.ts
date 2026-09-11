@@ -1,17 +1,9 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
-import {
-  Notification,
-  NotificationStatus,
-  Prisma,
-} from '@prisma/client';
+import { Notification, NotificationStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class NotificationsService {
@@ -35,9 +27,7 @@ export class NotificationsService {
     });
 
     if (!membership) {
-      throw new BadRequestException(
-        `User ${dto.userId} is not a member of this institution`,
-      );
+      throw new BadRequestException(`User ${dto.userId} is not a member of this institution`);
     }
 
     const notification = await this.prisma.notification.create({
@@ -283,10 +273,7 @@ export class NotificationsService {
     });
   }
 
-  async deleteAll(
-    institutionId: string,
-    currentUserId: string,
-  ): Promise<{ count: number }> {
+  async deleteAll(institutionId: string, currentUserId: string): Promise<{ count: number }> {
     const result = await this.prisma.notification.deleteMany({
       where: {
         institutionId,

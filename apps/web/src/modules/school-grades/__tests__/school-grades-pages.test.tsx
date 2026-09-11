@@ -75,14 +75,20 @@ describe('SchoolGradesPage', () => {
   });
 
   it('renders the page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<SchoolGradesPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Grados académicos')).toBeInTheDocument();
   });
 
   it('renders empty state when no grades', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<SchoolGradesPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -103,7 +109,10 @@ describe('SchoolGradesPage', () => {
   });
 
   it('shows new grade button for managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<SchoolGradesPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -112,7 +121,10 @@ describe('SchoolGradesPage', () => {
   });
 
   it('hides new grade button for non-managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
     mockHasPermission.mockImplementation((perm: string) => perm !== 'school-grades:manage');
 
     render(<SchoolGradesPage />, { wrapper: createWrapper() });

@@ -56,7 +56,18 @@ export function useYearAgenda(
       }
       if (studentId) searchParams.set('studentId', studentId);
       return {
-        queryKey: ['agenda', { start: c.start, end: c.end, view: 'month' as const, eventTypes, studentId, page: 1, limit: 200 }],
+        queryKey: [
+          'agenda',
+          {
+            start: c.start,
+            end: c.end,
+            view: 'month' as const,
+            eventTypes,
+            studentId,
+            page: 1,
+            limit: 200,
+          },
+        ],
         queryFn: () => apiClient.get<AgendaResponse>(`/agenda?${searchParams.toString()}`),
         staleTime: 5 * 60 * 1000,
       };

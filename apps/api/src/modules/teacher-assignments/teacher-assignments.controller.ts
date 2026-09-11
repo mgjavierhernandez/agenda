@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Request, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
@@ -30,7 +43,12 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 409, description: 'Conflict' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
   async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateTeacherAssignmentDto) {
-    return this.teacherAssignmentsService.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
+    return this.teacherAssignmentsService.create(
+      req.tenant!.institutionId,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
   }
 
   @Get()
@@ -40,7 +58,10 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListTeacherAssignmentsQueryDto) {
+  async findAll(
+    @Request() req: AuthenticatedRequest,
+    @Query() query: ListTeacherAssignmentsQueryDto,
+  ) {
     return this.teacherAssignmentsService.findAll(req.tenant!.institutionId, query);
   }
 
@@ -81,8 +102,16 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 409, description: 'Conflict' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async createCourseDirector(@Request() req: AuthenticatedRequest, @Body() dto: CreateCourseDirectorAssignmentDto) {
-    return this.teacherAssignmentsService.createCourseDirector(req.tenant!.institutionId, dto, req.user.userId, req.ip);
+  async createCourseDirector(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: CreateCourseDirectorAssignmentDto,
+  ) {
+    return this.teacherAssignmentsService.createCourseDirector(
+      req.tenant!.institutionId,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
   }
 
   @Get('course-directors')
@@ -92,7 +121,10 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findAllCourseDirectors(@Request() req: AuthenticatedRequest, @Query() query: ListCourseDirectorAssignmentsQueryDto) {
+  async findAllCourseDirectors(
+    @Request() req: AuthenticatedRequest,
+    @Query() query: ListCourseDirectorAssignmentsQueryDto,
+  ) {
     return this.teacherAssignmentsService.findAllCourseDirectors(req.tenant!.institutionId, query);
   }
 
@@ -104,8 +136,16 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'No current director found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async getCurrentDirector(@Request() req: AuthenticatedRequest, @Query('courseId') courseId: string, @Query('academicPeriodId') academicPeriodId: string) {
-    return this.teacherAssignmentsService.getCurrentDirector(req.tenant!.institutionId, courseId, academicPeriodId);
+  async getCurrentDirector(
+    @Request() req: AuthenticatedRequest,
+    @Query('courseId') courseId: string,
+    @Query('academicPeriodId') academicPeriodId: string,
+  ) {
+    return this.teacherAssignmentsService.getCurrentDirector(
+      req.tenant!.institutionId,
+      courseId,
+      academicPeriodId,
+    );
   }
 
   @Get('course-directors/history')
@@ -115,48 +155,92 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async getDirectorHistory(@Request() req: AuthenticatedRequest, @Query('courseId') courseId: string, @Query('academicPeriodId') academicPeriodId: string) {
-    return this.teacherAssignmentsService.getDirectorHistory(req.tenant!.institutionId, courseId, academicPeriodId);
+  async getDirectorHistory(
+    @Request() req: AuthenticatedRequest,
+    @Query('courseId') courseId: string,
+    @Query('academicPeriodId') academicPeriodId: string,
+  ) {
+    return this.teacherAssignmentsService.getDirectorHistory(
+      req.tenant!.institutionId,
+      courseId,
+      academicPeriodId,
+    );
   }
 
   @Get('course-directors/:id')
   @RequirePermission('teacher-assignments:read')
   @ApiOperation({ summary: 'Get a course director assignment by ID' })
-  @ApiParam({ name: 'id', description: 'Course Director Assignment ID', type: 'string', format: 'uuid' })
+  @ApiParam({
+    name: 'id',
+    description: 'Course Director Assignment ID',
+    type: 'string',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, description: 'Course director assignment retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Course director assignment not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async findOneCourseDirector(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+  async findOneCourseDirector(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.teacherAssignmentsService.findOneCourseDirector(req.tenant!.institutionId, id);
   }
 
   @Patch('course-directors/:id')
   @RequirePermission('teacher-assignments:manage')
   @ApiOperation({ summary: 'Update a course director assignment' })
-  @ApiParam({ name: 'id', description: 'Course Director Assignment ID', type: 'string', format: 'uuid' })
+  @ApiParam({
+    name: 'id',
+    description: 'Course Director Assignment ID',
+    type: 'string',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, description: 'Course director assignment updated successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Course director assignment not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async updateCourseDirector(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCourseDirectorAssignmentDto) {
-    return this.teacherAssignmentsService.updateCourseDirector(req.tenant!.institutionId, id, dto, req.user.userId, req.ip);
+  async updateCourseDirector(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateCourseDirectorAssignmentDto,
+  ) {
+    return this.teacherAssignmentsService.updateCourseDirector(
+      req.tenant!.institutionId,
+      id,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
   }
 
   @Patch('course-directors/:id/deactivate')
   @RequirePermission('teacher-assignments:manage')
   @ApiOperation({ summary: 'Deactivate a course director assignment' })
-  @ApiParam({ name: 'id', description: 'Course Director Assignment ID', type: 'string', format: 'uuid' })
+  @ApiParam({
+    name: 'id',
+    description: 'Course Director Assignment ID',
+    type: 'string',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, description: 'Course director assignment deactivated successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Course director assignment not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async deactivateCourseDirector(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
-    return this.teacherAssignmentsService.deactivateCourseDirector(req.tenant!.institutionId, id, req.user.userId, req.ip);
+  async deactivateCourseDirector(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.teacherAssignmentsService.deactivateCourseDirector(
+      req.tenant!.institutionId,
+      id,
+      req.user.userId,
+      req.ip,
+    );
   }
 
   // ============ Rutas genericas ':id' AL FINAL ============
@@ -185,8 +269,18 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Teacher assignment not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async update(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTeacherAssignmentDto) {
-    return this.teacherAssignmentsService.update(req.tenant!.institutionId, id, dto, req.user.userId, req.ip);
+  async update(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateTeacherAssignmentDto,
+  ) {
+    return this.teacherAssignmentsService.update(
+      req.tenant!.institutionId,
+      id,
+      dto,
+      req.user.userId,
+      req.ip,
+    );
   }
 
   @Patch(':id/deactivate')
@@ -199,6 +293,11 @@ export class TeacherAssignmentsController {
   @ApiResponse({ status: 404, description: 'Teacher assignment not found' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
   async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
-    return this.teacherAssignmentsService.deactivate(req.tenant!.institutionId, id, req.user.userId, req.ip);
+    return this.teacherAssignmentsService.deactivate(
+      req.tenant!.institutionId,
+      id,
+      req.user.userId,
+      req.ip,
+    );
   }
 }

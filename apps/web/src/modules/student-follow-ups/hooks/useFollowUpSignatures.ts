@@ -6,9 +6,7 @@ export function useFollowUpSignatures(followUpId: string) {
   return useQuery<SignatureRequest[]>({
     queryKey: ['student-follow-up-signatures', followUpId],
     queryFn: () =>
-      apiClient.get<SignatureRequest[]>(
-        `/student-follow-ups/${followUpId}/signatures`,
-      ),
+      apiClient.get<SignatureRequest[]>(`/student-follow-ups/${followUpId}/signatures`),
     enabled: !!followUpId,
   });
 }

@@ -2,7 +2,13 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTaskAssignment } from '@/modules/task-assignments/hooks';
 import { useTask } from '@/modules/tasks/hooks';
-import { useCreateTaskSubmission, useUpdateTaskSubmission, useTaskSubmission, useSubmissionAttachments, useRemoveSubmissionAttachment } from '../hooks';
+import {
+  useCreateTaskSubmission,
+  useUpdateTaskSubmission,
+  useTaskSubmission,
+  useSubmissionAttachments,
+  useRemoveSubmissionAttachment,
+} from '../hooks';
 import { FileUploader } from '@/modules/files/components/FileUploader';
 import type { FileAsset } from '@/api/types';
 import { PageHeader } from '@/components/feedback/PageHeader';
@@ -55,12 +61,18 @@ export function TaskSubmissionFormPage() {
       if (isEditing && existingSubmission) {
         await updateMutation.mutateAsync({
           assignmentId: id,
-          data: { content: content.trim() || undefined, fileAssetIds: fileAssetIds.length > 0 ? fileAssetIds : undefined },
+          data: {
+            content: content.trim() || undefined,
+            fileAssetIds: fileAssetIds.length > 0 ? fileAssetIds : undefined,
+          },
         });
       } else {
         await createMutation.mutateAsync({
           assignmentId: id,
-          data: { content: content.trim() || undefined, fileAssetIds: fileAssetIds.length > 0 ? fileAssetIds : undefined },
+          data: {
+            content: content.trim() || undefined,
+            fileAssetIds: fileAssetIds.length > 0 ? fileAssetIds : undefined,
+          },
         });
       }
       navigate(`/task-assignments/${id}`);
@@ -78,11 +90,24 @@ export function TaskSubmissionFormPage() {
   }
 
   if (!assignment) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   if (existingSubmission && existingSubmission.status === 'GRADED') {
-    return <ErrorState error={{ statusCode: 400, message: 'No se puede modificar una entrega calificada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{
+          statusCode: 400,
+          message: 'No se puede modificar una entrega calificada',
+          timestamp: '',
+          path: '',
+        }}
+      />
+    );
   }
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
@@ -92,9 +117,7 @@ export function TaskSubmissionFormPage() {
       <PageHeader
         title={isEditing ? 'Actualizar entrega' : 'Nueva entrega'}
         description={
-          isEditing
-            ? 'Actualizar el contenido de tu entrega'
-            : 'Enviar tu entrega para la tarea'
+          isEditing ? 'Actualizar el contenido de tu entrega' : 'Enviar tu entrega para la tarea'
         }
       />
 
@@ -137,9 +160,7 @@ export function TaskSubmissionFormPage() {
           </div>
 
           <div>
-            <span className="block text-sm font-medium text-gray-700 mb-1">
-              Archivos adjuntos
-            </span>
+            <span className="block text-sm font-medium text-gray-700 mb-1">Archivos adjuntos</span>
             <p className="text-xs text-gray-500 mb-2">
               Formatos: .doc, .docx, .xls, .xlsx, .pdf (máx. 10 MB por archivo, hasta 10 archivos).
             </p>
@@ -187,7 +208,8 @@ export function TaskSubmissionFormPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (id) removeAttachmentMutation.mutate({ assignmentId: id, attachmentId: a.id });
+                        if (id)
+                          removeAttachmentMutation.mutate({ assignmentId: id, attachmentId: a.id });
                       }}
                       className="text-sm text-red-600 hover:text-red-800"
                       aria-label={`Eliminar ${a.fileAsset.originalName}`}

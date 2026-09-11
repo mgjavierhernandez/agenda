@@ -43,20 +43,28 @@ export class SelfRegisterDto {
   @MaxLength(100)
   lastName!: string;
 
-  @ApiPropertyOptional({ format: 'uuid', description: 'Target institution UUID (institutionId or institutionSlug required)' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Target institution UUID (institutionId or institutionSlug required)',
+  })
   @ValidateIf((o: SelfRegisterDto) => !o.institutionSlug)
   @IsUUID()
   @IsNotEmpty()
   institutionId?: string;
 
-  @ApiPropertyOptional({ description: 'Target institution slug (institutionId or institutionSlug required)' })
+  @ApiPropertyOptional({
+    description: 'Target institution slug (institutionId or institutionSlug required)',
+  })
   @ValidateIf((o: SelfRegisterDto) => !o.institutionId)
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   institutionSlug?: string;
 
-  @ApiProperty({ enum: SELF_REGISTER_ROLES, description: 'Requested role (admin assigns it on approval)' })
+  @ApiProperty({
+    enum: SELF_REGISTER_ROLES,
+    description: 'Requested role (admin assigns it on approval)',
+  })
   @IsIn([...SELF_REGISTER_ROLES])
   @IsNotEmpty()
   requestedRole!: SelfRegisterRole;

@@ -1,6 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useCourseDirectorAssignment, useDeactivateCourseDirectorAssignment, useUpdateCourseDirectorAssignment } from '../hooks';
+import {
+  useCourseDirectorAssignment,
+  useDeactivateCourseDirectorAssignment,
+  useUpdateCourseDirectorAssignment,
+} from '../hooks';
 import { useUsers } from '../hooks/useUsers';
 import { useCourse } from '@/modules/courses/hooks';
 import { useAcademicPeriod } from '@/modules/academic-periods/hooks';
@@ -71,7 +75,11 @@ export function CourseDirectorDetailPage() {
   }
 
   if (!assignment) {
-    return <ErrorState error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Asignación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   const canDeactivate = canManage && assignment.status === 'ACTIVE';
@@ -105,7 +113,9 @@ export function CourseDirectorDetailPage() {
             <div>
               <dt className="text-sm text-gray-500">Director</dt>
               <dd className="text-gray-900">
-                {directorName ? `${directorName.firstName} ${directorName.lastName}` : assignment.directorUserId}
+                {directorName
+                  ? `${directorName.firstName} ${directorName.lastName}`
+                  : assignment.directorUserId}
               </dd>
             </div>
             <div>
@@ -114,22 +124,32 @@ export function CourseDirectorDetailPage() {
             </div>
             <div>
               <dt className="text-sm text-gray-500">Curso</dt>
-              <dd className="text-gray-900">{course ? `${course.name} (${course.code})` : assignment.courseId}</dd>
+              <dd className="text-gray-900">
+                {course ? `${course.name} (${course.code})` : assignment.courseId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Periodo académico</dt>
-              <dd className="text-gray-900">{academicPeriod ? `${academicPeriod.name} (${academicPeriod.code})` : assignment.academicPeriodId}</dd>
+              <dd className="text-gray-900">
+                {academicPeriod
+                  ? `${academicPeriod.name} (${academicPeriod.code})`
+                  : assignment.academicPeriodId}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de inicio</dt>
               <dd className="text-gray-900">
-                {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                {assignment.startDate
+                  ? new Date(assignment.startDate).toLocaleDateString('es-CO')
+                  : '—'}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Fecha de fin</dt>
               <dd className="text-gray-900">
-                {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+                {assignment.endDate
+                  ? new Date(assignment.endDate).toLocaleDateString('es-CO')
+                  : '—'}
               </dd>
             </div>
             <div>
@@ -189,7 +209,11 @@ export function CourseDirectorDetailPage() {
               </Button>
               <Button
                 variant="danger"
-                isLoading={confirmAction === 'deactivate' ? deactivateMutation.isPending : updateMutation.isPending}
+                isLoading={
+                  confirmAction === 'deactivate'
+                    ? deactivateMutation.isPending
+                    : updateMutation.isPending
+                }
                 onClick={confirmAction === 'deactivate' ? handleDeactivate : handleActivate}
               >
                 {confirmAction === 'deactivate' ? 'Desactivar' : 'Activar'}

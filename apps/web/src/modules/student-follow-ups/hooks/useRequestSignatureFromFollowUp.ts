@@ -16,10 +16,7 @@ export function useRequestSignatureFromFollowUp() {
   return useMutation<SignatureRequest, Error, RequestSignatureFromFollowUpInput>({
     mutationFn: (data) => {
       const { followUpId, ...rest } = data;
-      return apiClient.post<SignatureRequest>(
-        `/student-follow-ups/${followUpId}/signatures`,
-        rest,
-      );
+      return apiClient.post<SignatureRequest>(`/student-follow-ups/${followUpId}/signatures`, rest);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['signature-requests'] });
@@ -29,7 +26,9 @@ export function useRequestSignatureFromFollowUp() {
       queryClient.invalidateQueries({
         queryKey: ['student-follow-ups', variables.followUpId],
       });
-      queryClient.invalidateQueries({ queryKey: ['student-follow-up-entries', variables.followUpId] });
+      queryClient.invalidateQueries({
+        queryKey: ['student-follow-up-entries', variables.followUpId],
+      });
     },
   });
 }

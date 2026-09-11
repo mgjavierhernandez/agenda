@@ -9,7 +9,8 @@ export function useFollowUpEntries(followUpId: string, page = 1, limit = 50) {
 
   return useQuery<PaginatedApiResponse<FollowUpEntry>>({
     queryKey: ['student-follow-up-entries', followUpId, { page, limit }],
-    queryFn: () => apiClient.get(`/student-follow-ups/${followUpId}/entries?${searchParams.toString()}`),
+    queryFn: () =>
+      apiClient.get(`/student-follow-ups/${followUpId}/entries?${searchParams.toString()}`),
     enabled: !!followUpId,
   });
 }

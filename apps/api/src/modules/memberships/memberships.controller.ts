@@ -18,7 +18,12 @@ import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
 import { MembershipsService } from './memberships.service';
-import { LinkUserDto, UpdateMembershipDto, AssignRoleDto, ListMembershipsQueryDto } from './dto/membership.dto';
+import {
+  LinkUserDto,
+  UpdateMembershipDto,
+  AssignRoleDto,
+  ListMembershipsQueryDto,
+} from './dto/membership.dto';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('Memberships')
@@ -41,12 +46,7 @@ export class MembershipsController {
     @Body() dto: LinkUserDto,
   ) {
     const institutionId = req.tenant!.institutionId;
-    return this.membershipsService.linkUser(
-      institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+    return this.membershipsService.linkUser(institutionId, dto, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'List memberships' })
@@ -92,13 +92,7 @@ export class MembershipsController {
     @Body() dto: UpdateMembershipDto,
   ) {
     const institutionId = req.tenant!.institutionId;
-    return this.membershipsService.update(
-      institutionId,
-      id,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+    return this.membershipsService.update(institutionId, id, dto, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'Approve a PENDING membership request' })
@@ -116,12 +110,7 @@ export class MembershipsController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const institutionId = req.tenant!.institutionId;
-    return this.membershipsService.approve(
-      institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+    return this.membershipsService.approve(institutionId, id, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'Reject a PENDING membership request' })
@@ -139,12 +128,7 @@ export class MembershipsController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const institutionId = req.tenant!.institutionId;
-    return this.membershipsService.reject(
-      institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+    return this.membershipsService.reject(institutionId, id, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'Unlink user from institution' })
@@ -160,12 +144,7 @@ export class MembershipsController {
     @Param('userId', ParseUUIDPipe) userId: string,
   ) {
     const institutionId = req.tenant!.institutionId;
-    return this.membershipsService.unlinkUser(
-      institutionId,
-      userId,
-      req.user.userId,
-      req.ip,
-    );
+    return this.membershipsService.unlinkUser(institutionId, userId, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'Assign role to user' })
@@ -183,13 +162,7 @@ export class MembershipsController {
     @Body() dto: AssignRoleDto,
   ) {
     const institutionId = req.tenant!.institutionId;
-    return this.membershipsService.assignRole(
-      institutionId,
-      userId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+    return this.membershipsService.assignRole(institutionId, userId, dto, req.user.userId, req.ip);
   }
 
   @ApiOperation({ summary: 'Remove role from user' })

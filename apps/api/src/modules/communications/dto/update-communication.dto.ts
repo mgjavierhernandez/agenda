@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  MaxLength,
-  MinLength,
-  IsDateString,
-} from 'class-validator';
+import { IsString, IsOptional, IsEnum, MaxLength, MinLength, IsDateString } from 'class-validator';
 import { CommunicationAudience } from '@prisma/client';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 

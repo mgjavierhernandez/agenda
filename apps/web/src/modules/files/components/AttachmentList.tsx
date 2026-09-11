@@ -42,9 +42,7 @@ export function AttachmentList({ attachments, canManage, onDelete }: AttachmentL
   };
 
   if (attachments.length === 0) {
-    return (
-      <p className="text-sm text-gray-500">No hay archivos adjuntos.</p>
-    );
+    return <p className="text-sm text-gray-500">No hay archivos adjuntos.</p>;
   }
 
   return (

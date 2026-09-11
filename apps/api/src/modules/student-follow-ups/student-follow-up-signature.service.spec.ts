@@ -1,8 +1,4 @@
-import {
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { StudentFollowUpSignatureService } from './student-follow-up-signature.service';
 import { SignatureRequestStatus } from '@prisma/client';
 
@@ -237,9 +233,9 @@ describe('StudentFollowUpSignatureService', () => {
     it('should throw Forbidden when the reader is a super admin without access', async () => {
       authMock.canRead.mockResolvedValue({ allowed: false, reason: 'SUPER_ADMIN_NO_ACCESS' });
 
-      await expect(
-        service.findByFollowUp(institutionId, followUpId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.findByFollowUp(institutionId, followUpId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

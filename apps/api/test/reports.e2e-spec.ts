@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 async function createSecondInstitution(prisma: PrismaClient, suffix: string) {
   const institution = await prisma.institution.create({
@@ -220,7 +221,9 @@ describe('Reports Module (e2e)', () => {
 
     it('should allow TEACHER to export (reports:export)', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/api/v1/reports/students/${teacherStudentId}/export?academicPeriodId=${teacherPeriodId}`)
+        .get(
+          `/api/v1/reports/students/${teacherStudentId}/export?academicPeriodId=${teacherPeriodId}`,
+        )
         .set('Authorization', `Bearer ${teacherToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .expect(200);
@@ -318,7 +321,9 @@ describe('Reports Module (e2e)', () => {
   describe('GET /api/v1/reports/students/:studentId/bulletin', () => {
     it('should return the bulletin for the admin', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/api/v1/reports/students/${teacherStudentId}/bulletin?academicPeriodId=${teacherPeriodId}`)
+        .get(
+          `/api/v1/reports/students/${teacherStudentId}/bulletin?academicPeriodId=${teacherPeriodId}`,
+        )
         .set('Authorization', `Bearer ${adminToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .expect(200);
@@ -360,7 +365,9 @@ describe('Reports Module (e2e)', () => {
   describe('Exports and audit', () => {
     it('should export a PDF bulletin and log BULLETIN_EXPORTED', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/api/v1/reports/students/${teacherStudentId}/bulletin/export?academicPeriodId=${teacherPeriodId}`)
+        .get(
+          `/api/v1/reports/students/${teacherStudentId}/bulletin/export?academicPeriodId=${teacherPeriodId}`,
+        )
         .set('Authorization', `Bearer ${teacherToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .expect(200);
@@ -373,7 +380,9 @@ describe('Reports Module (e2e)', () => {
 
     it('should export a CSV course report and log REPORT_EXPORTED', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/api/v1/reports/courses/${teacherCourseId}/export?academicPeriodId=${teacherPeriodId}`)
+        .get(
+          `/api/v1/reports/courses/${teacherCourseId}/export?academicPeriodId=${teacherPeriodId}`,
+        )
         .set('Authorization', `Bearer ${teacherToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .expect(200);

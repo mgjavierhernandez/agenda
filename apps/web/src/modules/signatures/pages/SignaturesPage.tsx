@@ -14,7 +14,10 @@ import { PERMISSIONS } from '@/permissions/permission.constants';
 import type { SignatureRequestStatus } from '@/api/types';
 import { SIGNATURE_REQUEST_STATUS_LABELS } from '@/api/types';
 
-const STATUS_BADGE_VARIANT: Record<SignatureRequestStatus, 'success' | 'warning' | 'default' | 'danger' | 'info'> = {
+const STATUS_BADGE_VARIANT: Record<
+  SignatureRequestStatus,
+  'success' | 'warning' | 'default' | 'danger' | 'info'
+> = {
   DRAFT: 'default',
   PUBLISHED: 'info',
   COMPLETED: 'success',
@@ -69,9 +72,7 @@ export function SignaturesPage() {
         description="Gestionar solicitudes de firma digital"
         actions={
           canRequest ? (
-            <Button onClick={() => navigate('/signatures/new')}>
-              Nueva solicitud
-            </Button>
+            <Button onClick={() => navigate('/signatures/new')}>Nueva solicitud</Button>
           ) : undefined
         }
       />
@@ -123,7 +124,11 @@ export function SignaturesPage() {
         </div>
       ) : signatures.length === 0 ? (
         <EmptyState
-          title={debouncedSearch || statusFilter ? 'No se encontraron solicitudes' : 'No hay solicitudes de firma'}
+          title={
+            debouncedSearch || statusFilter
+              ? 'No se encontraron solicitudes'
+              : 'No hay solicitudes de firma'
+          }
           description={
             debouncedSearch || statusFilter
               ? 'No encontramos solicitudes que coincidan con los filtros aplicados.'
@@ -151,11 +156,15 @@ export function SignaturesPage() {
                 </thead>
                 <tbody>
                   {signatures.map((sig) => {
-                    const signedCount = sig.recipients?.filter((r) => r.status === 'SIGNED').length ?? 0;
+                    const signedCount =
+                      sig.recipients?.filter((r) => r.status === 'SIGNED').length ?? 0;
                     const totalCount = sig.recipients?.length ?? 0;
                     return (
                       <tr key={sig.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate" title={sig.title}>
+                        <td
+                          className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate"
+                          title={sig.title}
+                        >
                           {sig.title}
                         </td>
                         <td className="px-4 py-3 text-gray-600">
@@ -167,9 +176,7 @@ export function SignaturesPage() {
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
-                          {sig.dueDate
-                            ? new Date(sig.dueDate).toLocaleDateString('es-CO')
-                            : '—'}
+                          {sig.dueDate ? new Date(sig.dueDate).toLocaleDateString('es-CO') : '—'}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -198,9 +205,7 @@ export function SignaturesPage() {
                 <Card key={sig.id}>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-lg truncate">
-                        {sig.title}
-                      </p>
+                      <p className="font-semibold text-gray-900 text-lg truncate">{sig.title}</p>
                       <p className="text-sm text-gray-500">
                         Firmantes: {signedCount}/{totalCount}
                       </p>

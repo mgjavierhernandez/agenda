@@ -5,7 +5,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 describe('Signatures Module (e2e)', () => {
   let app: INestApplication;
@@ -54,21 +55,39 @@ describe('Signatures Module (e2e)', () => {
     });
     const allPerms = await prisma.permission.findMany();
     for (const perm of allPerms) {
-      await prisma.rolePermission.create({ data: { roleId: secondAdminRole.id, permissionId: perm.id } });
+      await prisma.rolePermission.create({
+        data: { roleId: secondAdminRole.id, permissionId: perm.id },
+      });
     }
 
     const secondAdmin = await prisma.user.create({
-      data: { email: 'admin@second-sig-e2e.dev', passwordHash: VALID_PASSWORD_HASH, firstName: 'Second', lastName: 'Admin', status: 'ACTIVE' },
+      data: {
+        email: 'admin@second-sig-e2e.dev',
+        passwordHash: VALID_PASSWORD_HASH,
+        firstName: 'Second',
+        lastName: 'Admin',
+        status: 'ACTIVE',
+      },
     });
     const secondAdminMem = await prisma.userInstitution.create({
-      data: { userId: secondAdmin.id, institutionId: secondInstitutionId, status: MembershipStatus.ACTIVE },
+      data: {
+        userId: secondAdmin.id,
+        institutionId: secondInstitutionId,
+        status: MembershipStatus.ACTIVE,
+      },
     });
     await prisma.userRole.create({
-      data: { userInstitutionId: secondAdminMem.id, roleId: secondAdminRole.id, institutionId: secondInstitutionId },
+      data: {
+        userInstitutionId: secondAdminMem.id,
+        roleId: secondAdminRole.id,
+        institutionId: secondInstitutionId,
+      },
     });
 
     const login = async (email: string) => {
-      const res = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email, password: 'Demo1234!' });
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'Demo1234!' });
       return res.body.accessToken;
     };
 
@@ -82,28 +101,40 @@ describe('Signatures Module (e2e)', () => {
     teacherUserId = teacher!.id;
     parentUserId = parent!.id;
 
-    await prisma.signatureRecipient.deleteMany({ where: { signatureRequest: { institutionId: demoInstitutionId } } });
+    await prisma.signatureRecipient.deleteMany({
+      where: { signatureRequest: { institutionId: demoInstitutionId } },
+    });
     await prisma.signatureRequest.deleteMany({ where: { institutionId: demoInstitutionId } });
   }, 30_000);
 
   afterAll(async () => {
     if (secondInstitutionId) {
-      await prisma.rolePermission.deleteMany({ where: { role: { institutionId: secondInstitutionId } } });
+      await prisma.rolePermission.deleteMany({
+        where: { role: { institutionId: secondInstitutionId } },
+      });
       await prisma.userRole.deleteMany({ where: { institutionId: secondInstitutionId } });
       await prisma.userInstitution.deleteMany({ where: { institutionId: secondInstitutionId } });
       await prisma.role.deleteMany({ where: { institutionId: secondInstitutionId } });
       await prisma.user.deleteMany({ where: { email: 'admin@second-sig-e2e.dev' } });
       await prisma.institution.delete({ where: { id: secondInstitutionId } });
     }
-    await prisma.signatureRecipient.deleteMany({ where: { signatureRequest: { institutionId: demoInstitutionId } } });
+    await prisma.signatureRecipient.deleteMany({
+      where: { signatureRequest: { institutionId: demoInstitutionId } },
+    });
     await prisma.signatureRequest.deleteMany({ where: { institutionId: demoInstitutionId } });
 
     await app.close();
     await prisma.$disconnect();
   });
 
-  const instHeader = (token: string) => ({ Authorization: `Bearer ${token}`, 'X-Institution-Id': demoInstitutionId });
-  const secondInstHeader = (token: string) => ({ Authorization: `Bearer ${token}`, 'X-Institution-Id': secondInstitutionId });
+  const instHeader = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    'X-Institution-Id': demoInstitutionId,
+  });
+  const secondInstHeader = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    'X-Institution-Id': secondInstitutionId,
+  });
 
   describe('POST /api/v1/signature-requests', () => {
     it('should create a signature request with recipients as INSTITUTION_ADMIN', async () => {
@@ -158,7 +189,13 @@ describe('Signatures Module (e2e)', () => {
 
     it('should reject recipient not in institution', async () => {
       const outsideUser = await prisma.user.create({
-        data: { email: `outside-sig-e2e-${Date.now()}@test.com`, passwordHash: VALID_PASSWORD_HASH, firstName: 'Out', lastName: 'Side', status: 'ACTIVE' },
+        data: {
+          email: `outside-sig-e2e-${Date.now()}@test.com`,
+          passwordHash: VALID_PASSWORD_HASH,
+          firstName: 'Out',
+          lastName: 'Side',
+          status: 'ACTIVE',
+        },
       });
       const res = await request(app.getHttpServer())
         .post('/api/v1/signature-requests')
@@ -173,7 +210,11 @@ describe('Signatures Module (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/signature-requests')
         .set(instHeader(adminToken))
-        .send({ title: 'Hacked Title', recipientUserIds: [teacherUserId], institutionId: 'wrong-id' });
+        .send({
+          title: 'Hacked Title',
+          recipientUserIds: [teacherUserId],
+          institutionId: 'wrong-id',
+        });
       expect(res.status).toBe(400);
     });
 
@@ -312,7 +353,9 @@ describe('Signatures Module (e2e)', () => {
         .set(instHeader(parentToken));
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('COMPLETED');
-      expect(res.body.recipients.some((r: any) => r.userId === parentUserId && r.status === 'SIGNED')).toBe(true);
+      expect(
+        res.body.recipients.some((r: any) => r.userId === parentUserId && r.status === 'SIGNED'),
+      ).toBe(true);
     });
 
     it('should reject signing an already-signed request', async () => {
@@ -358,7 +401,9 @@ describe('Signatures Module (e2e)', () => {
         .patch(`/api/v1/signature-requests/${declineableRequestId}/decline`)
         .set(instHeader(parentToken));
       expect(res.status).toBe(200);
-      expect(res.body.recipients.some((r: any) => r.userId === parentUserId && r.status === 'DECLINED')).toBe(true);
+      expect(
+        res.body.recipients.some((r: any) => r.userId === parentUserId && r.status === 'DECLINED'),
+      ).toBe(true);
     });
 
     it('should reject declining an already-declined request', async () => {

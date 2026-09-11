@@ -1,4 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, Min, Max, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ClassroomType, ScheduleStatus } from '@prisma/client';

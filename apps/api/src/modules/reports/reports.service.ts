@@ -1,22 +1,12 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import {
-  ReportsAuthorizationService,
-} from './reports-authorization';
+import { ReportsAuthorizationService } from './reports-authorization';
 import { StudentFollowUpAuthorizationService } from '../../common/auth/student-follow-up-authorization';
 import { buildReportPdf, PdfReportPayload } from './report-pdf';
 import { toCsv } from './report-csv';
 import { AttendanceStatus, FollowUpStatus } from '@prisma/client';
-import {
-  StudentReportDto,
-  StudentBulletinDto,
-  CourseReportDto,
-} from './dto/reports-response.dto';
+import { StudentReportDto, StudentBulletinDto, CourseReportDto } from './dto/reports-response.dto';
 
 export interface ReportFileResult {
   buffer: Buffer;
@@ -73,7 +63,14 @@ export class ReportsService {
     academicPeriodId: string | null,
   ): Promise<StudentReportDto> {
     const role = await this.assertStudentAccess(userId, institutionId, studentId, academicPeriodId);
-    return this.buildStudentConsolidation(userId, institutionId, studentId, academicPeriodId, role, true);
+    return this.buildStudentConsolidation(
+      userId,
+      institutionId,
+      studentId,
+      academicPeriodId,
+      role,
+      true,
+    );
   }
 
   async getStudentBulletin(
@@ -83,7 +80,14 @@ export class ReportsService {
     academicPeriodId: string | null,
   ): Promise<StudentBulletinDto> {
     const role = await this.assertStudentAccess(userId, institutionId, studentId, academicPeriodId);
-    return this.buildStudentConsolidation(userId, institutionId, studentId, academicPeriodId, role, false);
+    return this.buildStudentConsolidation(
+      userId,
+      institutionId,
+      studentId,
+      academicPeriodId,
+      role,
+      false,
+    );
   }
 
   async getCourseReport(
@@ -148,10 +152,7 @@ export class ReportsService {
       gradesByStudent.set(g.studentId, list);
     }
 
-    const attendanceByStudent = new Map<
-      string,
-      Record<string, number>
-    >();
+    const attendanceByStudent = new Map<string, Record<string, number>>();
     for (const row of attendanceRows) {
       const map = attendanceByStudent.get(row.studentId) ?? {};
       map[row.status] = row._count._all;
@@ -372,9 +373,7 @@ export class ReportsService {
   ): Promise<StudentReportDto & { institution: { id: string; name: string; slug: string } }> {
     const ctx = await this.loadStudentContext(institutionId, studentId, academicPeriodId);
 
-    const subjectFilter = academicPeriodId
-      ? { academicPeriodId }
-      : {};
+    const subjectFilter = academicPeriodId ? { academicPeriodId } : {};
 
     const [grades, attendanceRows, teacherAssignments, followUps] = await Promise.all([
       this.prisma.grade.findMany({
@@ -410,10 +409,12 @@ export class ReportsService {
               subject: { select: { id: true } },
             },
           })
-        : Promise.resolve([] as Array<{
-            subject: { id: string };
-            teacherUser: { id: string; firstName: string; lastName: string };
-          }>),
+        : Promise.resolve(
+            [] as Array<{
+              subject: { id: string };
+              teacherUser: { id: string; firstName: string; lastName: string };
+            }>,
+          ),
       this.prisma.studentFollowUp.findMany({
         where: {
           institutionId,
@@ -543,9 +544,19 @@ export class ReportsService {
       metaLines: [
         { label: 'Estudiante', value: `${payload.student.firstName} ${payload.student.lastName}` },
         { label: 'Documento', value: payload.student.documentNumber },
-        { label: 'Curso', value: payload.enrollment ? `${payload.enrollment.courseName} (${payload.enrollment.courseCode})` : 'Sin matrícula activa' },
+        {
+          label: 'Curso',
+          value: payload.enrollment
+            ? `${payload.enrollment.courseName} (${payload.enrollment.courseCode})`
+            : 'Sin matrícula activa',
+        },
         { label: 'Grado', value: payload.enrollment ? payload.enrollment.schoolGradeName : '—' },
-        { label: 'Período', value: payload.academicPeriod ? `${payload.academicPeriod.name} (${payload.academicPeriod.code})` : 'Consolidado — todos los períodos' },
+        {
+          label: 'Período',
+          value: payload.academicPeriod
+            ? `${payload.academicPeriod.name} (${payload.academicPeriod.code})`
+            : 'Consolidado — todos los períodos',
+        },
         { label: 'Fecha de generación', value: new Date().toISOString().slice(0, 10) },
       ],
       academicSections: payload.academic.map((subject) => ({
@@ -619,7 +630,15 @@ export class ReportsService {
     institutionId: string,
     studentId: string,
     academicPeriodId: string | null,
-  ): Promise<BaseContext & { studentFirstName: string; studentLastName: string; documentType: string; documentNumber: string; studentStatus: string }> {
+  ): Promise<
+    BaseContext & {
+      studentFirstName: string;
+      studentLastName: string;
+      documentType: string;
+      documentNumber: string;
+      studentStatus: string;
+    }
+  > {
     const student = await this.prisma.student.findFirst({
       where: { id: studentId, institutionId },
       include: {
@@ -672,10 +691,7 @@ export class ReportsService {
     };
   }
 
-  private async resolvePeriod(
-    institutionId: string,
-    academicPeriodId: string | null,
-  ) {
+  private async resolvePeriod(institutionId: string, academicPeriodId: string | null) {
     if (!academicPeriodId) return null;
     const period = await this.prisma.academicPeriod.findFirst({
       where: { id: academicPeriodId, institutionId },
@@ -686,10 +702,7 @@ export class ReportsService {
     return period;
   }
 
-  private async resolvePeriodDto(
-    institutionId: string,
-    academicPeriodId: string | null,
-  ) {
+  private async resolvePeriodDto(institutionId: string, academicPeriodId: string | null) {
     const period = await this.resolvePeriod(institutionId, academicPeriodId);
     if (!period) return null;
     return {

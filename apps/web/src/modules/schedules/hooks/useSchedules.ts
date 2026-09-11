@@ -3,7 +3,16 @@ import { apiClient } from '@/api/client';
 import type { PaginatedApiResponse, Schedule, ListSchedulesParams } from '@/api/types';
 
 export function useSchedules(params: ListSchedulesParams = {}) {
-  const { page = 1, limit = 20, search, status, courseId, subjectId, dayOfWeek, studentId } = params;
+  const {
+    page = 1,
+    limit = 20,
+    search,
+    status,
+    courseId,
+    subjectId,
+    dayOfWeek,
+    studentId,
+  } = params;
 
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(page));
@@ -16,7 +25,10 @@ export function useSchedules(params: ListSchedulesParams = {}) {
   if (studentId) searchParams.set('studentId', studentId);
 
   return useQuery<PaginatedApiResponse<Schedule>>({
-    queryKey: ['schedules', { page, limit, search, status, courseId, subjectId, dayOfWeek, studentId }],
+    queryKey: [
+      'schedules',
+      { page, limit, search, status, courseId, subjectId, dayOfWeek, studentId },
+    ],
     queryFn: () => apiClient.get(`/schedules?${searchParams.toString()}`),
   });
 }

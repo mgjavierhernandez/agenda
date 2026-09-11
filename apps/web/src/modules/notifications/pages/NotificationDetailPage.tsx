@@ -1,6 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useNotification, useMarkNotificationRead, useDeleteNotification, useTrackNotificationOpened } from '../hooks';
+import {
+  useNotification,
+  useMarkNotificationRead,
+  useDeleteNotification,
+  useTrackNotificationOpened,
+} from '../hooks';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { Button } from '@/components/ui/Button';
@@ -86,7 +91,11 @@ export function NotificationDetailPage() {
   }
 
   if (!notification) {
-    return <ErrorState error={{ statusCode: 404, message: 'Notificación no encontrada', timestamp: '', path: '' }} />;
+    return (
+      <ErrorState
+        error={{ statusCode: 404, message: 'Notificación no encontrada', timestamp: '', path: '' }}
+      />
+    );
   }
 
   return (
@@ -105,11 +114,7 @@ export function NotificationDetailPage() {
                 Marcar como leído
               </Button>
             )}
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-              isLoading={deleteMutation.isPending}
-            >
+            <Button variant="danger" onClick={handleDelete} isLoading={deleteMutation.isPending}>
               Eliminar
             </Button>
           </div>
@@ -156,7 +161,10 @@ export function NotificationDetailPage() {
             {notification.entityType && (
               <div>
                 <dt className="text-sm text-gray-500">Entidad relacionada</dt>
-                <dd className="text-gray-900">{notification.entityType}{notification.entityId ? ` (${notification.entityId})` : ''}</dd>
+                <dd className="text-gray-900">
+                  {notification.entityType}
+                  {notification.entityId ? ` (${notification.entityId})` : ''}
+                </dd>
               </div>
             )}
             <div>

@@ -1,8 +1,4 @@
-import {
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { FollowUpCitationsService } from './follow-up-citations.service';
 import { FollowUpCitationStatus } from '@prisma/client';
 

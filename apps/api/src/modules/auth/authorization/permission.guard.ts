@@ -18,10 +18,10 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
-      REQUIRE_PERMISSION_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const requiredPermissions = this.reflector.getAllAndOverride<string[]>(REQUIRE_PERMISSION_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
@@ -36,13 +36,10 @@ export class PermissionGuard implements CanActivate {
     const institutionId = request.tenant?.institutionId;
 
     if (!institutionId) {
-      const globalPermissions =
-        await this.authorizationService.getGlobalPermissionCodes(
-          request.user.userId,
-        );
-      const hasAll = requiredPermissions.every((p) =>
-        globalPermissions.includes(p),
+      const globalPermissions = await this.authorizationService.getGlobalPermissionCodes(
+        request.user.userId,
       );
+      const hasAll = requiredPermissions.every((p) => globalPermissions.includes(p));
       if (!hasAll) {
         throw new ForbiddenException('Forbidden');
       }

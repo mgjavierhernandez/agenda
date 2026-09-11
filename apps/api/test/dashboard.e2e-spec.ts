@@ -4,7 +4,8 @@ import request from 'supertest';
 import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { AppModule } from '../src/app.module';
 
-const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 async function createSecondInstitution(prisma: PrismaClient, suffix: string) {
   const institution = await prisma.institution.create({
@@ -39,7 +40,11 @@ async function createSecondInstitution(prisma: PrismaClient, suffix: string) {
   return { institutionId: institution.id, adminUserId: admin.id };
 }
 
-async function cleanupSecondInstitution(prisma: PrismaClient, institutionId: string, adminUserId: string) {
+async function cleanupSecondInstitution(
+  prisma: PrismaClient,
+  institutionId: string,
+  adminUserId: string,
+) {
   if (!institutionId) return;
   await prisma.rolePermission.deleteMany({ where: { role: { institutionId } } }).catch(() => {});
   await prisma.userRole.deleteMany({ where: { institutionId } }).catch(() => {});
@@ -111,7 +116,9 @@ describe('Dashboard Module (e2e)', () => {
   });
 
   afterAll(async () => {
-    await cleanupSecondInstitution(prisma, secondInstitutionId, adminUserIds[0] ?? '').catch(() => {});
+    await cleanupSecondInstitution(prisma, secondInstitutionId, adminUserIds[0] ?? '').catch(
+      () => {},
+    );
     await app.close();
     await prisma.$disconnect();
   });

@@ -1,4 +1,9 @@
-import { NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { TaskSubmissionsService } from './task-submissions.service';
 import { TaskSubmissionStatus } from '@prisma/client';
 import { getUserRoleNames, hasFullAccess } from '../../common/auth/academic-scope';
@@ -22,7 +27,13 @@ describe('TaskSubmissionsService', () => {
     student: { findFirst: jest.Mock };
     teacherAssignment: { findFirst: jest.Mock };
     fileAsset: { findFirst: jest.Mock };
-    submissionAttachment: { count: jest.Mock; findUnique: jest.Mock; create: jest.Mock; findFirst: jest.Mock; delete: jest.Mock };
+    submissionAttachment: {
+      count: jest.Mock;
+      findUnique: jest.Mock;
+      create: jest.Mock;
+      findFirst: jest.Mock;
+      delete: jest.Mock;
+    };
     taskSubmission: {
       findUnique: jest.Mock;
       findFirst: jest.Mock;
@@ -63,10 +74,7 @@ describe('TaskSubmissionsService', () => {
 
     auditServiceMock = { log: jest.fn() };
 
-    service = new TaskSubmissionsService(
-      prismaMock as never,
-      auditServiceMock as never,
-    );
+    service = new TaskSubmissionsService(prismaMock as never, auditServiceMock as never);
 
     // Default: administrative caller.
     mockedGetRoles.mockReset();
@@ -94,7 +102,12 @@ describe('TaskSubmissionsService', () => {
         status: TaskSubmissionStatus.SUBMITTED,
       });
 
-      const result = await service.create(institutionId, taskAssignmentId, { content: 'My work' }, userId);
+      const result = await service.create(
+        institutionId,
+        taskAssignmentId,
+        { content: 'My work' },
+        userId,
+      );
 
       expect(result.status).toBe(TaskSubmissionStatus.SUBMITTED);
     });
@@ -102,9 +115,9 @@ describe('TaskSubmissionsService', () => {
     it('should throw if assignment not found', async () => {
       prismaMock.taskAssignment.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.create(institutionId, taskAssignmentId, {}, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(institutionId, taskAssignmentId, {}, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw if submission already exists', async () => {
@@ -116,9 +129,9 @@ describe('TaskSubmissionsService', () => {
       });
       prismaMock.taskSubmission.findUnique.mockResolvedValue({ id: 'existing' });
 
-      await expect(
-        service.create(institutionId, taskAssignmentId, {}, userId),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.create(institutionId, taskAssignmentId, {}, userId)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should mark as LATE if past due date', async () => {
@@ -155,7 +168,12 @@ describe('TaskSubmissionsService', () => {
         status: TaskSubmissionStatus.SUBMITTED,
       });
 
-      const result = await service.create(institutionId, taskAssignmentId, { content: 'x' }, userId);
+      const result = await service.create(
+        institutionId,
+        taskAssignmentId,
+        { content: 'x' },
+        userId,
+      );
       expect(result.status).toBe(TaskSubmissionStatus.SUBMITTED);
     });
 
@@ -226,7 +244,12 @@ describe('TaskSubmissionsService', () => {
       prismaMock.fileAsset.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create(institutionId, taskAssignmentId, { content: 'x', fileAssetIds: ['file-x'] }, userId),
+        service.create(
+          institutionId,
+          taskAssignmentId,
+          { content: 'x', fileAssetIds: ['file-x'] },
+          userId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -245,7 +268,12 @@ describe('TaskSubmissionsService', () => {
         grade: 85,
       });
 
-      const result = await service.grade(institutionId, 'sub-1', { grade: '85', feedback: 'Good' }, userId);
+      const result = await service.grade(
+        institutionId,
+        'sub-1',
+        { grade: '85', feedback: 'Good' },
+        userId,
+      );
       expect(result.status).toBe(TaskSubmissionStatus.GRADED);
     });
 
@@ -257,9 +285,9 @@ describe('TaskSubmissionsService', () => {
         taskAssignment: { task: { dueDate: new Date() } },
       });
 
-      await expect(
-        service.grade(institutionId, 'sub-1', { grade: '85' }, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.grade(institutionId, 'sub-1', { grade: '85' }, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should forbid grading by a teacher of another course', async () => {
@@ -273,9 +301,9 @@ describe('TaskSubmissionsService', () => {
       });
       prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.grade(institutionId, 'sub-1', { grade: '85' }, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.grade(institutionId, 'sub-1', { grade: '85' }, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

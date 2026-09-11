@@ -1,11 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { resolveAccessibleStudentIds, resolveAccessibleCourseIds } from '../../common/auth/academic-scope';
+import {
+  resolveAccessibleStudentIds,
+  resolveAccessibleCourseIds,
+} from '../../common/auth/academic-scope';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { ListEnrollmentsQueryDto } from './dto/list-enrollments-query.dto';
@@ -39,12 +38,9 @@ export class EnrollmentsService {
       }),
     ]);
 
-    if (!student)
-      throw new NotFoundException('Student not found in this institution');
-    if (!course)
-      throw new NotFoundException('Course not found in this institution');
-    if (!schoolGrade)
-      throw new NotFoundException('School grade not found in this institution');
+    if (!student) throw new NotFoundException('Student not found in this institution');
+    if (!course) throw new NotFoundException('Course not found in this institution');
+    if (!schoolGrade) throw new NotFoundException('School grade not found in this institution');
     if (!academicPeriod)
       throw new NotFoundException('Academic period not found in this institution');
 
@@ -98,7 +94,10 @@ export class EnrollmentsService {
     institutionId: string,
     query: ListEnrollmentsQueryDto,
     userId?: string,
-  ): Promise<{ data: Enrollment[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Enrollment[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -108,9 +107,7 @@ export class EnrollmentsService {
       ...(query.studentId ? { studentId: query.studentId } : {}),
       ...(query.courseId ? { courseId: query.courseId } : {}),
       ...(query.schoolGradeId ? { schoolGradeId: query.schoolGradeId } : {}),
-      ...(query.academicPeriodId
-        ? { academicPeriodId: query.academicPeriodId }
-        : {}),
+      ...(query.academicPeriodId ? { academicPeriodId: query.academicPeriodId } : {}),
     };
 
     if (userId) {

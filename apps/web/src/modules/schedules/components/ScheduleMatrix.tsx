@@ -79,19 +79,29 @@ export function ScheduleMatrix({ schedules }: { schedules: NamedSchedule[] }) {
     });
 
   if (schedules.length === 0 || hours.length === 0) {
-    return <p className="text-sm text-gray-500 py-4 text-center">Sin horarios para mostrar en la matriz.</p>;
+    return (
+      <p className="text-sm text-gray-500 py-4 text-center">
+        Sin horarios para mostrar en la matriz.
+      </p>
+    );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm border-collapse" aria-label="Matriz de horarios por hora y día">
+      <table
+        className="w-full text-sm border-collapse"
+        aria-label="Matriz de horarios por hora y día"
+      >
         <thead>
           <tr>
             <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left font-medium text-gray-600 w-20">
               Hora
             </th>
             {days.map((d) => (
-              <th key={d} className="border border-gray-200 bg-gray-50 px-2 py-2 text-left font-medium text-gray-600">
+              <th
+                key={d}
+                className="border border-gray-200 bg-gray-50 px-2 py-2 text-left font-medium text-gray-600"
+              >
                 {DAY_SHORT[d]}
               </th>
             ))}
@@ -106,7 +116,10 @@ export function ScheduleMatrix({ schedules }: { schedules: NamedSchedule[] }) {
               {days.map((d) => {
                 const items = cellFor(d, h);
                 return (
-                  <td key={d} className="border border-gray-200 px-1.5 py-1.5 align-top min-w-[140px]">
+                  <td
+                    key={d}
+                    className="border border-gray-200 px-1.5 py-1.5 align-top min-w-[140px]"
+                  >
                     {items.map((s) => (
                       <div
                         key={s.id}

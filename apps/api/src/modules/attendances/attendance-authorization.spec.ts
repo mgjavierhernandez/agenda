@@ -77,36 +77,78 @@ describe('AttendanceAuthorizationService', () => {
 
   describe('canCreate', () => {
     it('should allow INSTITUTION_ADMIN', async () => {
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'INSTITUTION_ADMIN');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'INSTITUTION_ADMIN',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should deny SUPER_ADMIN', async () => {
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'SUPER_ADMIN');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'SUPER_ADMIN',
+      );
       expect(res.allowed).toBe(false);
       expect(res.reason).toBe('SUPER_ADMIN_NO_ACCESS');
     });
 
     it('should deny PARENT', async () => {
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'PARENT');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'PARENT',
+      );
       expect(res.allowed).toBe(false);
     });
 
     it('should deny STUDENT', async () => {
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'STUDENT');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'STUDENT',
+      );
       expect(res.allowed).toBe(false);
     });
 
     it('should allow TEACHER assigned to the course and period with student enrolled', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1' });
       prismaMock.enrollment.findFirst.mockResolvedValue({ id: 'enr-1' });
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'TEACHER');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should deny TEACHER not assigned to the course', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'TEACHER');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(false);
       expect(res.reason).toBe('NO_COURSE_RELATIONSHIP');
     });
@@ -114,7 +156,14 @@ describe('AttendanceAuthorizationService', () => {
     it('should deny TEACHER when student is not enrolled', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1' });
       prismaMock.enrollment.findFirst.mockResolvedValue(null);
-      const res = await service.canCreate(userId, institutionId, studentId, courseId, periodId, 'TEACHER');
+      const res = await service.canCreate(
+        userId,
+        institutionId,
+        studentId,
+        courseId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(false);
       expect(res.reason).toBe('NO_STUDENT_RELATIONSHIP');
     });
@@ -194,8 +243,12 @@ describe('AttendanceAuthorizationService', () => {
     });
 
     it('should deny PARENT and STUDENT', async () => {
-      expect((await service.canModify(userId, institutionId, attendance, 'PARENT')).allowed).toBe(false);
-      expect((await service.canModify(userId, institutionId, attendance, 'STUDENT')).allowed).toBe(false);
+      expect((await service.canModify(userId, institutionId, attendance, 'PARENT')).allowed).toBe(
+        false,
+      );
+      expect((await service.canModify(userId, institutionId, attendance, 'STUDENT')).allowed).toBe(
+        false,
+      );
     });
 
     it('should deny SUPER_ADMIN', async () => {
@@ -206,11 +259,21 @@ describe('AttendanceAuthorizationService', () => {
 
   describe('canDelete', () => {
     it('should allow INSTITUTION_ADMIN only', async () => {
-      expect((await service.canDelete(userId, institutionId, attendance, 'INSTITUTION_ADMIN')).allowed).toBe(true);
-      expect((await service.canDelete(userId, institutionId, attendance, 'TEACHER')).allowed).toBe(false);
-      expect((await service.canDelete(userId, institutionId, attendance, 'PARENT')).allowed).toBe(false);
-      expect((await service.canDelete(userId, institutionId, attendance, 'STUDENT')).allowed).toBe(false);
-      expect((await service.canDelete(userId, institutionId, attendance, 'SUPER_ADMIN')).allowed).toBe(false);
+      expect(
+        (await service.canDelete(userId, institutionId, attendance, 'INSTITUTION_ADMIN')).allowed,
+      ).toBe(true);
+      expect((await service.canDelete(userId, institutionId, attendance, 'TEACHER')).allowed).toBe(
+        false,
+      );
+      expect((await service.canDelete(userId, institutionId, attendance, 'PARENT')).allowed).toBe(
+        false,
+      );
+      expect((await service.canDelete(userId, institutionId, attendance, 'STUDENT')).allowed).toBe(
+        false,
+      );
+      expect(
+        (await service.canDelete(userId, institutionId, attendance, 'SUPER_ADMIN')).allowed,
+      ).toBe(false);
     });
   });
 
@@ -222,22 +285,38 @@ describe('AttendanceAuthorizationService', () => {
     });
 
     it('should scope TEACHER to assigned courses', () => {
-      const filter = service.buildListFilter(userId, institutionId, 'TEACHER') as unknown as ListFilterShape;
+      const filter = service.buildListFilter(
+        userId,
+        institutionId,
+        'TEACHER',
+      ) as unknown as ListFilterShape;
       expect(filter.course?.teacherAssignments?.some?.teacherUserId).toBe(userId);
     });
 
     it('should scope PARENT to linked children', () => {
-      const filter = service.buildListFilter(userId, institutionId, 'PARENT') as unknown as ListFilterShape;
+      const filter = service.buildListFilter(
+        userId,
+        institutionId,
+        'PARENT',
+      ) as unknown as ListFilterShape;
       expect(filter.student?.guardianStudents?.some?.guardianUserId).toBe(userId);
     });
 
     it('should scope STUDENT to own records', () => {
-      const filter = service.buildListFilter(userId, institutionId, 'STUDENT') as unknown as ListFilterShape;
+      const filter = service.buildListFilter(
+        userId,
+        institutionId,
+        'STUDENT',
+      ) as unknown as ListFilterShape;
       expect(filter.student?.user?.id).toBe(userId);
     });
 
     it('should never match for SUPER_ADMIN', () => {
-      const filter = service.buildListFilter(userId, institutionId, 'SUPER_ADMIN') as unknown as ListFilterShape;
+      const filter = service.buildListFilter(
+        userId,
+        institutionId,
+        'SUPER_ADMIN',
+      ) as unknown as ListFilterShape;
       expect(filter.id).toBe('__NEVER_MATCH__');
     });
   });

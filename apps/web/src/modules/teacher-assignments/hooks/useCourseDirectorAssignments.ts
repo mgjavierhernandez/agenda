@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
-import type { PaginatedApiResponse, CourseDirectorAssignment, ListCourseDirectorAssignmentsParams } from '@/api/types';
+import type {
+  PaginatedApiResponse,
+  CourseDirectorAssignment,
+  ListCourseDirectorAssignmentsParams,
+} from '@/api/types';
 
 export function useCourseDirectorAssignments(params: ListCourseDirectorAssignmentsParams = {}) {
   const { page = 1, limit = 20, directorUserId, courseId, academicPeriodId } = params;
@@ -13,7 +17,11 @@ export function useCourseDirectorAssignments(params: ListCourseDirectorAssignmen
   if (academicPeriodId) searchParams.set('academicPeriodId', academicPeriodId);
 
   return useQuery<PaginatedApiResponse<CourseDirectorAssignment>>({
-    queryKey: ['course-director-assignments', { page, limit, directorUserId, courseId, academicPeriodId }],
-    queryFn: () => apiClient.get(`/teacher-assignments/course-directors?${searchParams.toString()}`),
+    queryKey: [
+      'course-director-assignments',
+      { page, limit, directorUserId, courseId, academicPeriodId },
+    ],
+    queryFn: () =>
+      apiClient.get(`/teacher-assignments/course-directors?${searchParams.toString()}`),
   });
 }

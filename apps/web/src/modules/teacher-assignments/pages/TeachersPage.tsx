@@ -53,9 +53,7 @@ export function TeachersPage() {
               </div>
 
               {teacher.courses.length === 0 ? (
-                <p className="mt-4 text-sm text-gray-500">
-                  Sin asignaciones de curso/asignatura.
-                </p>
+                <p className="mt-4 text-sm text-gray-500">Sin asignaciones de curso/asignatura.</p>
               ) : (
                 <div className="mt-4 space-y-3">
                   {teacher.courses.map((course) => (
@@ -71,9 +69,7 @@ export function TeachersPage() {
                       {course.students.length > 0 && (
                         <p className="mt-2 text-xs text-gray-500">
                           Estudiantes:{' '}
-                          {course.students
-                            .map((s) => `${s.firstName} ${s.lastName}`)
-                            .join(', ')}
+                          {course.students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')}
                         </p>
                       )}
                     </div>

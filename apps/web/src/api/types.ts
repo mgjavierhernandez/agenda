@@ -134,7 +134,8 @@ export interface ListCoursesParams {
 export type SubjectStatus = 'ACTIVE' | 'INACTIVE';
 
 export type EducationLevel = 'PREESCOLAR' | 'PRIMARIA' | 'SECUNDARIA' | 'MEDIA';
-export type SubjectType = 'OBLIGATORIA' | 'OPTATIVA' | 'PROFUNDIZACION' | 'TRANSVERSAL' | 'DIMENSION';
+export type SubjectType =
+  'OBLIGATORIA' | 'OPTATIVA' | 'PROFUNDIZACION' | 'TRANSVERSAL' | 'DIMENSION';
 
 export const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
   PREESCOLAR: 'Preescolar',
@@ -281,7 +282,8 @@ export interface ListGradesParams {
 }
 
 export type ScheduleStatus = 'ACTIVE' | 'INACTIVE';
-export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+export type DayOfWeek =
+  'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
 
 export const DAY_OF_WEEK_LABELS: Record<DayOfWeek, string> = {
   MONDAY: 'Lunes',
@@ -294,7 +296,13 @@ export const DAY_OF_WEEK_LABELS: Record<DayOfWeek, string> = {
 };
 
 export const DAY_OF_WEEK_ORDER: DayOfWeek[] = [
-  'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY',
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
 ];
 
 export interface Schedule {
@@ -371,7 +379,8 @@ export interface CreateScheduleBlockInput {
   status?: ScheduleStatus;
 }
 
-export type ClassroomType = 'AULA' | 'LAB_FISICA' | 'LAB_QUIMICA' | 'COMPUTO' | 'CANCHA' | 'AUDITORIO';
+export type ClassroomType =
+  'AULA' | 'LAB_FISICA' | 'LAB_QUIMICA' | 'COMPUTO' | 'CANCHA' | 'AUDITORIO';
 
 export const CLASSROOM_TYPE_LABELS: Record<ClassroomType, string> = {
   AULA: 'Aula',
@@ -1435,7 +1444,8 @@ export interface ListAgendaEventsParams {
 
 export type FollowUpType = 'ACADEMICO' | 'CONVIVENCIA' | 'FORMATIVO';
 export type FollowUpSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type FollowUpStatus = 'OPEN' | 'IN_PROGRESS' | 'ESCALATED' | 'PENDING_FOLLOW_UP' | 'RESOLVED' | 'CLOSED';
+export type FollowUpStatus =
+  'OPEN' | 'IN_PROGRESS' | 'ESCALATED' | 'PENDING_FOLLOW_UP' | 'RESOLVED' | 'CLOSED';
 export type FollowUpConfidentiality = 'PUBLIC' | 'INTERNAL' | 'CONFIDENTIAL' | 'SENSITIVE';
 export type FollowUpEntryType = 'NOTE' | 'MEETING' | 'OBSERVATION' | 'ACTION' | 'FOLLOW_UP';
 export type CommitmentStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'OVERDUE';

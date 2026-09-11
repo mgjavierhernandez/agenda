@@ -12,11 +12,29 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { PermissionGate } from '@/permissions/PermissionGate';
 import { PERMISSIONS } from '@/permissions/permission.constants';
 
-const EVENT_TYPE_CONFIG: Record<AgendaEventType, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info'; color: string; bg: string }> = {
+const EVENT_TYPE_CONFIG: Record<
+  AgendaEventType,
+  {
+    label: string;
+    variant: 'default' | 'success' | 'warning' | 'danger' | 'info';
+    color: string;
+    bg: string;
+  }
+> = {
   SCHEDULE: { label: 'Horario', variant: 'info', color: 'border-l-blue-500', bg: 'bg-blue-50' },
   TASK: { label: 'Tarea', variant: 'warning', color: 'border-l-orange-500', bg: 'bg-orange-50' },
-  COMMUNICATION: { label: 'Comunicacion', variant: 'success', color: 'border-l-emerald-500', bg: 'bg-emerald-50' },
-  SIGNATURE: { label: 'Firma', variant: 'danger', color: 'border-l-purple-500', bg: 'bg-purple-50' },
+  COMMUNICATION: {
+    label: 'Comunicacion',
+    variant: 'success',
+    color: 'border-l-emerald-500',
+    bg: 'bg-emerald-50',
+  },
+  SIGNATURE: {
+    label: 'Firma',
+    variant: 'danger',
+    color: 'border-l-purple-500',
+    bg: 'bg-purple-50',
+  },
   EVENT: { label: 'Evento', variant: 'default', color: 'border-l-gray-400', bg: 'bg-gray-50' },
 };
 
@@ -61,11 +79,12 @@ function navigateDate(view: AgendaView, currentDate: Date, direction: -1 | 1): D
 
 function formatDateHeader(view: AgendaView, currentDate: Date): string {
   if (view === 'year') return String(currentDate.getFullYear());
-  const opts: Intl.DateTimeFormatOptions = view === 'day'
-    ? { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-    : view === 'week'
-      ? { year: 'numeric', month: 'long', day: 'numeric' }
-      : { year: 'numeric', month: 'long' };
+  const opts: Intl.DateTimeFormatOptions =
+    view === 'day'
+      ? { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+      : view === 'week'
+        ? { year: 'numeric', month: 'long', day: 'numeric' }
+        : { year: 'numeric', month: 'long' };
   return currentDate.toLocaleDateString('es-ES', opts);
 }
 
@@ -84,9 +103,10 @@ function EventCard({ event, onClick }: { event: AgendaEvent; onClick: () => void
   const time = event.allDay
     ? 'Todo el día'
     : new Date(event.start).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  const endTime = event.end && !event.allDay
-    ? new Date(event.end).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-    : null;
+  const endTime =
+    event.end && !event.allDay
+      ? new Date(event.end).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+      : null;
 
   return (
     <button
@@ -98,7 +118,10 @@ function EventCard({ event, onClick }: { event: AgendaEvent; onClick: () => void
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <Badge variant={config.variant}>{config.label}</Badge>
-            <span className="text-xs text-gray-500">{time}{endTime ? ` – ${endTime}` : ''}</span>
+            <span className="text-xs text-gray-500">
+              {time}
+              {endTime ? ` – ${endTime}` : ''}
+            </span>
           </div>
           <h4 className="text-sm font-medium text-gray-900 truncate">{event.title}</h4>
           {event.description && (
@@ -110,7 +133,15 @@ function EventCard({ event, onClick }: { event: AgendaEvent; onClick: () => void
   );
 }
 
-function WeekView({ events, currentDate, onEventClick }: { events: AgendaEvent[]; currentDate: Date; onEventClick: (e: AgendaEvent) => void }) {
+function WeekView({
+  events,
+  currentDate,
+  onEventClick,
+}: {
+  events: AgendaEvent[];
+  currentDate: Date;
+  onEventClick: (e: AgendaEvent) => void;
+}) {
   const dayOfWeek = currentDate.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -142,9 +173,14 @@ function WeekView({ events, currentDate, onEventClick }: { events: AgendaEvent[]
           {days.map((d, i) => {
             const isToday = d.toDateString() === new Date().toDateString();
             return (
-              <div key={i} className={`p-2 text-center border-l border-gray-200 ${isToday ? 'bg-blue-50' : ''}`}>
+              <div
+                key={i}
+                className={`p-2 text-center border-l border-gray-200 ${isToday ? 'bg-blue-50' : ''}`}
+              >
                 <p className="text-xs text-gray-500">{dayNames[i]}</p>
-                <p className={`text-sm font-semibold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
+                <p
+                  className={`text-sm font-semibold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}
+                >
                   {d.getDate()}
                 </p>
               </div>
@@ -163,7 +199,10 @@ function WeekView({ events, currentDate, onEventClick }: { events: AgendaEvent[]
                 const cellEvents = eventsByDateHour.get(`${dateKey}-${hour}`) ?? [];
                 const isToday = d.toDateString() === new Date().toDateString();
                 return (
-                  <div key={di} className={`border-l border-b border-gray-100 p-1 min-h-[48px] ${isToday ? 'bg-blue-50/30' : ''}`}>
+                  <div
+                    key={di}
+                    className={`border-l border-b border-gray-100 p-1 min-h-[48px] ${isToday ? 'bg-blue-50/30' : ''}`}
+                  >
                     {cellEvents.map((ev) => (
                       <button
                         key={ev.id}
@@ -186,7 +225,15 @@ function WeekView({ events, currentDate, onEventClick }: { events: AgendaEvent[]
   );
 }
 
-function MonthView({ events, currentDate, onEventClick }: { events: AgendaEvent[]; currentDate: Date; onEventClick: (e: AgendaEvent) => void }) {
+function MonthView({
+  events,
+  currentDate,
+  onEventClick,
+}: {
+  events: AgendaEvent[];
+  currentDate: Date;
+  onEventClick: (e: AgendaEvent) => void;
+}) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1);
@@ -216,7 +263,9 @@ function MonthView({ events, currentDate, onEventClick }: { events: AgendaEvent[
     <div>
       <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
         {dayNames.map((n) => (
-          <div key={n} className="bg-gray-50 p-2 text-center text-xs font-semibold text-gray-600">{n}</div>
+          <div key={n} className="bg-gray-50 p-2 text-center text-xs font-semibold text-gray-600">
+            {n}
+          </div>
         ))}
         {cells.map((cell, i) => {
           if (!cell.day) return <div key={i} className="bg-gray-50 p-2 min-h-[80px]" />;
@@ -225,7 +274,9 @@ function MonthView({ events, currentDate, onEventClick }: { events: AgendaEvent[
           const isToday = cell.date!.toDateString() === new Date().toDateString();
           return (
             <div key={i} className={`bg-white p-2 min-h-[80px] ${isToday ? 'bg-blue-50' : ''}`}>
-              <p className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600 font-bold' : 'text-gray-700'}`}>
+              <p
+                className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600 font-bold' : 'text-gray-700'}`}
+              >
                 {cell.day}
               </p>
               <div className="space-y-0.5">
@@ -300,8 +351,18 @@ export function AgendaPage() {
   }
 
   const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
   ];
 
   return (
@@ -327,10 +388,18 @@ export function AgendaPage() {
               <Button variant="secondary" size="sm" onClick={() => setCurrentDate(new Date())}>
                 Hoy
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentDate(navigateDate(view, currentDate, -1))}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentDate(navigateDate(view, currentDate, -1))}
+              >
                 ←
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentDate(navigateDate(view, currentDate, 1))}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentDate(navigateDate(view, currentDate, 1))}
+              >
                 →
               </Button>
               <h2 className="text-lg font-semibold text-gray-900 ml-2">
@@ -378,7 +447,10 @@ export function AgendaPage() {
           isYearLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="p-4 rounded-lg border border-gray-200 bg-white animate-pulse">
+                <div
+                  key={i}
+                  className="p-4 rounded-lg border border-gray-200 bg-white animate-pulse"
+                >
                   <div className="h-4 bg-gray-200 rounded w-24 mb-2" />
                   <div className="h-3 bg-gray-100 rounded w-20" />
                 </div>

@@ -86,7 +86,9 @@ describe('TaskDetailPage', () => {
   it('renders task description', () => {
     mockUseTask.mockReturnValue({ data: mockTask, isLoading: false, error: null });
     renderPage();
-    expect(screen.getAllByText('Resolver ejercicios del capítulo 3').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Resolver ejercicios del capítulo 3').length).toBeGreaterThanOrEqual(
+      1,
+    );
   });
 
   it('shows DRAFT status badge', () => {
@@ -108,19 +110,31 @@ describe('TaskDetailPage', () => {
   });
 
   it('hides edit button for PUBLISHED tasks', () => {
-    mockUseTask.mockReturnValue({ data: { ...mockTask, status: 'PUBLISHED' }, isLoading: false, error: null });
+    mockUseTask.mockReturnValue({
+      data: { ...mockTask, status: 'PUBLISHED' },
+      isLoading: false,
+      error: null,
+    });
     renderPage();
     expect(screen.queryByText('Editar')).toBeNull();
   });
 
   it('shows close button for PUBLISHED tasks', () => {
-    mockUseTask.mockReturnValue({ data: { ...mockTask, status: 'PUBLISHED' }, isLoading: false, error: null });
+    mockUseTask.mockReturnValue({
+      data: { ...mockTask, status: 'PUBLISHED' },
+      isLoading: false,
+      error: null,
+    });
     renderPage();
     expect(screen.getByText('Cerrar')).toBeDefined();
   });
 
   it('hides publish and close for CLOSED tasks', () => {
-    mockUseTask.mockReturnValue({ data: { ...mockTask, status: 'CLOSED' }, isLoading: false, error: null });
+    mockUseTask.mockReturnValue({
+      data: { ...mockTask, status: 'CLOSED' },
+      isLoading: false,
+      error: null,
+    });
     renderPage();
     expect(screen.queryByText('Publicar')).toBeNull();
     expect(screen.queryByText('Cerrar')).toBeNull();

@@ -51,27 +51,39 @@ export class SignaturesController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new signature request' })
   @ApiResponse({ status: 201, description: 'Signature request created successfully' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateSignatureRequestDto,
-  ) {
-    return this.signaturesService.create(
-      req.tenant!.institutionId,
-      dto,
-      req.user.userId,
-      req.ip,
-    );
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateSignatureRequestDto) {
+    return this.signaturesService.create(req.tenant!.institutionId, dto, req.user.userId, req.ip);
   }
 
   @Get()
   @RequirePermission('signatures:read')
   @ApiOperation({ summary: 'List signature requests with optional filters' })
   @ApiResponse({ status: 200, description: 'Signature requests retrieved successfully' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search by title or description' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by title or description',
+  })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by status' })
-  @ApiQuery({ name: 'dueDateFrom', required: false, type: String, description: 'Filter by due date from' })
-  @ApiQuery({ name: 'dueDateTo', required: false, type: String, description: 'Filter by due date to' })
-  @ApiQuery({ name: 'recipientUserId', required: false, type: String, description: 'Filter by recipient user ID' })
+  @ApiQuery({
+    name: 'dueDateFrom',
+    required: false,
+    type: String,
+    description: 'Filter by due date from',
+  })
+  @ApiQuery({
+    name: 'dueDateTo',
+    required: false,
+    type: String,
+    description: 'Filter by due date to',
+  })
+  @ApiQuery({
+    name: 'recipientUserId',
+    required: false,
+    type: String,
+    description: 'Filter by recipient user ID',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
   async findAll(
@@ -93,10 +105,7 @@ export class SignaturesController {
   @ApiParam({ name: 'id', description: 'Signature request UUID' })
   @ApiResponse({ status: 200, description: 'Signature request found' })
   @ApiResponse({ status: 404, description: 'Signature request not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     const manager = await this.isManager(req.user.userId, req.tenant!.institutionId);
     return this.signaturesService.findOne(
       req.tenant!.institutionId,
@@ -133,16 +142,8 @@ export class SignaturesController {
   @ApiParam({ name: 'id', description: 'Signature request UUID' })
   @ApiResponse({ status: 200, description: 'Signature request published successfully' })
   @ApiResponse({ status: 404, description: 'Signature request not found' })
-  async publish(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.signaturesService.publish(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async publish(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signaturesService.publish(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Patch(':id/sign')
@@ -151,16 +152,8 @@ export class SignaturesController {
   @ApiParam({ name: 'id', description: 'Signature request UUID' })
   @ApiResponse({ status: 200, description: 'Signature request signed successfully' })
   @ApiResponse({ status: 404, description: 'Signature request not found' })
-  async sign(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.signaturesService.sign(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async sign(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signaturesService.sign(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Patch(':id/decline')
@@ -169,16 +162,8 @@ export class SignaturesController {
   @ApiParam({ name: 'id', description: 'Signature request UUID' })
   @ApiResponse({ status: 200, description: 'Signature request declined successfully' })
   @ApiResponse({ status: 404, description: 'Signature request not found' })
-  async decline(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.signaturesService.decline(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async decline(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signaturesService.decline(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Patch(':id/deactivate')
@@ -187,10 +172,7 @@ export class SignaturesController {
   @ApiParam({ name: 'id', description: 'Signature request UUID' })
   @ApiResponse({ status: 200, description: 'Signature request deactivated successfully' })
   @ApiResponse({ status: 404, description: 'Signature request not found' })
-  async deactivate(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async deactivate(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.signaturesService.deactivate(
       req.tenant!.institutionId,
       id,

@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsUUID,
-  MaxLength,
-  MinLength,
-  IsDateString,
-} from 'class-validator';
+import { IsString, IsOptional, IsUUID, MaxLength, MinLength, IsDateString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateTaskDto {

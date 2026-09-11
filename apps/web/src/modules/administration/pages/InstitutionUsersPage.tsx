@@ -26,7 +26,8 @@ export function InstitutionUsersPage() {
   const navigate = useNavigate();
   const { selectedInstitutionId } = useAuth();
   const { hasPermission } = usePermissions();
-  const canCreate = hasPermission(PERMISSIONS.USERS_CREATE) || hasPermission(PERMISSIONS.MEMBERSHIPS_MANAGE);
+  const canCreate =
+    hasPermission(PERMISSIONS.USERS_CREATE) || hasPermission(PERMISSIONS.MEMBERSHIPS_MANAGE);
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -144,7 +145,9 @@ export function InstitutionUsersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={STATUS_VARIANT[member.user.status]}>{member.user.status}</Badge>
+                      <Badge variant={STATUS_VARIANT[member.user.status]}>
+                        {member.user.status}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button

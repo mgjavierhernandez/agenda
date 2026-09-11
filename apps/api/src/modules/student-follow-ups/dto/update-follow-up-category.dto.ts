@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsString, IsOptional, IsBoolean, MaxLength, MinLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateFollowUpCategoryDto {

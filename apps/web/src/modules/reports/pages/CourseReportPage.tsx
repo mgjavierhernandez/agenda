@@ -46,13 +46,18 @@ export function CourseReportPage() {
   );
 
   const courseLabel =
-    courses.find((c) => c.id === selectedCourseId)?.name ?? (selectedCourseId ? 'Curso seleccionado' : '');
+    courses.find((c) => c.id === selectedCourseId)?.name ??
+    (selectedCourseId ? 'Curso seleccionado' : '');
 
   const handleExportCsv = async () => {
     if (!selectedCourseId) return;
     setIsExporting(true);
     try {
-      await downloadCourseReportCsv(selectedCourseId, courseLabel || 'curso', selectedPeriodId || undefined);
+      await downloadCourseReportCsv(
+        selectedCourseId,
+        courseLabel || 'curso',
+        selectedPeriodId || undefined,
+      );
     } finally {
       setIsExporting(false);
     }
@@ -74,7 +79,10 @@ export function CourseReportPage() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="w-full sm:w-72">
-          <label htmlFor="course-report-course" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="course-report-course"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Curso
           </label>
           <select
@@ -93,7 +101,10 @@ export function CourseReportPage() {
         </div>
 
         <div className="w-full sm:w-72">
-          <label htmlFor="course-report-period" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="course-report-period"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Periodo académico
           </label>
           <select
@@ -138,7 +149,9 @@ export function CourseReportPage() {
             </Card>
             <Card>
               <p className="text-xs font-medium uppercase text-gray-500">Con asistencia</p>
-              <p className="text-2xl font-bold text-gray-900">{data.summary.studentsWithAttendance}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {data.summary.studentsWithAttendance}
+              </p>
             </Card>
           </div>
 

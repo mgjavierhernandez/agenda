@@ -28,21 +28,16 @@ describe('useAgenda', () => {
       total: 0,
     });
 
-    const { result } = renderHook(
-      () => useAgenda({ start: '2026-08-24', end: '2026-08-30' }),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useAgenda({ start: '2026-08-24', end: '2026-08-30' }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('start=2026-08-24'),
-    );
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('end=2026-08-30'),
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('start=2026-08-24'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('end=2026-08-30'));
   });
 
   it('should include eventTypes in query', async () => {
@@ -67,9 +62,7 @@ describe('useAgenda', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('eventTypes=TASK'),
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('eventTypes=TASK'));
   });
 
   it('should include view in query', async () => {
@@ -94,9 +87,7 @@ describe('useAgenda', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('view=month'),
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('view=month'));
   });
 
   it('should include studentId in query when provided', async () => {
@@ -122,8 +113,6 @@ describe('useAgenda', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringContaining('studentId=stu-1'),
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('studentId=stu-1'));
   });
 });

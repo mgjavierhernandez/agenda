@@ -87,14 +87,20 @@ describe('SignaturesPage', () => {
   });
 
   it('renders the page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<SignaturesPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Firmas')).toBeInTheDocument();
   });
 
   it('renders empty state when no signatures', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<SignaturesPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -115,7 +121,10 @@ describe('SignaturesPage', () => {
   });
 
   it('shows new request button for managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<SignaturesPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -124,7 +133,10 @@ describe('SignaturesPage', () => {
   });
 
   it('hides new request button for non-managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
     mockHasPermission.mockImplementation((perm: string) => perm !== 'signatures:request');
 
     render(<SignaturesPage />, { wrapper: createWrapper() });
@@ -148,7 +160,9 @@ describe('SignatureDetailPage', () => {
 
     await waitFor(() => {
       expect(screen.getAllByText('Autorización de excursión').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Firma para autorizar la excursión escolar').length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText('Firma para autorizar la excursión escolar').length,
+      ).toBeGreaterThanOrEqual(1);
     });
   });
 

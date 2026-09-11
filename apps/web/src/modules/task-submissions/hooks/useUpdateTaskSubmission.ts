@@ -5,7 +5,11 @@ import type { UpdateTaskSubmissionInput, TaskSubmission } from '@/api/types';
 export function useUpdateTaskSubmission() {
   const queryClient = useQueryClient();
 
-  return useMutation<TaskSubmission, Error, { assignmentId: string; data: UpdateTaskSubmissionInput }>({
+  return useMutation<
+    TaskSubmission,
+    Error,
+    { assignmentId: string; data: UpdateTaskSubmissionInput }
+  >({
     mutationFn: ({ assignmentId, data }) =>
       apiClient.patch(`/task-assignments/${assignmentId}/submission`, data),
     onSuccess: (_, variables) => {

@@ -41,7 +41,12 @@ export const apiClient = {
 
     if (response.status === 401) {
       onUnauthorized?.();
-      throw { statusCode: 401, message: 'Unauthorized', timestamp: new Date().toISOString(), path } as ApiError;
+      throw {
+        statusCode: 401,
+        message: 'Unauthorized',
+        timestamp: new Date().toISOString(),
+        path,
+      } as ApiError;
     }
 
     if (!response.ok) {
@@ -103,7 +108,12 @@ export const apiClient = {
 
     if (response.status === 401) {
       onUnauthorized?.();
-      throw { statusCode: 401, message: 'Unauthorized', timestamp: new Date().toISOString(), path } as ApiError;
+      throw {
+        statusCode: 401,
+        message: 'Unauthorized',
+        timestamp: new Date().toISOString(),
+        path,
+      } as ApiError;
     }
 
     if (!response.ok) {

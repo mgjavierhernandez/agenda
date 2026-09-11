@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { resolveAccessibleStudentIds, resolveAccessibleCourseIds, getUserRoleNames, TEACHER_SCOPED_ROLES } from '../../common/auth/academic-scope';
+import {
+  resolveAccessibleStudentIds,
+  resolveAccessibleCourseIds,
+  getUserRoleNames,
+  TEACHER_SCOPED_ROLES,
+} from '../../common/auth/academic-scope';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
@@ -117,7 +122,10 @@ export class TasksService {
     institutionId: string,
     query: ListTasksQueryDto,
     userId?: string,
-  ): Promise<{ data: Task[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: Task[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -151,10 +159,18 @@ export class TasksService {
         resolveAccessibleCourseIds(this.prisma, institutionId, userId),
       ]);
       if (accessibleStudents !== null || accessibleCourses !== null) {
-        if (query.courseId && accessibleCourses !== null && !accessibleCourses.includes(query.courseId)) {
+        if (
+          query.courseId &&
+          accessibleCourses !== null &&
+          !accessibleCourses.includes(query.courseId)
+        ) {
           throw new NotFoundException('Task not found');
         }
-        if (query.studentId && accessibleStudents !== null && !accessibleStudents.includes(query.studentId)) {
+        if (
+          query.studentId &&
+          accessibleStudents !== null &&
+          !accessibleStudents.includes(query.studentId)
+        ) {
           throw new NotFoundException('Task not found');
         }
         // Estudiante explícito: restringir el alcance a ese estudiante.
@@ -163,16 +179,17 @@ export class TasksService {
         const scopeOr: Prisma.TaskWhereInput[] = [];
         let hasScopeContent = false;
         if (effectiveStudents !== null) {
-          const links = effectiveStudents.length > 0
-            ? await this.prisma.taskAssignment.findMany({
-                where: {
-                  institutionId,
-                  studentId: { in: effectiveStudents },
-                  status: { not: 'CANCELLED' },
-                },
-                select: { taskId: true },
-              })
-            : [];
+          const links =
+            effectiveStudents.length > 0
+              ? await this.prisma.taskAssignment.findMany({
+                  where: {
+                    institutionId,
+                    studentId: { in: effectiveStudents },
+                    status: { not: 'CANCELLED' },
+                  },
+                  select: { taskId: true },
+                })
+              : [];
           const taskIds = [...new Set(links.map((l) => l.taskId))];
           if (taskIds.length > 0) hasScopeContent = true;
           scopeOr.push({ id: { in: taskIds } });
@@ -189,7 +206,10 @@ export class TasksService {
         if (!hasScopeContent) {
           return { data: [], meta: { page, limit, total: 0, totalPages: 0 } };
         }
-        where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { OR: scopeOr }];
+        where.AND = [
+          ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+          { OR: scopeOr },
+        ];
       }
     }
 

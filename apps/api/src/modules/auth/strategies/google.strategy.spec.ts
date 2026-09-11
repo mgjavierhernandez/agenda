@@ -3,7 +3,9 @@ import { GoogleStrategy } from './google.strategy';
 
 describe('GoogleStrategy (GAP-4)', () => {
   const makeConfig = (values: Record<string, string | undefined>) =>
-    ({ get: (key: string, fallback?: string) => values[key] ?? fallback }) as unknown as ConfigService;
+    ({
+      get: (key: string, fallback?: string) => values[key] ?? fallback,
+    }) as unknown as ConfigService;
 
   it('should report configured only when all three variables are present', () => {
     const full = makeConfig({

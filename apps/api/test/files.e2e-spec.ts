@@ -87,7 +87,10 @@ describe('Files (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/files')
         .set(auth())
-        .attach('file', fileContent, { filename: 'test-document.pdf', contentType: 'application/pdf' })
+        .attach('file', fileContent, {
+          filename: 'test-document.pdf',
+          contentType: 'application/pdf',
+        })
         .expect(201);
 
       expect(res.body).toHaveProperty('id');
@@ -116,7 +119,10 @@ describe('Files (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/files')
         .set(auth())
-        .attach('file', fileContent, { filename: 'evil.exe', contentType: 'application/x-executable' })
+        .attach('file', fileContent, {
+          filename: 'evil.exe',
+          contentType: 'application/x-executable',
+        })
         .expect(400);
     });
 
@@ -144,10 +150,7 @@ describe('Files (e2e)', () => {
     it('should return 404 for non-existent file', async () => {
       if (!hasAdmin()) return;
       const fakeId = crypto.randomUUID();
-      await request(app.getHttpServer())
-        .get(`/api/v1/files/${fakeId}`)
-        .set(auth())
-        .expect(404);
+      await request(app.getHttpServer()).get(`/api/v1/files/${fakeId}`).set(auth()).expect(404);
     });
   });
 

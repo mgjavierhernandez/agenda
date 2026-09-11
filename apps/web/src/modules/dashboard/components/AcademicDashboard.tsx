@@ -40,8 +40,9 @@ export function AcademicDashboard({
       {childName && (
         <Card>
           <p className="text-sm text-gray-500">
-            Mostrando información de <span className="font-semibold text-gray-900">{childName}</span>.
-            Usa el selector de hijo en la barra superior para cambiar.
+            Mostrando información de{' '}
+            <span className="font-semibold text-gray-900">{childName}</span>. Usa el selector de
+            hijo en la barra superior para cambiar.
           </p>
         </Card>
       )}
@@ -53,21 +54,24 @@ export function AcademicDashboard({
             {summary.overdueTasks > 0 && (
               <li>
                 <Link to="/tasks" className="underline">
-                  {summary.overdueTasks} tarea{summary.overdueTasks === 1 ? '' : 's'} vencida{summary.overdueTasks === 1 ? '' : 's'}
+                  {summary.overdueTasks} tarea{summary.overdueTasks === 1 ? '' : 's'} vencida
+                  {summary.overdueTasks === 1 ? '' : 's'}
                 </Link>
               </li>
             )}
             {unreadCommunications > 0 && (
               <li>
                 <Link to="/communication-inbox" className="underline">
-                  {unreadCommunications} comunicación{unreadCommunications === 1 ? '' : 'es'} sin leer
+                  {unreadCommunications} comunicación{unreadCommunications === 1 ? '' : 'es'} sin
+                  leer
                 </Link>
               </li>
             )}
             {pendingSignatures > 0 && (
               <li>
                 <Link to="/signatures" className="underline">
-                  {pendingSignatures} firma{pendingSignatures === 1 ? '' : 's'} pendiente{pendingSignatures === 1 ? '' : 's'}
+                  {pendingSignatures} firma{pendingSignatures === 1 ? '' : 's'} pendiente
+                  {pendingSignatures === 1 ? '' : 's'}
                 </Link>
               </li>
             )}

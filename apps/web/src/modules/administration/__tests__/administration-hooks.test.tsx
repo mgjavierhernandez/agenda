@@ -112,7 +112,13 @@ describe('Administration hooks', () => {
   describe('useRoles', () => {
     it('fetches roles', async () => {
       vi.mocked(apiClient.get).mockResolvedValue([
-        { id: 'role-admin', name: 'INSTITUTION_ADMIN', description: null, isSystem: true, assignable: true },
+        {
+          id: 'role-admin',
+          name: 'INSTITUTION_ADMIN',
+          description: null,
+          isSystem: true,
+          assignable: true,
+        },
       ]);
 
       const { result } = renderHook(() => useRoles(), { wrapper: createWrapper() });
@@ -186,7 +192,12 @@ describe('Administration hooks', () => {
 
   describe('useLinkUser', () => {
     it('creates a membership', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({ id: 'mem-2', userId: 'user-1', institutionId: 'inst-1', status: 'ACTIVE' });
+      vi.mocked(apiClient.post).mockResolvedValue({
+        id: 'mem-2',
+        userId: 'user-1',
+        institutionId: 'inst-1',
+        status: 'ACTIVE',
+      });
 
       const { result } = renderHook(() => useLinkUser('inst-1'), { wrapper: createWrapper() });
 
@@ -206,9 +217,12 @@ describe('Administration hooks', () => {
       const { result } = renderHook(() => useAssignRole('inst-1'), { wrapper: createWrapper() });
 
       await result.current.mutateAsync({ userId: 'user-1', roleId: 'role-teacher' });
-      expect(apiClient.post).toHaveBeenCalledWith('/institutions/inst-1/memberships/user/user-1/roles', {
-        roleId: 'role-teacher',
-      });
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/institutions/inst-1/memberships/user/user-1/roles',
+        {
+          roleId: 'role-teacher',
+        },
+      );
     });
   });
 
@@ -229,7 +243,9 @@ describe('Administration hooks', () => {
     it('patches a membership', async () => {
       vi.mocked(apiClient.patch).mockResolvedValue({ ...mockMembership, status: 'SUSPENDED' });
 
-      const { result } = renderHook(() => useUpdateMembership('inst-1'), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useUpdateMembership('inst-1'), {
+        wrapper: createWrapper(),
+      });
 
       await result.current.mutateAsync({ membershipId: 'mem-1', data: { status: 'SUSPENDED' } });
       expect(apiClient.patch).toHaveBeenCalledWith('/institutions/inst-1/memberships/mem-1', {

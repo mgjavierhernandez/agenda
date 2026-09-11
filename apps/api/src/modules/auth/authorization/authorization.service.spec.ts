@@ -229,9 +229,7 @@ describe('AuthorizationService', () => {
 
       const result = await service.getUserRoles('user-1', 'inst-1');
 
-      expect(result).toEqual([
-        { id: 'role-1', name: 'TEACHER', roleType: RoleType.TENANT },
-      ]);
+      expect(result).toEqual([{ id: 'role-1', name: 'TEACHER', roleType: RoleType.TENANT }]);
     });
 
     it('should return empty array for user with no tenant roles', async () => {

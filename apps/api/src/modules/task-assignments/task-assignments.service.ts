@@ -1,13 +1,13 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
 import { findGuardianUserIds } from '../../common/auth/parent-context';
-import { CreateTaskAssignmentDto, UpdateTaskAssignmentDto, ListTaskAssignmentsQueryDto } from './dto/task-assignment.dto';
+import {
+  CreateTaskAssignmentDto,
+  UpdateTaskAssignmentDto,
+  ListTaskAssignmentsQueryDto,
+} from './dto/task-assignment.dto';
 import { TaskAssignment, Prisma, TaskAssignmentStatus } from '@prisma/client';
 
 @Injectable()
@@ -27,7 +27,8 @@ export class TaskAssignmentsService {
       where: { id: dto.taskId, institutionId },
     });
     if (!task) throw new NotFoundException('Task not found in this institution');
-    if (task.status !== 'PUBLISHED') throw new BadRequestException('Task must be PUBLISHED to assign');
+    if (task.status !== 'PUBLISHED')
+      throw new BadRequestException('Task must be PUBLISHED to assign');
 
     let studentIds = dto.studentIds;
     if (!studentIds || studentIds.length === 0) {
@@ -114,7 +115,10 @@ export class TaskAssignmentsService {
     institutionId: string,
     query: ListTaskAssignmentsQueryDto,
     userId?: string,
-  ): Promise<{ data: TaskAssignment[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: TaskAssignment[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -219,6 +223,12 @@ export class TaskAssignmentsService {
     userId: string,
     ipAddress?: string,
   ): Promise<TaskAssignment> {
-    return this.update(institutionId, id, { status: TaskAssignmentStatus.CANCELLED }, userId, ipAddress);
+    return this.update(
+      institutionId,
+      id,
+      { status: TaskAssignmentStatus.CANCELLED },
+      userId,
+      ipAddress,
+    );
   }
 }

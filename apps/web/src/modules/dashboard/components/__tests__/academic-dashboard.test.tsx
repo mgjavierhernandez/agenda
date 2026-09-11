@@ -35,9 +35,39 @@ function wrapper({ children }: { children: ReactNode }) {
 
 const gradesData = {
   data: [
-    { id: 'g1', studentId: 'stu-1', courseId: 'c1', subjectId: 's-math', value: '4.50', period: 'Q1', evaluationType: 'Parcial', description: null, status: 'ACTIVE' },
-    { id: 'g2', studentId: 'stu-1', courseId: 'c1', subjectId: 's-math', value: '3.50', period: 'Q2', evaluationType: 'Parcial', description: null, status: 'ACTIVE' },
-    { id: 'g3', studentId: 'stu-1', courseId: 'c1', subjectId: 's-lang', value: '5.00', period: 'Q1', evaluationType: 'Parcial', description: null, status: 'ACTIVE' },
+    {
+      id: 'g1',
+      studentId: 'stu-1',
+      courseId: 'c1',
+      subjectId: 's-math',
+      value: '4.50',
+      period: 'Q1',
+      evaluationType: 'Parcial',
+      description: null,
+      status: 'ACTIVE',
+    },
+    {
+      id: 'g2',
+      studentId: 'stu-1',
+      courseId: 'c1',
+      subjectId: 's-math',
+      value: '3.50',
+      period: 'Q2',
+      evaluationType: 'Parcial',
+      description: null,
+      status: 'ACTIVE',
+    },
+    {
+      id: 'g3',
+      studentId: 'stu-1',
+      courseId: 'c1',
+      subjectId: 's-lang',
+      value: '5.00',
+      period: 'Q1',
+      evaluationType: 'Parcial',
+      description: null,
+      status: 'ACTIVE',
+    },
   ],
   meta: { page: 1, limit: 200, total: 3, totalPages: 1 },
 };
@@ -48,7 +78,14 @@ describe('AcademicDashboard', () => {
     mockGrades.mockReturnValue({ data: gradesData, isLoading: false } as never);
     mockTasks.mockReturnValue({
       data: {
-        data: [{ id: 't1', title: 'Tarea 1', status: 'PUBLISHED', dueDate: new Date(Date.now() + 86400000).toISOString() }],
+        data: [
+          {
+            id: 't1',
+            title: 'Tarea 1',
+            status: 'PUBLISHED',
+            dueDate: new Date(Date.now() + 86400000).toISOString(),
+          },
+        ],
         meta: { page: 1, limit: 200, total: 1, totalPages: 1 },
       },
       isLoading: false,
@@ -94,7 +131,9 @@ describe('AcademicDashboard', () => {
   });
 
   it('shows attention alerts', () => {
-    render(<AcademicDashboard studentId="stu-1" unreadCommunications={2} pendingSignatures={1} />, { wrapper });
+    render(<AcademicDashboard studentId="stu-1" unreadCommunications={2} pendingSignatures={1} />, {
+      wrapper,
+    });
 
     expect(screen.getByText('Requiere tu atención')).toBeDefined();
     expect(screen.getByText(/sin leer/)).toBeDefined();

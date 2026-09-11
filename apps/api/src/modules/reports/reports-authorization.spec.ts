@@ -66,26 +66,50 @@ describe('ReportsAuthorizationService', () => {
 
   describe('canAccessStudent', () => {
     it('should allow INSTITUTION_ADMIN without queries', async () => {
-      const res = await service.canAccessStudent(userId, institutionId, studentId, null, 'INSTITUTION_ADMIN');
+      const res = await service.canAccessStudent(
+        userId,
+        institutionId,
+        studentId,
+        null,
+        'INSTITUTION_ADMIN',
+      );
       expect(res.allowed).toBe(true);
       expect(prismaMock.teacherAssignment.findFirst).not.toHaveBeenCalled();
     });
 
     it('should deny SUPER_ADMIN (no bypass)', async () => {
-      const res = await service.canAccessStudent(userId, institutionId, studentId, null, 'SUPER_ADMIN');
+      const res = await service.canAccessStudent(
+        userId,
+        institutionId,
+        studentId,
+        null,
+        'SUPER_ADMIN',
+      );
       expect(res.allowed).toBe(false);
       expect(res.reason).toBe('SUPER_ADMIN_NO_ACCESS');
     });
 
     it('should allow TEACHER with ACTIVE assignment to a course the student is enrolled in', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1' });
-      const res = await service.canAccessStudent(userId, institutionId, studentId, periodId, 'TEACHER');
+      const res = await service.canAccessStudent(
+        userId,
+        institutionId,
+        studentId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should deny TEACHER without relationship (IDOR)', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
-      const res = await service.canAccessStudent(userId, institutionId, studentId, periodId, 'TEACHER');
+      const res = await service.canAccessStudent(
+        userId,
+        institutionId,
+        studentId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(false);
       expect(res.reason).toBe('NO_STUDENT_RELATIONSHIP');
     });
@@ -123,43 +147,85 @@ describe('ReportsAuthorizationService', () => {
 
   describe('canAccessCourse', () => {
     it('should allow INSTITUTION_ADMIN without queries', async () => {
-      const res = await service.canAccessCourse(userId, institutionId, courseId, null, 'INSTITUTION_ADMIN');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        null,
+        'INSTITUTION_ADMIN',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should deny SUPER_ADMIN', async () => {
-      const res = await service.canAccessCourse(userId, institutionId, courseId, null, 'SUPER_ADMIN');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        null,
+        'SUPER_ADMIN',
+      );
       expect(res.allowed).toBe(false);
     });
 
     it('should allow TEACHER assigned to the course and period', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1' });
-      const res = await service.canAccessCourse(userId, institutionId, courseId, periodId, 'TEACHER');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should deny TEACHER on unassigned course', async () => {
       prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
-      const res = await service.canAccessCourse(userId, institutionId, courseId, periodId, 'TEACHER');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        periodId,
+        'TEACHER',
+      );
       expect(res.allowed).toBe(false);
       expect(res.reason).toBe('NO_COURSE_RELATIONSHIP');
     });
 
     it('should allow PARENT whose child is enrolled in the course', async () => {
       prismaMock.guardianStudent.findFirst.mockResolvedValue({ id: 'gs-1' });
-      const res = await service.canAccessCourse(userId, institutionId, courseId, periodId, 'PARENT');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        periodId,
+        'PARENT',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should allow STUDENT enrolled in the course', async () => {
       prismaMock.enrollment.findFirst.mockResolvedValue({ id: 'enr-1' });
-      const res = await service.canAccessCourse(userId, institutionId, courseId, periodId, 'STUDENT');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        periodId,
+        'STUDENT',
+      );
       expect(res.allowed).toBe(true);
     });
 
     it('should deny STUDENT not enrolled (IDOR)', async () => {
       prismaMock.enrollment.findFirst.mockResolvedValue(null);
-      const res = await service.canAccessCourse(userId, institutionId, courseId, periodId, 'STUDENT');
+      const res = await service.canAccessCourse(
+        userId,
+        institutionId,
+        courseId,
+        periodId,
+        'STUDENT',
+      );
       expect(res.allowed).toBe(false);
     });
   });

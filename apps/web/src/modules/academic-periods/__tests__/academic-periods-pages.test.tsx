@@ -76,14 +76,20 @@ describe('AcademicPeriodsPage', () => {
   });
 
   it('renders the page header', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<AcademicPeriodsPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Periodos académicos')).toBeInTheDocument();
   });
 
   it('renders empty state when no periods', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<AcademicPeriodsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -104,7 +110,10 @@ describe('AcademicPeriodsPage', () => {
   });
 
   it('shows new period button for managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
 
     render(<AcademicPeriodsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -113,7 +122,10 @@ describe('AcademicPeriodsPage', () => {
   });
 
   it('hides new period button for non-managers', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+    });
     mockHasPermission.mockImplementation((perm: string) => perm !== 'academic-periods:manage');
 
     render(<AcademicPeriodsPage />, { wrapper: createWrapper() });
@@ -304,7 +316,10 @@ describe('AcademicPeriodFormPage', () => {
     const startDateInput = screen.getByLabelText('Fecha de inicio') as HTMLInputElement;
     const endDateInput = screen.getByLabelText('Fecha de finalización') as HTMLInputElement;
 
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value',
+    )?.set;
     if (nativeInputValueSetter) {
       nativeInputValueSetter.call(startDateInput, '2026-06-30');
       startDateInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -316,7 +331,9 @@ describe('AcademicPeriodFormPage', () => {
     submitButton.click();
 
     await waitFor(() => {
-      expect(screen.getByText('La fecha de fin debe ser posterior a la fecha de inicio')).toBeInTheDocument();
+      expect(
+        screen.getByText('La fecha de fin debe ser posterior a la fecha de inicio'),
+      ).toBeInTheDocument();
     });
   });
 

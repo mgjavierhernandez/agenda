@@ -62,7 +62,10 @@ describe('Academic Periods hooks', () => {
     });
 
     it('sends search param', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useAcademicPeriods({ page: 2, limit: 10, search: 'periodo' }), {
         wrapper: createWrapper(),
@@ -139,7 +142,9 @@ describe('Academic Periods hooks', () => {
       });
 
       expect(res).toEqual(updated);
-      expect(apiClient.patch).toHaveBeenCalledWith('/academic-periods/ap-1', { name: 'Periodo actualizado' });
+      expect(apiClient.patch).toHaveBeenCalledWith('/academic-periods/ap-1', {
+        name: 'Periodo actualizado',
+      });
     });
   });
 

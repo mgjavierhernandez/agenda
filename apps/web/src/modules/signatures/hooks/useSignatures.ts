@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
-import type { PaginatedApiResponse, SignatureRequest, ListSignatureRequestsParams } from '@/api/types';
+import type {
+  PaginatedApiResponse,
+  SignatureRequest,
+  ListSignatureRequestsParams,
+} from '@/api/types';
 
 export function useSignatures(params: ListSignatureRequestsParams = {}) {
   const { page = 1, limit = 20, search, status, dueDateFrom, dueDateTo, recipientUserId } = params;
@@ -15,7 +19,10 @@ export function useSignatures(params: ListSignatureRequestsParams = {}) {
   if (recipientUserId) searchParams.set('recipientUserId', recipientUserId);
 
   return useQuery<PaginatedApiResponse<SignatureRequest>>({
-    queryKey: ['signature-requests', { page, limit, search, status, dueDateFrom, dueDateTo, recipientUserId }],
+    queryKey: [
+      'signature-requests',
+      { page, limit, search, status, dueDateFrom, dueDateTo, recipientUserId },
+    ],
     queryFn: () => apiClient.get(`/signature-requests?${searchParams.toString()}`),
   });
 }

@@ -46,10 +46,7 @@ export class NotificationsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new notification' })
   @ApiResponse({ status: 201, description: 'Notification created successfully' })
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateNotificationDto,
-  ) {
+  async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateNotificationDto) {
     return this.notificationsService.create(
       req.tenant!.institutionId,
       dto,
@@ -62,22 +59,30 @@ export class NotificationsController {
   @RequirePermission('notifications:read')
   @ApiOperation({ summary: 'List notifications with optional filters' })
   @ApiResponse({ status: 200, description: 'Notifications retrieved successfully' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search by title or message' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by title or message',
+  })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by status' })
   @ApiQuery({ name: 'type', required: false, type: String, description: 'Filter by type' })
-  @ApiQuery({ name: 'createdFrom', required: false, type: String, description: 'Filter by created date from' })
-  @ApiQuery({ name: 'createdTo', required: false, type: String, description: 'Filter by created date to' })
+  @ApiQuery({
+    name: 'createdFrom',
+    required: false,
+    type: String,
+    description: 'Filter by created date from',
+  })
+  @ApiQuery({
+    name: 'createdTo',
+    required: false,
+    type: String,
+    description: 'Filter by created date to',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListNotificationsQueryDto,
-  ) {
-    return this.notificationsService.findAll(
-      req.tenant!.institutionId,
-      req.user.userId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListNotificationsQueryDto) {
+    return this.notificationsService.findAll(req.tenant!.institutionId, req.user.userId, query);
   }
 
   @Get(':id')
@@ -86,15 +91,8 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification UUID' })
   @ApiResponse({ status: 200, description: 'Notification found' })
   @ApiResponse({ status: 404, description: 'Notification not found' })
-  async findOne(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.notificationsService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async findOne(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.notificationsService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch(':id')
@@ -116,11 +114,7 @@ export class NotificationsController {
         req.ip,
       );
     }
-    return this.notificationsService.findOne(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+    return this.notificationsService.findOne(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Patch()
@@ -143,15 +137,8 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification UUID' })
   @ApiResponse({ status: 200, description: 'Opening tracked successfully' })
   @ApiResponse({ status: 404, description: 'Notification not found' })
-  async trackOpened(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    await this.notificationsService.trackOpened(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async trackOpened(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    await this.notificationsService.trackOpened(req.tenant!.institutionId, id, req.user.userId);
     return { ok: true };
   }
 
@@ -162,15 +149,8 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification UUID' })
   @ApiResponse({ status: 204, description: 'Notification deleted successfully' })
   @ApiResponse({ status: 404, description: 'Notification not found' })
-  async delete(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.notificationsService.delete(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-    );
+  async delete(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.notificationsService.delete(req.tenant!.institutionId, id, req.user.userId);
   }
 
   @Delete()
@@ -179,9 +159,6 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Delete all notifications' })
   @ApiResponse({ status: 200, description: 'All notifications deleted successfully' })
   async deleteAll(@Request() req: AuthenticatedRequest) {
-    return this.notificationsService.deleteAll(
-      req.tenant!.institutionId,
-      req.user.userId,
-    );
+    return this.notificationsService.deleteAll(req.tenant!.institutionId, req.user.userId);
   }
 }

@@ -67,9 +67,7 @@ describe('AgendaService', () => {
 
   describe('getAgenda', () => {
     it('should return events for a valid date range', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-1',
@@ -117,12 +115,8 @@ describe('AgendaService', () => {
     });
 
     it('should filter by event types', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
-      prismaMock.taskAssignment.findMany.mockResolvedValue([
-        { taskId: 'task-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
+      prismaMock.taskAssignment.findMany.mockResolvedValue([{ taskId: 'task-1' }]);
       prismaMock.task.findMany.mockResolvedValue([
         {
           id: 'task-1',
@@ -160,12 +154,8 @@ describe('AgendaService', () => {
     });
 
     it('should query tasks for assigned students', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
-      prismaMock.taskAssignment.findMany.mockResolvedValue([
-        { taskId: 'task-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
+      prismaMock.taskAssignment.findMany.mockResolvedValue([{ taskId: 'task-1' }]);
       prismaMock.task.findMany.mockResolvedValue([
         {
           id: 'task-1',
@@ -199,9 +189,7 @@ describe('AgendaService', () => {
         status: 'ACTIVE',
         roles: [{ role: { name: 'TEACHER' } }],
       });
-      prismaMock.teacherAssignment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.teacherAssignment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
 
       const result = await service.getAgenda(institutionId, userId, {
         start: '2026-08-24',
@@ -234,9 +222,7 @@ describe('AgendaService', () => {
     });
 
     it('should handle schedules with Date objects for startTime/endTime', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-dateobj',
@@ -265,9 +251,7 @@ describe('AgendaService', () => {
     });
 
     it('should skip schedule when startTime is null', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-null-start',
@@ -294,9 +278,7 @@ describe('AgendaService', () => {
     });
 
     it('should skip schedule when endTime is null', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-null-end',
@@ -323,9 +305,7 @@ describe('AgendaService', () => {
     });
 
     it('should skip schedule when both startTime and endTime are null', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-both-null',
@@ -352,9 +332,7 @@ describe('AgendaService', () => {
     });
 
     it('should skip schedule with invalid time value (NaN)', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-invalid',
@@ -381,9 +359,7 @@ describe('AgendaService', () => {
     });
 
     it('should not throw RangeError for any schedule time data', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-1',
@@ -423,9 +399,7 @@ describe('AgendaService', () => {
     });
 
     it('should produce valid ISO dates for schedules with Date objects', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-iso',
@@ -454,9 +428,7 @@ describe('AgendaService', () => {
     });
 
     it('should sort events by start time', async () => {
-      prismaMock.enrollment.findMany.mockResolvedValue([
-        { courseId: 'course-1' },
-      ]);
+      prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: 'course-1' }]);
       prismaMock.schedule.findMany.mockResolvedValue([
         {
           id: 'sched-1',

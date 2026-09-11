@@ -42,7 +42,9 @@ export function GuardiansFormPage() {
   if (!canManage) {
     return (
       <Card>
-        <p className="text-gray-600">No tienes permisos para administrar vinculaciones de acudientes.</p>
+        <p className="text-gray-600">
+          No tienes permisos para administrar vinculaciones de acudientes.
+        </p>
       </Card>
     );
   }
@@ -91,10 +93,7 @@ export function GuardiansFormPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Nueva vinculación"
-        description="Vincular un acudiente a un estudiante"
-      />
+      <PageHeader title="Nueva vinculación" description="Vincular un acudiente a un estudiante" />
 
       {apiError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -112,7 +111,9 @@ export function GuardiansFormPage() {
               value={guardianUserId}
               onChange={(e) => setGuardianUserId(e.target.value)}
             />
-            {errors.guardianUserId && <p className="text-sm text-red-600">{errors.guardianUserId}</p>}
+            {errors.guardianUserId && (
+              <p className="text-sm text-red-600">{errors.guardianUserId}</p>
+            )}
 
             <Input
               label="ID del Estudiante"
@@ -123,7 +124,10 @@ export function GuardiansFormPage() {
             {errors.studentId && <p className="text-sm text-red-600">{errors.studentId}</p>}
 
             <div>
-              <label htmlFor="relationshipType" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="relationshipType"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Tipo de relación
               </label>
               <select
@@ -135,11 +139,15 @@ export function GuardiansFormPage() {
                 <option value="">Seleccionar relación</option>
                 {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, string][]).map(
                   ([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
                   ),
                 )}
               </select>
-              {errors.relationshipType && <p className="text-sm text-red-600 mt-1">{errors.relationshipType}</p>}
+              {errors.relationshipType && (
+                <p className="text-sm text-red-600 mt-1">{errors.relationshipType}</p>
+              )}
             </div>
 
             <div className="flex items-center gap-3">

@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
 import { CreateTeacherAssignmentDto } from './dto/create-teacher-assignment.dto';
@@ -7,7 +13,13 @@ import { ListTeacherAssignmentsQueryDto } from './dto/list-teacher-assignments-q
 import { CreateCourseDirectorAssignmentDto } from './dto/create-course-director-assignment.dto';
 import { UpdateCourseDirectorAssignmentDto } from './dto/update-course-director-assignment.dto';
 import { ListCourseDirectorAssignmentsQueryDto } from './dto/list-course-director-assignments-query.dto';
-import { TeacherAssignment, TeacherAssignmentStatus, CourseDirectorAssignment, CourseDirectorStatus, Prisma } from '@prisma/client';
+import {
+  TeacherAssignment,
+  TeacherAssignmentStatus,
+  CourseDirectorAssignment,
+  CourseDirectorStatus,
+  Prisma,
+} from '@prisma/client';
 
 const TEACHER_ROLE = 'TEACHER';
 const DIRECTOR_DE_GRUPO_ROLE = 'DIRECTOR_DE_GRUPO';
@@ -56,7 +68,8 @@ export class TeacherAssignmentsService {
     const teacherMembership = await this.prisma.userInstitution.findFirst({
       where: { userId: dto.teacherUserId, institutionId, status: 'ACTIVE' },
     });
-    if (!teacherMembership) throw new ForbiddenException('Teacher user does not belong to this institution');
+    if (!teacherMembership)
+      throw new ForbiddenException('Teacher user does not belong to this institution');
 
     const [course, subject, academicPeriod] = await Promise.all([
       this.prisma.course.findFirst({ where: { id: dto.courseId, institutionId } }),
@@ -65,7 +78,8 @@ export class TeacherAssignmentsService {
     ]);
     if (!course) throw new NotFoundException('Course not found in this institution');
     if (!subject) throw new NotFoundException('Subject not found in this institution');
-    if (!academicPeriod) throw new NotFoundException('Academic period not found in this institution');
+    if (!academicPeriod)
+      throw new NotFoundException('Academic period not found in this institution');
 
     const existing = await this.prisma.teacherAssignment.findUnique({
       where: {
@@ -78,7 +92,8 @@ export class TeacherAssignmentsService {
         },
       },
     });
-    if (existing) throw new ConflictException('Teacher assignment already exists for this combination');
+    if (existing)
+      throw new ConflictException('Teacher assignment already exists for this combination');
 
     const weeklyHours = dto.weeklyHours ?? 0;
     const maxWeeklyHours = dto.maxWeeklyHours ?? 22;
@@ -129,7 +144,16 @@ export class TeacherAssignmentsService {
       entityId: assignment.id,
       institutionId,
       userId,
-      newValues: { teacherUserId: dto.teacherUserId, courseId: dto.courseId, subjectId: dto.subjectId, academicPeriodId: dto.academicPeriodId, weeklyHours, maxWeeklyHours, startDate: dto.startDate, endDate: dto.endDate },
+      newValues: {
+        teacherUserId: dto.teacherUserId,
+        courseId: dto.courseId,
+        subjectId: dto.subjectId,
+        academicPeriodId: dto.academicPeriodId,
+        weeklyHours,
+        maxWeeklyHours,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+      },
       ipAddress: ip,
     });
 
@@ -213,7 +237,10 @@ export class TeacherAssignmentsService {
   async findAll(
     institutionId: string,
     query: ListTeacherAssignmentsQueryDto,
-  ): Promise<{ data: TeacherAssignment[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: TeacherAssignment[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -239,7 +266,10 @@ export class TeacherAssignmentsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(institutionId: string, id: string): Promise<TeacherAssignment & { autoBackfilled: number }> {
+  async findOne(
+    institutionId: string,
+    id: string,
+  ): Promise<TeacherAssignment & { autoBackfilled: number }> {
     const assignment = await this.prisma.teacherAssignment.findFirst({
       where: { id, institutionId },
     });
@@ -247,24 +277,33 @@ export class TeacherAssignmentsService {
     // Origen automático inferido sin migración: nº de horarios auto-asignados
     // registrados en auditoría (SCHEDULE_TEACHER_BACKFILLED). Informativo, no editable.
     const backfillLogs = await this.prisma.auditLog.findMany({
-      where: { institutionId, action: 'SCHEDULE_TEACHER_BACKFILLED', entityType: 'TeacherAssignment', entityId: id },
+      where: {
+        institutionId,
+        action: 'SCHEDULE_TEACHER_BACKFILLED',
+        entityType: 'TeacherAssignment',
+        entityId: id,
+      },
       select: { newValues: true },
       orderBy: { createdAt: 'desc' },
       take: 1,
     });
     const autoBackfilled =
-      backfillLogs.length > 0 && backfillLogs[0].newValues && typeof backfillLogs[0].newValues === 'object'
+      backfillLogs.length > 0 &&
+      backfillLogs[0].newValues &&
+      typeof backfillLogs[0].newValues === 'object'
         ? Number((backfillLogs[0].newValues as Record<string, unknown>).updated ?? 0)
         : 0;
     return { ...assignment, autoBackfilled };
   }
 
-  async getDirectors(institutionId: string): Promise<Array<{
-    teacherUserId: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  }>> {
+  async getDirectors(institutionId: string): Promise<
+    Array<{
+      teacherUserId: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+    }>
+  > {
     const memberships = await this.prisma.userInstitution.findMany({
       where: {
         institutionId,
@@ -286,21 +325,23 @@ export class TeacherAssignmentsService {
     }));
   }
 
-  async getTeachers(institutionId: string): Promise<Array<{
-    teacherUserId: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    isDirector: boolean;
-    courses: Array<{
-      courseId: string;
-      courseName: string;
-      subjectId: string;
-      subjectName: string;
-      academicPeriodId: string;
-      students: Array<{ studentId: string; firstName: string; lastName: string }>;
-    }>;
-  }>> {
+  async getTeachers(institutionId: string): Promise<
+    Array<{
+      teacherUserId: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      isDirector: boolean;
+      courses: Array<{
+        courseId: string;
+        courseName: string;
+        subjectId: string;
+        subjectName: string;
+        academicPeriodId: string;
+        students: Array<{ studentId: string; firstName: string; lastName: string }>;
+      }>;
+    }>
+  > {
     const memberships = await this.prisma.userInstitution.findMany({
       where: {
         institutionId,
@@ -336,7 +377,10 @@ export class TeacherAssignmentsService {
       },
     });
 
-    const studentsByCourse = new Map<string, Array<{ studentId: string; firstName: string; lastName: string }>>();
+    const studentsByCourse = new Map<
+      string,
+      Array<{ studentId: string; firstName: string; lastName: string }>
+    >();
     for (const enrollment of enrollments) {
       const list = studentsByCourse.get(enrollment.courseId) ?? [];
       list.push({
@@ -397,7 +441,8 @@ export class TeacherAssignmentsService {
 
     // Validate date consistency
     const newStartDate = dto.startDate ? new Date(dto.startDate) : existing.startDate;
-    const newEndDate = dto.endDate !== undefined ? (dto.endDate ? new Date(dto.endDate) : null) : existing.endDate;
+    const newEndDate =
+      dto.endDate !== undefined ? (dto.endDate ? new Date(dto.endDate) : null) : existing.endDate;
     if (newEndDate && newEndDate < newStartDate) {
       throw new BadRequestException('End date cannot be before start date');
     }
@@ -457,14 +502,16 @@ export class TeacherAssignmentsService {
     const directorMembership = await this.prisma.userInstitution.findFirst({
       where: { userId: dto.directorUserId, institutionId, status: 'ACTIVE' },
     });
-    if (!directorMembership) throw new ForbiddenException('Director user does not belong to this institution');
+    if (!directorMembership)
+      throw new ForbiddenException('Director user does not belong to this institution');
 
     const [course, academicPeriod] = await Promise.all([
       this.prisma.course.findFirst({ where: { id: dto.courseId, institutionId } }),
       this.prisma.academicPeriod.findFirst({ where: { id: dto.academicPeriodId, institutionId } }),
     ]);
     if (!course) throw new NotFoundException('Course not found in this institution');
-    if (!academicPeriod) throw new NotFoundException('Academic period not found in this institution');
+    if (!academicPeriod)
+      throw new NotFoundException('Academic period not found in this institution');
 
     const startDate = new Date(dto.startDate);
     const endDate = dto.endDate ? new Date(dto.endDate) : null;
@@ -480,7 +527,10 @@ export class TeacherAssignmentsService {
         status: CourseDirectorStatus.ACTIVE,
       },
     });
-    if (existing) throw new ConflictException('An active director assignment already exists for this course and period');
+    if (existing)
+      throw new ConflictException(
+        'An active director assignment already exists for this course and period',
+      );
 
     const assignment = await this.prisma.courseDirectorAssignment.create({
       data: {
@@ -500,7 +550,13 @@ export class TeacherAssignmentsService {
       entityId: assignment.id,
       institutionId,
       userId,
-      newValues: { directorUserId: dto.directorUserId, courseId: dto.courseId, academicPeriodId: dto.academicPeriodId, startDate: dto.startDate, endDate: dto.endDate },
+      newValues: {
+        directorUserId: dto.directorUserId,
+        courseId: dto.courseId,
+        academicPeriodId: dto.academicPeriodId,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+      },
       ipAddress: ip,
     });
 
@@ -510,7 +566,10 @@ export class TeacherAssignmentsService {
   async findAllCourseDirectors(
     institutionId: string,
     query: ListCourseDirectorAssignmentsQueryDto,
-  ): Promise<{ data: CourseDirectorAssignment[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: CourseDirectorAssignment[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -540,7 +599,10 @@ export class TeacherAssignmentsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOneCourseDirector(institutionId: string, id: string): Promise<CourseDirectorAssignment> {
+  async findOneCourseDirector(
+    institutionId: string,
+    id: string,
+  ): Promise<CourseDirectorAssignment> {
     const assignment = await this.prisma.courseDirectorAssignment.findFirst({
       where: { id, institutionId },
       include: {
@@ -553,7 +615,11 @@ export class TeacherAssignmentsService {
     return assignment;
   }
 
-  async getCurrentDirector(institutionId: string, courseId: string, academicPeriodId: string): Promise<CourseDirectorAssignment | null> {
+  async getCurrentDirector(
+    institutionId: string,
+    courseId: string,
+    academicPeriodId: string,
+  ): Promise<CourseDirectorAssignment | null> {
     return this.prisma.courseDirectorAssignment.findFirst({
       where: {
         institutionId,
@@ -561,10 +627,7 @@ export class TeacherAssignmentsService {
         academicPeriodId,
         status: CourseDirectorStatus.ACTIVE,
         startDate: { lte: new Date() },
-        OR: [
-          { endDate: null },
-          { endDate: { gte: new Date() } },
-        ],
+        OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
       },
       include: {
         directorUser: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -572,7 +635,11 @@ export class TeacherAssignmentsService {
     });
   }
 
-  async getDirectorHistory(institutionId: string, courseId: string, academicPeriodId: string): Promise<CourseDirectorAssignment[]> {
+  async getDirectorHistory(
+    institutionId: string,
+    courseId: string,
+    academicPeriodId: string,
+  ): Promise<CourseDirectorAssignment[]> {
     return this.prisma.courseDirectorAssignment.findMany({
       where: {
         institutionId,
@@ -604,7 +671,10 @@ export class TeacherAssignmentsService {
 
     // Reactivation guard: only one ACTIVE director per course+period is allowed.
     // (The partial unique index is the backstop; this produces a clean 409.)
-    if (dto.status === CourseDirectorStatus.ACTIVE && existing.status !== CourseDirectorStatus.ACTIVE) {
+    if (
+      dto.status === CourseDirectorStatus.ACTIVE &&
+      existing.status !== CourseDirectorStatus.ACTIVE
+    ) {
       const otherActive = await this.prisma.courseDirectorAssignment.findFirst({
         where: {
           institutionId,
@@ -616,7 +686,9 @@ export class TeacherAssignmentsService {
         select: { id: true },
       });
       if (otherActive) {
-        throw new ConflictException('An active director assignment already exists for this course and period');
+        throw new ConflictException(
+          'An active director assignment already exists for this course and period',
+        );
       }
     }
 

@@ -207,7 +207,11 @@ describe('AgendaEventsService', () => {
         where: { AND: Array<Record<string, unknown>>; institutionId: string };
       };
       expect(createArgs.where.institutionId).toBe(institutionId);
-      expect(createArgs.where.AND.some((c) => 'status' in c && (c as { status: string }).status === 'ACTIVE')).toBe(true);
+      expect(
+        createArgs.where.AND.some(
+          (c) => 'status' in c && (c as { status: string }).status === 'ACTIVE',
+        ),
+      ).toBe(true);
       expect(createArgs.where.AND.some((c) => 'OR' in c)).toBe(true);
     });
 
@@ -229,9 +233,7 @@ describe('AgendaEventsService', () => {
         status: 'ACTIVE',
         roles: [{ role: { name: 'PARENT' } }],
       });
-      prismaMock.guardianStudent.findMany.mockResolvedValue([
-        { studentId: 'student-1' },
-      ]);
+      prismaMock.guardianStudent.findMany.mockResolvedValue([{ studentId: 'student-1' }]);
       prismaMock.agendaEvent.findMany.mockResolvedValue([]);
       prismaMock.agendaEvent.count.mockResolvedValue(0);
 
@@ -240,9 +242,9 @@ describe('AgendaEventsService', () => {
       const createArgs = prismaMock.agendaEvent.findMany.mock.calls[0][0] as {
         where: { AND: Array<Record<string, unknown>> };
       };
-      const audienceEntry = createArgs.where.AND.find(
-        (c) => 'audience' in c,
-      ) as { audience: { in: string[] } };
+      const audienceEntry = createArgs.where.AND.find((c) => 'audience' in c) as {
+        audience: { in: string[] };
+      };
       expect(audienceEntry.audience.in).toEqual([
         CommunicationAudience.ALL,
         CommunicationAudience.PARENTS,
@@ -267,9 +269,9 @@ describe('AgendaEventsService', () => {
     it('should return 404 for a non-existent or cross-tenant event', async () => {
       prismaMock.agendaEvent.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne('other-institution', 'event-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('other-institution', 'event-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should not leak TEACHERS-only events to a parent (404)', async () => {
@@ -280,9 +282,7 @@ describe('AgendaEventsService', () => {
         status: 'ACTIVE',
         roles: [{ role: { name: 'PARENT' } }],
       });
-      prismaMock.guardianStudent.findMany.mockResolvedValue([
-        { studentId: 'student-1' },
-      ]);
+      prismaMock.guardianStudent.findMany.mockResolvedValue([{ studentId: 'student-1' }]);
       prismaMock.agendaEvent.findFirst.mockResolvedValue(null);
 
       await expect(service.findOne(institutionId, 'event-1', userId)).rejects.toThrow(
@@ -369,12 +369,7 @@ describe('AgendaEventsService', () => {
       prismaMock.agendaEvent.findFirst.mockResolvedValue(baseEvent);
 
       await expect(
-        service.update(
-          institutionId,
-          'event-1',
-          { startAt: '2026-09-01T18:00:00.000Z' },
-          userId,
-        ),
+        service.update(institutionId, 'event-1', { startAt: '2026-09-01T18:00:00.000Z' }, userId),
       ).rejects.toThrow(BadRequestException);
     });
 

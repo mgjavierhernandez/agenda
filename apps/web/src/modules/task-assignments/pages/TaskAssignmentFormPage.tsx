@@ -13,7 +13,10 @@ export function TaskAssignmentFormPage() {
   const navigate = useNavigate();
   const createMutation = useCreateTaskAssignment();
 
-  const { data: tasksData, isLoading: isLoadingTasks } = useTasks({ limit: 100, status: 'PUBLISHED' });
+  const { data: tasksData, isLoading: isLoadingTasks } = useTasks({
+    limit: 100,
+    status: 'PUBLISHED',
+  });
   const { data: studentsData, isLoading: isLoadingStudents } = useStudents({ limit: 100 });
 
   const tasks = tasksData?.data ?? [];
@@ -85,10 +88,7 @@ export function TaskAssignmentFormPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <PageHeader
-        title="Nueva asignación"
-        description="Asignar una tarea a estudiantes"
-      />
+      <PageHeader title="Nueva asignación" description="Asignar una tarea a estudiantes" />
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -130,9 +130,7 @@ export function TaskAssignmentFormPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Estudiantes *
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Estudiantes *</label>
               {students.length > 0 && (
                 <button
                   type="button"
@@ -140,7 +138,9 @@ export function TaskAssignmentFormPage() {
                   className="text-sm text-blue-600 hover:text-blue-800"
                   disabled={isSubmitting}
                 >
-                  {selectedStudentIds.length === students.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                  {selectedStudentIds.length === students.length
+                    ? 'Deseleccionar todos'
+                    : 'Seleccionar todos'}
                 </button>
               )}
             </div>
@@ -172,7 +172,8 @@ export function TaskAssignmentFormPage() {
             )}
             {selectedStudentIds.length > 0 && (
               <p className="mt-1 text-sm text-gray-500">
-                {selectedStudentIds.length} estudiante{selectedStudentIds.length !== 1 ? 's' : ''} seleccionado{selectedStudentIds.length !== 1 ? 's' : ''}
+                {selectedStudentIds.length} estudiante{selectedStudentIds.length !== 1 ? 's' : ''}{' '}
+                seleccionado{selectedStudentIds.length !== 1 ? 's' : ''}
               </p>
             )}
             {errors.studentIds && <p className="mt-1 text-sm text-red-600">{errors.studentIds}</p>}

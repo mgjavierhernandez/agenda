@@ -7,7 +7,16 @@ jest.mock('./report-pdf', () => ({
 
 describe('ReportsService', () => {
   let service: ReportsService;
-  let prismaMock: Record<string, { findMany?: jest.Mock; findFirst?: jest.Mock; findUnique?: jest.Mock; groupBy?: jest.Mock; create?: jest.Mock }>;
+  let prismaMock: Record<
+    string,
+    {
+      findMany?: jest.Mock;
+      findFirst?: jest.Mock;
+      findUnique?: jest.Mock;
+      groupBy?: jest.Mock;
+      create?: jest.Mock;
+    }
+  >;
   let auditMock: { log: jest.Mock };
   let authorizationMock: {
     getUserRole: jest.Mock;
@@ -104,10 +113,7 @@ describe('ReportsService', () => {
       canAccessCourse: jest.fn().mockResolvedValue({ allowed: true }),
     };
     followUpAuthorizationMock = {
-      getVisibleConfidentialityLevels: jest.fn().mockReturnValue([
-        'PUBLIC',
-        'INTERNAL',
-      ]),
+      getVisibleConfidentialityLevels: jest.fn().mockReturnValue(['PUBLIC', 'INTERNAL']),
     };
 
     service = new ReportsService(
@@ -279,7 +285,14 @@ describe('ReportsService', () => {
     });
 
     it('should export a PDF student report and audit REPORT_EXPORTED', async () => {
-      const result = await service.exportStudentReport(userId, institutionId, studentId, periodId, 'pdf', '127.0.0.1');
+      const result = await service.exportStudentReport(
+        userId,
+        institutionId,
+        studentId,
+        periodId,
+        'pdf',
+        '127.0.0.1',
+      );
       expect(result.contentType).toBe('application/pdf');
       expect(result.buffer.length).toBeGreaterThan(0);
       expect(result.filename).toContain('reporte-individual');
@@ -294,7 +307,14 @@ describe('ReportsService', () => {
     });
 
     it('should export a CSV student bulletin and audit BULLETIN_EXPORTED', async () => {
-      const result = await service.exportStudentBulletin(userId, institutionId, studentId, periodId, 'csv', '127.0.0.1');
+      const result = await service.exportStudentBulletin(
+        userId,
+        institutionId,
+        studentId,
+        periodId,
+        'csv',
+        '127.0.0.1',
+      );
       expect(result.contentType).toContain('text/csv');
       expect(result.buffer.toString('utf8')).toContain('Asignatura');
       expect(auditMock.log).toHaveBeenCalledWith(
@@ -343,11 +363,11 @@ describe('ReportsService', () => {
       });
       prismaMock.academicPeriod.findFirst!.mockResolvedValue(periodFixture);
       prismaMock.enrollment.findMany!.mockResolvedValue(enrollmentsFixture);
-prismaMock.grade.findMany!.mockResolvedValue([
-      { studentId: 'student-1', subjectId: 's1', value: 4 },
-      { studentId: 'student-1', subjectId: 's1', value: 5 },
-      { studentId: 'student-2', subjectId: 's1', value: 3 },
-    ]);
+      prismaMock.grade.findMany!.mockResolvedValue([
+        { studentId: 'student-1', subjectId: 's1', value: 4 },
+        { studentId: 'student-1', subjectId: 's1', value: 5 },
+        { studentId: 'student-2', subjectId: 's1', value: 3 },
+      ]);
       prismaMock.attendance.groupBy!.mockResolvedValue([
         { studentId: 'student-1', status: AttendanceStatus.PRESENT, _count: { _all: 10 } },
         { studentId: 'student-2', status: AttendanceStatus.PRESENT, _count: { _all: 8 } },
@@ -369,7 +389,13 @@ prismaMock.grade.findMany!.mockResolvedValue([
     });
 
     it('should export a CSV course report and audit the export', async () => {
-      const result = await service.exportCourseReportCsv(userId, institutionId, courseId, periodId, '127.0.0.1');
+      const result = await service.exportCourseReportCsv(
+        userId,
+        institutionId,
+        courseId,
+        periodId,
+        '127.0.0.1',
+      );
       const text = result.buffer.toString('utf8');
       expect(text).toContain('Estudiante');
       expect(text).toContain('González, María');

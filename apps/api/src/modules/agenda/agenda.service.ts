@@ -66,7 +66,9 @@ export class AgendaService {
     }
 
     if (eventTypes.includes(AgendaEventType.COMMUNICATION)) {
-      queries.push(this.getCommunicationEvents(institutionId, userContext, startDate, endDate, userId));
+      queries.push(
+        this.getCommunicationEvents(institutionId, userContext, startDate, endDate, userId),
+      );
     } else {
       queries.push(Promise.resolve([]));
     }
@@ -206,7 +208,12 @@ export class AgendaService {
 
   private async getScheduleEvents(
     institutionId: string,
-    userContext: { role: string; studentIds: string[]; courseIds: string[]; studentNames?: Record<string, string> },
+    userContext: {
+      role: string;
+      studentIds: string[];
+      courseIds: string[];
+      studentNames?: Record<string, string>;
+    },
     startDate: Date,
     endDate: Date,
   ): Promise<AgendaEventDto[]> {
@@ -218,10 +225,7 @@ export class AgendaService {
     if (userContext.role === 'teacher' && userContext.courseIds.length > 0) {
       where.courseId = { in: userContext.courseIds };
     } else if (userContext.role === 'student' || userContext.role === 'parent') {
-      const courseIds = await this.getStudentCourseIds(
-        institutionId,
-        userContext.studentIds,
-      );
+      const courseIds = await this.getStudentCourseIds(institutionId, userContext.studentIds);
       if (courseIds.length === 0) return [];
       where.courseId = { in: courseIds };
     }
@@ -236,7 +240,8 @@ export class AgendaService {
     });
 
     const events: AgendaEventDto[] = [];
-    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    const totalDays =
+      Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
 
     for (const schedule of schedules) {
       const scheduleDow = DAY_OF_WEEK_MAP[schedule.dayOfWeek];
@@ -282,7 +287,13 @@ export class AgendaService {
             classroom: schedule.classroom?.name ?? undefined,
             dayOfWeek: schedule.dayOfWeek,
             ...(userContext.role === 'parent' && userContext.studentNames
-              ? { studentName: this.findStudentNameForCourse(schedule.courseId, userContext.studentIds, userContext.studentNames) }
+              ? {
+                  studentName: this.findStudentNameForCourse(
+                    schedule.courseId,
+                    userContext.studentIds,
+                    userContext.studentNames,
+                  ),
+                }
               : {}),
           },
         });
@@ -294,7 +305,12 @@ export class AgendaService {
 
   private async getTaskEvents(
     institutionId: string,
-    userContext: { role: string; studentIds: string[]; courseIds: string[]; studentNames?: Record<string, string> },
+    userContext: {
+      role: string;
+      studentIds: string[];
+      courseIds: string[];
+      studentNames?: Record<string, string>;
+    },
     startDate: Date,
     endDate: Date,
   ): Promise<AgendaEventDto[]> {
@@ -332,7 +348,12 @@ export class AgendaService {
         course: { select: { id: true, name: true } },
         subject: { select: { id: true, name: true } },
         ...(userContext.role === 'parent' && userContext.studentIds.length > 0
-          ? { taskAssignments: { where: { studentId: { in: userContext.studentIds } }, select: { studentId: true } } }
+          ? {
+              taskAssignments: {
+                where: { studentId: { in: userContext.studentIds } },
+                select: { studentId: true },
+              },
+            }
           : {}),
       },
     });
@@ -402,10 +423,7 @@ export class AgendaService {
           },
         };
       } else {
-        where.OR = [
-          { audience: 'ALL' },
-          { audience: 'TEACHERS' },
-        ];
+        where.OR = [{ audience: 'ALL' }, { audience: 'TEACHERS' }];
       }
     }
 
@@ -501,7 +519,12 @@ export class AgendaService {
 
   private async getAgendaEventItems(
     institutionId: string,
-    userContext: { role: string; studentIds: string[]; courseIds: string[]; studentNames?: Record<string, string> },
+    userContext: {
+      role: string;
+      studentIds: string[];
+      courseIds: string[];
+      studentNames?: Record<string, string>;
+    },
     startDate: Date,
     endDate: Date,
     userId: string,
@@ -558,9 +581,7 @@ export class AgendaService {
     }));
   }
 
-  private async getTeacherUserIds(
-    teacherUserId: string,
-  ): Promise<string[]> {
+  private async getTeacherUserIds(teacherUserId: string): Promise<string[]> {
     return [teacherUserId];
   }
 

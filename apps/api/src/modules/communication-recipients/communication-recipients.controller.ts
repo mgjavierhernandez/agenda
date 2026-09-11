@@ -40,42 +40,24 @@ export class CommunicationRecipientsController {
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by status' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
-  async findAll(
-    @Request() req: AuthenticatedRequest,
-    @Query() query: ListRecipientsQueryDto,
-  ) {
-    return this.service.findAll(
-      req.tenant!.institutionId,
-      req.user.userId,
-      query,
-    );
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: ListRecipientsQueryDto) {
+    return this.service.findAll(req.tenant!.institutionId, req.user.userId, query);
   }
 
   @Get('unread-count')
   @RequirePermission('communications:read')
   @ApiOperation({ summary: 'Get unread communication count' })
   @ApiResponse({ status: 200, description: 'Unread count retrieved successfully' })
-  async getUnreadCount(
-    @Request() req: AuthenticatedRequest,
-  ) {
-    return this.service.getUnreadCount(
-      req.tenant!.institutionId,
-      req.user.userId,
-    );
+  async getUnreadCount(@Request() req: AuthenticatedRequest) {
+    return this.service.getUnreadCount(req.tenant!.institutionId, req.user.userId);
   }
 
   @Patch('mark-all-read')
   @RequirePermission('communications:read')
   @ApiOperation({ summary: 'Mark all communications as read' })
   @ApiResponse({ status: 200, description: 'All communications marked as read' })
-  async markAllAsRead(
-    @Request() req: AuthenticatedRequest,
-  ) {
-    return this.service.markAllAsRead(
-      req.tenant!.institutionId,
-      req.user.userId,
-      req.ip,
-    );
+  async markAllAsRead(@Request() req: AuthenticatedRequest) {
+    return this.service.markAllAsRead(req.tenant!.institutionId, req.user.userId, req.ip);
   }
 
   @Patch(':id/read')
@@ -83,22 +65,16 @@ export class CommunicationRecipientsController {
   @ApiOperation({ summary: 'Mark a communication as read' })
   @ApiParam({ name: 'id', description: 'Communication recipient UUID' })
   @ApiResponse({ status: 200, description: 'Communication marked as read' })
-  async markAsRead(
-    @Request() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.service.markAsRead(
-      req.tenant!.institutionId,
-      id,
-      req.user.userId,
-      req.ip,
-    );
+  async markAsRead(@Request() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.markAsRead(req.tenant!.institutionId, id, req.user.userId, req.ip);
   }
 
   @Post('by-communication/:communicationId/opened')
   @RequirePermission('communications:read')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Record opening of a communication by the current recipient (trazabilidad)' })
+  @ApiOperation({
+    summary: 'Record opening of a communication by the current recipient (trazabilidad)',
+  })
   @ApiParam({ name: 'communicationId', description: 'Communication UUID' })
   @ApiResponse({ status: 200, description: 'Opening recorded (or no recipient row)' })
   async markOpenedByCommunication(

@@ -40,9 +40,7 @@ function createWrapper() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/agenda']}>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter initialEntries={['/agenda']}>{children}</MemoryRouter>
     </QueryClientProvider>
   );
 }

@@ -60,11 +60,14 @@ export function SchedulesPage() {
   const { data: subjectsData } = useSubjects({ limit: 200 });
   const { data: classroomsData } = useClassrooms({ limit: 200 });
 
-  const nameMaps = useMemo(() => ({
-    courses: new Map((coursesData?.data ?? []).map((c) => [c.id, c.name])),
-    subjects: new Map((subjectsData?.data ?? []).map((s) => [s.id, s.name])),
-    classrooms: new Map((classroomsData?.data ?? []).map((c) => [c.id, c.name])),
-  }), [coursesData, subjectsData, classroomsData]);
+  const nameMaps = useMemo(
+    () => ({
+      courses: new Map((coursesData?.data ?? []).map((c) => [c.id, c.name])),
+      subjects: new Map((subjectsData?.data ?? []).map((s) => [s.id, s.name])),
+      classrooms: new Map((classroomsData?.data ?? []).map((c) => [c.id, c.name])),
+    }),
+    [coursesData, subjectsData, classroomsData],
+  );
 
   const handleClearSearch = useCallback(() => {
     setSearch('');
@@ -107,9 +110,7 @@ export function SchedulesPage() {
               Excel
             </Button>
             {canManage ? (
-              <Button onClick={() => navigate('/schedules/new')}>
-                Nuevo horario
-              </Button>
+              <Button onClick={() => navigate('/schedules/new')}>Nuevo horario</Button>
             ) : undefined}
           </div>
         }
@@ -121,7 +122,11 @@ export function SchedulesPage() {
         </div>
       )}
 
-      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit" role="group" aria-label="Vista de horarios">
+      <div
+        className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit"
+        role="group"
+        aria-label="Vista de horarios"
+      >
         {(['matrix', 'list'] as const).map((v) => (
           <button
             key={v}
@@ -208,7 +213,11 @@ export function SchedulesPage() {
         </div>
       ) : schedules.length === 0 ? (
         <EmptyState
-          title={debouncedSearch || statusFilter || dayOfWeekFilter ? 'No se encontraron horarios' : 'No hay horarios registrados'}
+          title={
+            debouncedSearch || statusFilter || dayOfWeekFilter
+              ? 'No se encontraron horarios'
+              : 'No hay horarios registrados'
+          }
           description={
             debouncedSearch || statusFilter || dayOfWeekFilter
               ? 'No encontramos horarios que coincidan con los filtros aplicados.'
@@ -228,14 +237,30 @@ export function SchedulesPage() {
               <table className="w-full text-sm" aria-label="Horarios de clases">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Día</th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Inicio</th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Fin</th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Curso</th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Asignatura</th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Aula</th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Día
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Inicio
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Fin
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Curso
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Asignatura
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Aula
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">
+                      Estado
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium text-gray-600">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -248,11 +273,13 @@ export function SchedulesPage() {
                         {nameMaps.courses.get(schedule.courseId) ?? schedule.courseId.slice(0, 8)}
                       </td>
                       <td className="px-4 py-3">
-                        {nameMaps.subjects.get(schedule.subjectId) ?? schedule.subjectId.slice(0, 8)}
+                        {nameMaps.subjects.get(schedule.subjectId) ??
+                          schedule.subjectId.slice(0, 8)}
                       </td>
                       <td className="px-4 py-3">
                         {schedule.classroomId
-                          ? (nameMaps.classrooms.get(schedule.classroomId) ?? schedule.classroomId.slice(0, 8))
+                          ? (nameMaps.classrooms.get(schedule.classroomId) ??
+                            schedule.classroomId.slice(0, 8))
                           : '—'}
                       </td>
                       <td className="px-4 py-3">
@@ -292,11 +319,14 @@ export function SchedulesPage() {
                     </p>
                     {schedule.classroomId && (
                       <p className="text-sm text-gray-500">
-                        Aula: {nameMaps.classrooms.get(schedule.classroomId) ?? schedule.classroomId.slice(0, 8)}
+                        Aula:{' '}
+                        {nameMaps.classrooms.get(schedule.classroomId) ??
+                          schedule.classroomId.slice(0, 8)}
                       </p>
                     )}
                     <p className="text-xs text-gray-500">
-                      Curso: {nameMaps.courses.get(schedule.courseId) ?? schedule.courseId.slice(0, 8)}
+                      Curso:{' '}
+                      {nameMaps.courses.get(schedule.courseId) ?? schedule.courseId.slice(0, 8)}
                     </p>
                   </div>
                   <Badge variant={schedule.status === 'ACTIVE' ? 'success' : 'default'}>

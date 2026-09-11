@@ -1,14 +1,11 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsDateString,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDateString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFollowUpCitationDto {
-  @ApiProperty({ description: 'ISO 8601 datetime for the citation', example: '2026-09-10T14:00:00.000Z' })
+  @ApiProperty({
+    description: 'ISO 8601 datetime for the citation',
+    example: '2026-09-10T14:00:00.000Z',
+  })
   @IsDateString()
   @IsNotEmpty()
   scheduledAt!: string;

@@ -12,7 +12,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
 import { PERMISSIONS } from '@/permissions/permission.constants';
-import type { FollowUpType, FollowUpSeverity, FollowUpStatus, FollowUpConfidentiality } from '@/api/types';
+import type {
+  FollowUpType,
+  FollowUpSeverity,
+  FollowUpStatus,
+  FollowUpConfidentiality,
+} from '@/api/types';
 import {
   FOLLOW_UP_TYPE_LABELS,
   FOLLOW_UP_SEVERITY_LABELS,
@@ -26,14 +31,20 @@ const TYPE_BADGE_VARIANT: Record<FollowUpType, 'default' | 'info' | 'warning'> =
   FORMATIVO: 'default',
 };
 
-const SEVERITY_BADGE_VARIANT: Record<FollowUpSeverity, 'default' | 'success' | 'warning' | 'danger'> = {
+const SEVERITY_BADGE_VARIANT: Record<
+  FollowUpSeverity,
+  'default' | 'success' | 'warning' | 'danger'
+> = {
   LOW: 'success',
   MEDIUM: 'warning',
   HIGH: 'danger',
   CRITICAL: 'danger',
 };
 
-const STATUS_BADGE_VARIANT: Record<FollowUpStatus, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+const STATUS_BADGE_VARIANT: Record<
+  FollowUpStatus,
+  'default' | 'success' | 'warning' | 'danger' | 'info'
+> = {
   OPEN: 'info',
   IN_PROGRESS: 'success',
   ESCALATED: 'danger',
@@ -42,7 +53,10 @@ const STATUS_BADGE_VARIANT: Record<FollowUpStatus, 'default' | 'success' | 'warn
   CLOSED: 'default',
 };
 
-const CONFIDENTIALITY_BADGE_VARIANT: Record<FollowUpConfidentiality, 'default' | 'success' | 'warning' | 'danger'> = {
+const CONFIDENTIALITY_BADGE_VARIANT: Record<
+  FollowUpConfidentiality,
+  'default' | 'success' | 'warning' | 'danger'
+> = {
   PUBLIC: 'success',
   INTERNAL: 'default',
   CONFIDENTIAL: 'warning',
@@ -105,7 +119,14 @@ export function StudentFollowUpsPage() {
     setPage(1);
   }, []);
 
-  const hasActiveFilters = debouncedSearch || typeFilter || statusFilter || severityFilter || categoryIdFilter || createdFromFilter || createdToFilter;
+  const hasActiveFilters =
+    debouncedSearch ||
+    typeFilter ||
+    statusFilter ||
+    severityFilter ||
+    categoryIdFilter ||
+    createdFromFilter ||
+    createdToFilter;
 
   if (error) {
     return <ErrorState error={error} onRetry={() => {}} />;
@@ -122,9 +143,7 @@ export function StudentFollowUpsPage() {
         }
         actions={
           canCreate ? (
-            <Button onClick={() => navigate('/student-follow-ups/new')}>
-              Nuevo seguimiento
-            </Button>
+            <Button onClick={() => navigate('/student-follow-ups/new')}>Nuevo seguimiento</Button>
           ) : undefined
         }
       />
@@ -200,7 +219,10 @@ export function StudentFollowUpsPage() {
           </select>
         </div>
         <div className="w-full sm:w-40">
-          <label htmlFor="categoryIdFilter" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="categoryIdFilter"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Categoría
           </label>
           <select
@@ -214,12 +236,17 @@ export function StudentFollowUpsPage() {
           >
             <option value="">Todas</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
         <div className="w-full sm:w-40">
-          <label htmlFor="createdFromFilter" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="createdFromFilter"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Desde
           </label>
           <input
@@ -265,7 +292,9 @@ export function StudentFollowUpsPage() {
         </div>
       ) : followUps.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? 'No se encontraron seguimientos' : 'No hay seguimientos registrados'}
+          title={
+            hasActiveFilters ? 'No se encontraron seguimientos' : 'No hay seguimientos registrados'
+          }
           description={
             hasActiveFilters
               ? 'No encontramos seguimientos que coincidan con los filtros aplicados.'
@@ -290,7 +319,9 @@ export function StudentFollowUpsPage() {
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Tipo</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Severidad</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Confidencialidad</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">
+                      Confidencialidad
+                    </th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Fecha</th>
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
                   </tr>
@@ -301,7 +332,10 @@ export function StudentFollowUpsPage() {
                       <td className="px-4 py-3 font-medium text-gray-900 max-w-[150px] truncate">
                         {fu.student.firstName} {fu.student.lastName}
                       </td>
-                      <td className="px-4 py-3 text-gray-900 max-w-[200px] truncate" title={fu.title}>
+                      <td
+                        className="px-4 py-3 text-gray-900 max-w-[200px] truncate"
+                        title={fu.title}
+                      >
                         {fu.title}
                       </td>
                       <td className="px-4 py-3">
@@ -356,9 +390,15 @@ export function StudentFollowUpsPage() {
                     </p>
                     <p className="text-sm text-gray-600 truncate">{fu.title}</p>
                     <div className="flex flex-wrap gap-1">
-                      <Badge variant={TYPE_BADGE_VARIANT[fu.type]}>{FOLLOW_UP_TYPE_LABELS[fu.type]}</Badge>
-                      <Badge variant={SEVERITY_BADGE_VARIANT[fu.severity]}>{FOLLOW_UP_SEVERITY_LABELS[fu.severity]}</Badge>
-                      <Badge variant={STATUS_BADGE_VARIANT[fu.status]}>{FOLLOW_UP_STATUS_LABELS[fu.status]}</Badge>
+                      <Badge variant={TYPE_BADGE_VARIANT[fu.type]}>
+                        {FOLLOW_UP_TYPE_LABELS[fu.type]}
+                      </Badge>
+                      <Badge variant={SEVERITY_BADGE_VARIANT[fu.severity]}>
+                        {FOLLOW_UP_SEVERITY_LABELS[fu.severity]}
+                      </Badge>
+                      <Badge variant={STATUS_BADGE_VARIANT[fu.status]}>
+                        {FOLLOW_UP_STATUS_LABELS[fu.status]}
+                      </Badge>
                     </div>
                     <p className="text-xs text-gray-500">
                       {new Date(fu.createdAt).toLocaleDateString('es-CO')}

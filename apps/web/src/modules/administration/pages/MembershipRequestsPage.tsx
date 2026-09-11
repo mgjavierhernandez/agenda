@@ -111,7 +111,9 @@ export function MembershipRequestsPage() {
                     <p className="text-gray-500">{m.user.email}</p>
                     <p>
                       <span className="text-gray-500">Rol solicitado: </span>
-                      <Badge variant="info">{ROLE_LABELS[m.requestedRole ?? ''] ?? m.requestedRole ?? '—'}</Badge>
+                      <Badge variant="info">
+                        {ROLE_LABELS[m.requestedRole ?? ''] ?? m.requestedRole ?? '—'}
+                      </Badge>
                     </p>
                     {profile?.documentNumber && (
                       <p className="text-gray-600">
@@ -127,19 +129,36 @@ export function MembershipRequestsPage() {
                   <div className="flex gap-2 shrink-0">
                     {confirmRejectId === m.id ? (
                       <>
-                        <Button size="sm" variant="danger" onClick={() => handleReject(m.id)} isLoading={reject.isPending}>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleReject(m.id)}
+                          isLoading={reject.isPending}
+                        >
                           Confirmar rechazo
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => setConfirmRejectId(null)}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setConfirmRejectId(null)}
+                        >
                           Cancelar
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button size="sm" onClick={() => handleApprove(m.id)} isLoading={approve.isPending}>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApprove(m.id)}
+                          isLoading={approve.isPending}
+                        >
                           Aprobar
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => setConfirmRejectId(m.id)}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setConfirmRejectId(m.id)}
+                        >
                           Rechazar
                         </Button>
                       </>
@@ -154,13 +173,23 @@ export function MembershipRequestsPage() {
 
       {meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-center gap-3">
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
             Anterior
           </Button>
           <span className="text-sm text-gray-500">
             Página {meta.page} de {meta.totalPages}
           </span>
-          <Button variant="secondary" size="sm" disabled={page >= meta.totalPages} onClick={() => setPage((p) => p + 1)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={page >= meta.totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
             Siguiente
           </Button>
         </div>

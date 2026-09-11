@@ -69,7 +69,12 @@ export function AreasPage() {
         await updateArea.mutateAsync({ id: editingAreaId, data: payload });
         setFormSuccess('Área actualizada correctamente');
       } else {
-        await createArea.mutateAsync({ code: code.trim(), name: name.trim(), isOfficial: true, sortOrder: 0 });
+        await createArea.mutateAsync({
+          code: code.trim(),
+          name: name.trim(),
+          isOfficial: true,
+          sortOrder: 0,
+        });
         setFormSuccess('Área creada correctamente');
       }
       setCode('');
@@ -83,7 +88,7 @@ export function AreasPage() {
     }
   };
 
-  const handleEdit = (area: typeof areas[0]) => {
+  const handleEdit = (area: (typeof areas)[0]) => {
     setEditingAreaId(area.id);
     setCode(area.code);
     setName(area.name);
@@ -125,7 +130,12 @@ export function AreasPage() {
         description="Áreas académicas que agrupan las asignaturas"
         actions={
           canManage ? (
-            <Button onClick={() => { handleCancel(); setShowForm(!showForm); }}>
+            <Button
+              onClick={() => {
+                handleCancel();
+                setShowForm(!showForm);
+              }}
+            >
               {showForm ? 'Cancelar' : 'Nueva área'}
             </Button>
           ) : undefined
@@ -164,7 +174,10 @@ export function AreasPage() {
                 disabled={createArea.isPending || updateArea.isPending}
               />
               <div>
-                <label htmlFor="isOfficial" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="isOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Tipo
                 </label>
                 <select
@@ -193,7 +206,12 @@ export function AreasPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={handleCancel} disabled={createArea.isPending || updateArea.isPending}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCancel}
+                disabled={createArea.isPending || updateArea.isPending}
+              >
                 Cancelar
               </Button>
               <Button type="submit" isLoading={createArea.isPending || updateArea.isPending}>
@@ -237,7 +255,9 @@ export function AreasPage() {
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Tipo</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Orden</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-                {canManage && <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>}
+                {canManage && (
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -246,7 +266,8 @@ export function AreasPage() {
                   <td className="px-4 py-3 font-mono text-xs">{area.code}</td>
                   <td className="px-4 py-3">{area.name}</td>
                   <td className="px-4 py-3 text-gray-600">
-                    {subjectCountByArea[area.id] || 0} {subjectCountByArea[area.id] === 1 ? 'asignatura' : 'asignaturas'}
+                    {subjectCountByArea[area.id] || 0}{' '}
+                    {subjectCountByArea[area.id] === 1 ? 'asignatura' : 'asignaturas'}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={area.isOfficial ? 'success' : 'default'}>
@@ -262,11 +283,7 @@ export function AreasPage() {
                   {canManage && (
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(area)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(area)}>
                           Editar
                         </Button>
                         {area.status === 'ACTIVE' && (

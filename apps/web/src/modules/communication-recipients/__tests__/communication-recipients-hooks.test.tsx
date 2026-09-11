@@ -59,15 +59,18 @@ describe('Communication Recipients hooks', () => {
     });
 
     it('sends status filter param', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useCommunicationRecipients({ status: 'READ' }), {
         wrapper: createWrapper(),
       });
 
-      await waitFor(() => expect(apiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('status=READ')
-      ));
+      await waitFor(() =>
+        expect(apiClient.get).toHaveBeenCalledWith(expect.stringContaining('status=READ')),
+      );
     });
   });
 

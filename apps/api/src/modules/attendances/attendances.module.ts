@@ -9,11 +9,7 @@ import { PrismaService } from '../../common/prisma';
 @Module({
   imports: [AuthModule, AuditModule],
   controllers: [AttendancesController],
-  providers: [
-    AttendancesService,
-    AttendanceAuthorizationService,
-    PrismaService,
-  ],
+  providers: [AttendancesService, AttendanceAuthorizationService, PrismaService],
   exports: [AttendancesService],
 })
 export class AttendancesModule {}

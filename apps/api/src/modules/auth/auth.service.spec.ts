@@ -1,4 +1,10 @@
-﻿import { UnauthorizedException, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
+﻿import {
+  UnauthorizedException,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PasswordService } from './services/password.service';
 import { TokenService } from './services/token.service';
@@ -15,7 +21,12 @@ describe('AuthService', () => {
     userInstitution: { findUnique: jest.Mock; create: jest.Mock; update: jest.Mock };
     userProfile: { findFirst: jest.Mock };
     student: { findFirst: jest.Mock; update: jest.Mock };
-    passwordResetToken: { updateMany: jest.Mock; create: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
+    passwordResetToken: {
+      updateMany: jest.Mock;
+      create: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+    };
     refreshToken: { updateMany: jest.Mock };
     $transaction: jest.Mock;
   };
@@ -253,7 +264,10 @@ describe('AuthService', () => {
     };
 
     function mockActiveInstitution() {
-      prismaMock.institution.findUnique.mockResolvedValue({ id: 'inst-1', status: InstitutionStatus.ACTIVE });
+      prismaMock.institution.findUnique.mockResolvedValue({
+        id: 'inst-1',
+        status: InstitutionStatus.ACTIVE,
+      });
     }
 
     it('should create an INACTIVE user with a PENDING membership and no tokens', async () => {
@@ -262,7 +276,10 @@ describe('AuthService', () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
       passwordServiceMock.hash.mockResolvedValue('hashed');
       prismaMock.user.create.mockResolvedValue({ id: 'u-new', status: UserStatus.INACTIVE });
-      prismaMock.userInstitution.create.mockResolvedValue({ id: 'm-new', status: MembershipStatus.PENDING });
+      prismaMock.userInstitution.create.mockResolvedValue({
+        id: 'm-new',
+        status: MembershipStatus.PENDING,
+      });
 
       const result = await service.selfRegister(dto);
 
@@ -274,7 +291,10 @@ describe('AuthService', () => {
       );
       expect(prismaMock.userInstitution.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ status: MembershipStatus.PENDING, requestedRole: 'TEACHER' }),
+          data: expect.objectContaining({
+            status: MembershipStatus.PENDING,
+            requestedRole: 'TEACHER',
+          }),
         }),
       );
       expect(tokenServiceMock.generateAccessToken).not.toHaveBeenCalled();
@@ -294,7 +314,10 @@ describe('AuthService', () => {
       mockActiveInstitution();
       passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: true });
       prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1' });
-      prismaMock.userInstitution.findUnique.mockResolvedValue({ id: 'm-1', status: MembershipStatus.PENDING });
+      prismaMock.userInstitution.findUnique.mockResolvedValue({
+        id: 'm-1',
+        status: MembershipStatus.PENDING,
+      });
 
       await expect(service.selfRegister(dto)).rejects.toThrow(ConflictException);
     });
@@ -303,14 +326,22 @@ describe('AuthService', () => {
       mockActiveInstitution();
       passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: true });
       prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1' });
-      prismaMock.userInstitution.findUnique.mockResolvedValue({ id: 'm-1', status: MembershipStatus.REJECTED });
-      prismaMock.userInstitution.update.mockResolvedValue({ id: 'm-1', status: MembershipStatus.PENDING });
+      prismaMock.userInstitution.findUnique.mockResolvedValue({
+        id: 'm-1',
+        status: MembershipStatus.REJECTED,
+      });
+      prismaMock.userInstitution.update.mockResolvedValue({
+        id: 'm-1',
+        status: MembershipStatus.PENDING,
+      });
 
       const result = await service.selfRegister(dto);
 
       expect(result.status).toBe('PENDING');
       expect(prismaMock.userInstitution.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ status: MembershipStatus.PENDING }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ status: MembershipStatus.PENDING }),
+        }),
       );
     });
 
@@ -322,15 +353,22 @@ describe('AuthService', () => {
         status: UserStatus.INACTIVE,
       });
 
-      await expect(service.login('nuevo@colegio.edu.co', 'Password123')).rejects.toThrow(UnauthorizedException);
+      await expect(service.login('nuevo@colegio.edu.co', 'Password123')).rejects.toThrow(
+        UnauthorizedException,
+      );
       expect(passwordServiceMock.verify).not.toHaveBeenCalled();
     });
 
     it('should reject weak passwords', async () => {
       mockActiveInstitution();
-      passwordServiceMock.validatePasswordPolicy.mockReturnValue({ valid: false, error: 'too weak' });
+      passwordServiceMock.validatePasswordPolicy.mockReturnValue({
+        valid: false,
+        error: 'too weak',
+      });
 
-      await expect(service.selfRegister({ ...dto, password: 'weak' })).rejects.toThrow(BadRequestException);
+      await expect(service.selfRegister({ ...dto, password: 'weak' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should link an unclaimed student record matching the profile document', async () => {
@@ -339,7 +377,10 @@ describe('AuthService', () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
       passwordServiceMock.hash.mockResolvedValue('hashed');
       prismaMock.user.create.mockResolvedValue({ id: 'u-new', status: UserStatus.INACTIVE });
-      prismaMock.userInstitution.create.mockResolvedValue({ id: 'm-new', status: MembershipStatus.PENDING });
+      prismaMock.userInstitution.create.mockResolvedValue({
+        id: 'm-new',
+        status: MembershipStatus.PENDING,
+      });
       prismaMock.student.findFirst.mockResolvedValue({ id: 'student-1' });
       prismaMock.student.update.mockResolvedValue({ id: 'student-1' });
 
@@ -372,7 +413,11 @@ describe('AuthService', () => {
 
     it('should log in an existing user by googleId and issue the standard JWT scheme', async () => {
       mockTokenIssuance();
-      prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1', email: 'doc@colegio.edu.co', status: UserStatus.ACTIVE });
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        email: 'doc@colegio.edu.co',
+        status: UserStatus.ACTIVE,
+      });
 
       const result = await service.loginWithGoogle(googleProfile);
 
@@ -387,7 +432,12 @@ describe('AuthService', () => {
       mockTokenIssuance();
       prismaMock.user.findUnique
         .mockResolvedValueOnce(null) // no user by googleId
-        .mockResolvedValueOnce({ id: 'u-1', email: 'doc@colegio.edu.co', status: UserStatus.ACTIVE, googleId: null });
+        .mockResolvedValueOnce({
+          id: 'u-1',
+          email: 'doc@colegio.edu.co',
+          status: UserStatus.ACTIVE,
+          googleId: null,
+        });
       prismaMock.user.update.mockResolvedValue({ id: 'u-1' });
 
       const result = await service.loginWithGoogle(googleProfile);
@@ -406,7 +456,11 @@ describe('AuthService', () => {
     });
 
     it('should block INACTIVE users even with a valid Google identity', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1', email: 'doc@colegio.edu.co', status: UserStatus.INACTIVE });
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        email: 'doc@colegio.edu.co',
+        status: UserStatus.INACTIVE,
+      });
 
       await expect(service.loginWithGoogle(googleProfile)).rejects.toThrow(UnauthorizedException);
     });

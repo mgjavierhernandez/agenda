@@ -61,7 +61,9 @@ export async function resolveAccessibleStudentIds(
         select: { courseId: true },
       }),
     ]);
-    const courseIds = [...new Set([...assignments.map((a) => a.courseId), ...directions.map((d) => d.courseId)])];
+    const courseIds = [
+      ...new Set([...assignments.map((a) => a.courseId), ...directions.map((d) => d.courseId)]),
+    ];
     if (courseIds.length > 0) {
       const enrollments = await prisma.enrollment.findMany({
         where: { institutionId, courseId: { in: courseIds }, status: 'ACTIVE' },

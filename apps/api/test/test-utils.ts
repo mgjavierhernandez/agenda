@@ -3,7 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
 
-export const VALID_PASSWORD_HASH = '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
+export const VALID_PASSWORD_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$Icmn9qeFuyjxVlW8/E00Rg$LdTYcWJFXdign29Yi9I7zJYQENOQAE6SISHhgS8vgpI';
 
 export interface TestContext {
   app: INestApplication;
@@ -134,17 +135,25 @@ export async function createSecondInstitution(prisma: PrismaClient, suffix: stri
 }
 
 export async function cleanupSecondInstitution(prisma: PrismaClient, institutionId: string) {
-  await prisma.rolePermission.deleteMany({
-    where: { role: { institutionId } },
-  }).catch(() => {});
-  await prisma.userRole.deleteMany({
-    where: { institutionId },
-  }).catch(() => {});
-  await prisma.userInstitution.deleteMany({
-    where: { institutionId },
-  }).catch(() => {});
-  await prisma.role.deleteMany({
-    where: { institutionId },
-  }).catch(() => {});
+  await prisma.rolePermission
+    .deleteMany({
+      where: { role: { institutionId } },
+    })
+    .catch(() => {});
+  await prisma.userRole
+    .deleteMany({
+      where: { institutionId },
+    })
+    .catch(() => {});
+  await prisma.userInstitution
+    .deleteMany({
+      where: { institutionId },
+    })
+    .catch(() => {});
+  await prisma.role
+    .deleteMany({
+      where: { institutionId },
+    })
+    .catch(() => {});
   await prisma.institution.delete({ where: { id: institutionId } }).catch(() => {});
 }

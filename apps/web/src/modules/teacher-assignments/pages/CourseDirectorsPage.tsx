@@ -100,9 +100,7 @@ export function CourseDirectorsPage() {
         description="Asignaciones de directores a cursos por periodo académico"
         actions={
           canManage ? (
-            <Button onClick={() => navigate('/course-directors/new')}>
-              Nueva asignación
-            </Button>
+            <Button onClick={() => navigate('/course-directors/new')}>Nueva asignación</Button>
           ) : undefined
         }
       />
@@ -110,18 +108,26 @@ export function CourseDirectorsPage() {
       <Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="filter-director" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="filter-director"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Director
             </label>
             <select
               id="filter-director"
               value={directorFilter}
-              onChange={(e) => { setDirectorFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setDirectorFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {usersData?.data.map((u) => (
-                <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                <option key={u.id} value={u.id}>
+                  {u.firstName} {u.lastName}
+                </option>
               ))}
             </select>
           </div>
@@ -132,12 +138,17 @@ export function CourseDirectorsPage() {
             <select
               id="filter-course"
               value={courseFilter}
-              onChange={(e) => { setCourseFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setCourseFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {coursesData?.data.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -148,12 +159,17 @@ export function CourseDirectorsPage() {
             <select
               id="filter-period"
               value={periodFilter}
-              onChange={(e) => { setPeriodFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setPeriodFilter(e.target.value);
+                setPage(1);
+              }}
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               {periodsData?.data.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
@@ -177,7 +193,11 @@ export function CourseDirectorsPage() {
         </div>
       ) : assignments.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? 'No se encontraron asignaciones' : 'No hay asignaciones de directores'}
+          title={
+            hasActiveFilters
+              ? 'No se encontraron asignaciones'
+              : 'No hay asignaciones de directores'
+          }
           description={
             hasActiveFilters
               ? 'No encontramos asignaciones que coincidan con los filtros.'
@@ -211,19 +231,27 @@ export function CourseDirectorsPage() {
                       <td className="px-4 py-3 font-medium text-gray-900">
                         {assignment.directorUser?.firstName && assignment.directorUser?.lastName
                           ? `${assignment.directorUser.firstName} ${assignment.directorUser.lastName}`
-                          : directorMap[assignment.directorUserId] ?? assignment.directorUserId}
+                          : (directorMap[assignment.directorUserId] ?? assignment.directorUserId)}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {assignment.course?.name ?? courseMap[assignment.courseId] ?? assignment.courseId}
+                        {assignment.course?.name ??
+                          courseMap[assignment.courseId] ??
+                          assignment.courseId}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {assignment.academicPeriod?.name ?? periodMap[assignment.academicPeriodId] ?? assignment.academicPeriodId}
+                        {assignment.academicPeriod?.name ??
+                          periodMap[assignment.academicPeriodId] ??
+                          assignment.academicPeriodId}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                        {assignment.startDate
+                          ? new Date(assignment.startDate).toLocaleDateString('es-CO')
+                          : '—'}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+                        {assignment.endDate
+                          ? new Date(assignment.endDate).toLocaleDateString('es-CO')
+                          : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={STATUS_BADGE_VARIANT[assignment.status]}>
@@ -258,7 +286,8 @@ export function CourseDirectorsPage() {
                           : 'Director'}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {assignment.course?.name ?? 'Curso'} — {assignment.academicPeriod?.name ?? 'Periodo'}
+                        {assignment.course?.name ?? 'Curso'} —{' '}
+                        {assignment.academicPeriod?.name ?? 'Periodo'}
                       </p>
                     </div>
                     <Badge variant={STATUS_BADGE_VARIANT[assignment.status]}>
@@ -266,10 +295,16 @@ export function CourseDirectorsPage() {
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600">
-                    Inicio: {assignment.startDate ? new Date(assignment.startDate).toLocaleDateString('es-CO') : '—'}
+                    Inicio:{' '}
+                    {assignment.startDate
+                      ? new Date(assignment.startDate).toLocaleDateString('es-CO')
+                      : '—'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Fin: {assignment.endDate ? new Date(assignment.endDate).toLocaleDateString('es-CO') : '—'}
+                    Fin:{' '}
+                    {assignment.endDate
+                      ? new Date(assignment.endDate).toLocaleDateString('es-CO')
+                      : '—'}
                   </p>
                 </div>
                 <div className="mt-3 flex justify-end">

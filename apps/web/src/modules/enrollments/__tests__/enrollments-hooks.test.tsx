@@ -63,11 +63,17 @@ describe('Enrollments hooks', () => {
     });
 
     it('sends filter params', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
-
-      renderHook(() => useEnrollments({ page: 2, limit: 10, studentId: 'stu-1', courseId: 'cou-1' }), {
-        wrapper: createWrapper(),
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
       });
+
+      renderHook(
+        () => useEnrollments({ page: 2, limit: 10, studentId: 'stu-1', courseId: 'cou-1' }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
       const callUrl = vi.mocked(apiClient.get).mock.calls[0][0] as string;
@@ -78,7 +84,10 @@ describe('Enrollments hooks', () => {
     });
 
     it('omits undefined filters', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } });
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
 
       renderHook(() => useEnrollments({ page: 1, limit: 20 }), {
         wrapper: createWrapper(),

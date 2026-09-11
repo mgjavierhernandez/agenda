@@ -19,8 +19,12 @@ vi.mock('../hooks', () => ({
   useSchedule: (...args: unknown[]) => mockUseSchedule(...args),
   useCreateSchedule: () => mockUseCreateSchedule(),
   useUpdateSchedule: vi.fn().mockReturnValue({ mutateAsync: vi.fn(), isPending: false }),
-  useScheduleBlocks: vi.fn().mockReturnValue({ data: { data: [], meta: { total: 0 } }, isLoading: false }),
-  useClassrooms: vi.fn().mockReturnValue({ data: { data: [], meta: { total: 0 } }, isLoading: false }),
+  useScheduleBlocks: vi
+    .fn()
+    .mockReturnValue({ data: { data: [], meta: { total: 0 } }, isLoading: false }),
+  useClassrooms: vi
+    .fn()
+    .mockReturnValue({ data: { data: [], meta: { total: 0 } }, isLoading: false }),
 }));
 
 vi.mock('@/modules/courses/hooks', () => ({
@@ -39,7 +43,10 @@ vi.mock('@/modules/subjects/hooks', () => ({
 
 vi.mock('@/modules/academic-periods/hooks', () => ({
   useAcademicPeriods: vi.fn().mockReturnValue({
-    data: { data: [{ id: 'ap-1', code: '2026-P1', name: '2026 Primer Periodo' }], meta: { total: 1 } },
+    data: {
+      data: [{ id: 'ap-1', code: '2026-P1', name: '2026 Primer Periodo' }],
+      meta: { total: 1 },
+    },
     isLoading: false,
   }),
 }));
@@ -53,7 +60,8 @@ vi.mock('@/modules/teacher-assignments/hooks', () => ({
 
 vi.mock('@/api/errors', () => ({
   getErrorMessage: (err: unknown) => {
-    if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+    if (err && typeof err === 'object' && 'message' in err)
+      return String((err as { message: unknown }).message);
     return 'Ocurrió un error inesperado';
   },
 }));
