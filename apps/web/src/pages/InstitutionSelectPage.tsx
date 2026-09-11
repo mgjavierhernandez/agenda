@@ -2,9 +2,11 @@ import { useAuth } from '@/auth/auth.store';
 import { getErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function InstitutionSelectPage() {
   const { institutions, selectInstitution } = useAuth();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +17,7 @@ export function InstitutionSelectPage() {
     setIsLoading(true);
     try {
       await selectInstitution(selectedId);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(getErrorMessage(err) || 'Error selecting institution');
     } finally {

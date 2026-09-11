@@ -62,8 +62,8 @@ export async function apiRequest<T = unknown>(
   return res.json() as Promise<T>;
 }
 
-export async function createE2EStudent(data: { firstName: string; lastName: string; documentNumber: string }) {
-  return apiRequest('POST', '/students', data);
+export async function createE2EStudent(data: { firstName: string; lastName: string; documentNumber: string; documentType?: string }) {
+  return apiRequest('POST', '/students', { documentType: 'OTHER', ...data });
 }
 
 export async function createE2ECourse(data: { name: string; code: string }) {

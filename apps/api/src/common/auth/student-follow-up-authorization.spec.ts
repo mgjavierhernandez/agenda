@@ -170,6 +170,22 @@ describe('StudentFollowUpAuthorizationService', () => {
       expect(result.allowed).toBe(true);
     });
 
+    it('should deny PARENT access to INTERNAL follow-up even for linked student', async () => {
+      mockTenantRole('PARENT');
+      prismaMock.studentFollowUp.findUnique.mockResolvedValue({
+        id: FOLLOW_UP_ID,
+        institutionId: INSTITUTION_ID,
+        studentId: STUDENT_ID,
+        confidentiality: FollowUpConfidentiality.INTERNAL,
+      });
+      prismaMock.guardianStudent.findUnique.mockResolvedValue({ id: 'gs-1' });
+
+      const result = await service.canRead(USER_ID, INSTITUTION_ID, FOLLOW_UP_ID);
+
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toBe('CONFIDENTIALITY_RESTRICTED');
+    });
+
     it('should deny STUDENT access to other student follow-up', async () => {
       mockTenantRole('STUDENT');
       prismaMock.studentFollowUp.findUnique.mockResolvedValue({
@@ -423,9 +439,9 @@ describe('StudentFollowUpAuthorizationService', () => {
       expect(service.canViewConfidentiality('TEACHER', FollowUpConfidentiality.SENSITIVE)).toBe(false);
     });
 
-    it('should allow PARENT only PUBLIC and INTERNAL', () => {
+    it('should allow PARENT only PUBLIC (INTERNAL is staff-only)', () => {
       expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.PUBLIC)).toBe(true);
-      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.INTERNAL)).toBe(true);
+      expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.INTERNAL)).toBe(false);
       expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.CONFIDENTIAL)).toBe(false);
       expect(service.canViewConfidentiality('PARENT', FollowUpConfidentiality.SENSITIVE)).toBe(false);
     });

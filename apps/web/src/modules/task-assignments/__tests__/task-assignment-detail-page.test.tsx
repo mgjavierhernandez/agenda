@@ -21,6 +21,12 @@ vi.mock('../hooks', () => ({
   useTaskAssignment: (...args: unknown[]) => mockUseTaskAssignment(...args),
   useUpdateTaskAssignment: () => mockUseUpdateTaskAssignment(),
   useDeactivateTaskAssignment: () => mockUseDeactivateTaskAssignment(),
+  useMarkTaskAssignmentOpened: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock('@/modules/task-submissions/hooks', () => ({
+  useTaskSubmission: () => ({ data: undefined }),
+  useSubmissionAttachments: () => ({ data: [] }),
 }));
 
 vi.mock('@/modules/tasks/hooks', () => ({

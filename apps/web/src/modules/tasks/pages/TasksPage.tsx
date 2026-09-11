@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTasks } from '../hooks';
+import { useParentStudentFilter } from '@/modules/children';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -32,6 +33,9 @@ export function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('');
   const limit = 20;
 
+  // Padres: tareas del hijo seleccionado (el backend valida el vínculo).
+  const { isParent, studentId: childStudentId, selectedChild } = useParentStudentFilter();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -40,11 +44,12 @@ export function TasksPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useTasks({
+  const { data, isLoading, error, refetch } = useTasks({
     page,
     limit,
     search: debouncedSearch || undefined,
     status: (statusFilter as TaskStatus) || undefined,
+    studentId: childStudentId,
   });
 
   const tasks = data?.data ?? [];
@@ -58,14 +63,18 @@ export function TasksPage() {
   }, []);
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Tareas"
-        description="Gestionar tareas académicas de la institución"
+        description={
+          isParent && selectedChild
+            ? `Tareas de ${selectedChild.firstName} ${selectedChild.lastName}`
+            : 'Gestionar tareas académicas de la institución'
+        }
         actions={
           canManage ? (
             <Button onClick={() => navigate('/tasks/new')}>

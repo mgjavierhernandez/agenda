@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsDecimal, MaxLength, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDecimal, MaxLength, IsInt, Min, Max, IsUUID, IsArray, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -8,6 +8,13 @@ export class CreateSubmissionDto {
   @IsString()
   @MaxLength(5000)
   content?: string;
+
+  @ApiPropertyOptional({ description: 'File asset IDs to attach (doc/docx/xls/xlsx/pdf, max 10MB each)', type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsUUID('4', { each: true })
+  fileAssetIds?: string[];
 }
 
 export class UpdateSubmissionDto {
@@ -16,6 +23,13 @@ export class UpdateSubmissionDto {
   @IsString()
   @MaxLength(5000)
   content?: string;
+
+  @ApiPropertyOptional({ description: 'File asset IDs to attach (doc/docx/xls/xlsx/pdf, max 10MB each)', type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsUUID('4', { each: true })
+  fileAssetIds?: string[];
 }
 
 export class GradeSubmissionDto {
@@ -61,6 +75,6 @@ export class ListSubmissionsQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(200)
   limit?: number = 20;
 }

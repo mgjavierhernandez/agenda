@@ -277,7 +277,7 @@ test.describe('Responsive - Grades', () => {
     await page.setViewportSize(DESKTOP);
     await login(page);
     await page.goto('/grades');
-    await expect(page.getByRole('heading', { name: 'Notas' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Calificaciones' })).toBeVisible();
     await assertNoOverflow(page);
   });
 
@@ -285,7 +285,7 @@ test.describe('Responsive - Grades', () => {
     await page.setViewportSize(MOBILE);
     await login(page);
     await page.goto('/grades');
-    await expect(page.getByRole('heading', { name: 'Notas' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Calificaciones' })).toBeVisible();
     await assertNoOverflow(page);
   });
 });

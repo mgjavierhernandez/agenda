@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { useAuth } from '@/auth/auth.store';
+import { useTenant } from '@/tenant/tenant.store';
 import { useUpsertUserProfile } from '@/modules/administration/hooks';
+import { apiClient } from '@/api/client';
 import { getErrorMessage } from '@/api/errors';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { Button } from '@/components/ui/Button';
@@ -8,12 +10,13 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { DOCUMENT_TYPE_LABELS } from '@/api/types';
-import type { UpsertUserProfileInput, DocumentType } from '@/api/types';
+import type { UpsertUserProfileInput, DocumentType, UserProfile } from '@/api/types';
 
 const DOCUMENT_TYPES: DocumentType[] = ['DNI', 'PASSPORT', 'NATIONAL_ID', 'OTHER'];
 
 export function UserProfilePage() {
-  const { user, selectedInstitutionId } = useAuth();
+  const { user } = useAuth();
+  const { selectedInstitutionId } = useTenant();
   const upsertProfile = useUpsertUserProfile(user?.id);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -29,28 +32,37 @@ export function UserProfilePage() {
   const [profession, setProfession] = useState('');
   const [bio, setBio] = useState('');
 
-  const loadProfile = async () => {
-    if (!selectedInstitutionId || !user?.id) return;
+  const applyProfile = useCallback((data: UserProfile | null) => {
+    setDocumentType((data?.documentType as DocumentType | null) ?? '');
+    setDocumentNumber(data?.documentNumber ?? '');
+    setBirthDate(data?.birthDate ? String(data.birthDate).slice(0, 10) : '');
+    setPhone(data?.phone ?? '');
+    setAddress(data?.address ?? '');
+    setProfession(data?.profession ?? '');
+    setBio(data?.bio ?? '');
+    setIsDirty(false);
+  }, []);
+
+  const loadProfile = useCallback(async () => {
+    if (!selectedInstitutionId || !user?.id) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setError('');
     try {
-      const res = await fetch(`/api/v1/users/${user.id}/profile`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setDocumentType((data.documentType as DocumentType) ?? '');
-        setDocumentNumber(data.documentNumber ?? '');
-        setBirthDate(data.birthDate ?? '');
-        setPhone(data.phone ?? '');
-        setAddress(data.address ?? '');
-        setProfession(data.profession ?? '');
-        setBio(data.bio ?? '');
-      }
-    } catch {
-      setError('No se pudo cargar el perfil');
+      const data = await apiClient.get<UserProfile | null>(`/users/${user.id}/profile`);
+      applyProfile(data);
+    } catch (err) {
+      setError(getErrorMessage(err) || 'No se pudo cargar el perfil');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedInstitutionId, user?.id, applyProfile]);
+
+  useEffect(() => {
+    void loadProfile();
+  }, [loadProfile]);
 
   const handleChange = (field: string, value: string) => {
     setIsDirty(true);
@@ -131,7 +143,7 @@ export function UserProfilePage() {
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4" role="alert">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
@@ -204,7 +216,7 @@ export function UserProfilePage() {
             />
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="secondary" disabled={!isDirty} onClick={loadProfile}>
+            <Button type="button" variant="secondary" disabled={!isDirty} onClick={() => void loadProfile()}>
               Descartar
             </Button>
             <Button type="submit" isLoading={upsertProfile.isPending} disabled={!isDirty}>

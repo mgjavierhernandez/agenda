@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentFollowUps, useFollowUpCategories } from '../hooks';
 import { usePermissions } from '@/permissions/usePermissions';
+import { useParentStudentFilter } from '@/modules/children';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -53,6 +54,8 @@ export function StudentFollowUpsPage() {
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission(PERMISSIONS.STUDENT_FOLLOW_UPS_CREATE);
 
+  const { isParent, studentId: childStudentId, selectedChild } = useParentStudentFilter();
+
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -78,6 +81,7 @@ export function StudentFollowUpsPage() {
     page,
     limit,
     search: debouncedSearch || undefined,
+    studentId: childStudentId,
     type: (typeFilter as FollowUpType) || undefined,
     status: (statusFilter as FollowUpStatus) || undefined,
     severity: (severityFilter as FollowUpSeverity) || undefined,
@@ -111,7 +115,11 @@ export function StudentFollowUpsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Observador del Alumno"
-        description="Seguimiento y observaciones de estudiantes"
+        description={
+          isParent && selectedChild
+            ? `Seguimiento de ${selectedChild.firstName} ${selectedChild.lastName}`
+            : 'Seguimiento y observaciones de estudiantes'
+        }
         actions={
           canCreate ? (
             <Button onClick={() => navigate('/student-follow-ups/new')}>

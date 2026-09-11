@@ -239,12 +239,24 @@ export class TeacherAssignmentsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(institutionId: string, id: string): Promise<TeacherAssignment> {
+  async findOne(institutionId: string, id: string): Promise<TeacherAssignment & { autoBackfilled: number }> {
     const assignment = await this.prisma.teacherAssignment.findFirst({
       where: { id, institutionId },
     });
     if (!assignment) throw new NotFoundException('Teacher assignment not found');
-    return assignment;
+    // Origen automático inferido sin migración: nº de horarios auto-asignados
+    // registrados en auditoría (SCHEDULE_TEACHER_BACKFILLED). Informativo, no editable.
+    const backfillLogs = await this.prisma.auditLog.findMany({
+      where: { institutionId, action: 'SCHEDULE_TEACHER_BACKFILLED', entityType: 'TeacherAssignment', entityId: id },
+      select: { newValues: true },
+      orderBy: { createdAt: 'desc' },
+      take: 1,
+    });
+    const autoBackfilled =
+      backfillLogs.length > 0 && backfillLogs[0].newValues && typeof backfillLogs[0].newValues === 'object'
+        ? Number((backfillLogs[0].newValues as Record<string, unknown>).updated ?? 0)
+        : 0;
+    return { ...assignment, autoBackfilled };
   }
 
   async getDirectors(institutionId: string): Promise<Array<{

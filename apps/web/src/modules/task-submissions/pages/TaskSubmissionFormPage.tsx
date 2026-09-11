@@ -2,7 +2,9 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTaskAssignment } from '@/modules/task-assignments/hooks';
 import { useTask } from '@/modules/tasks/hooks';
-import { useCreateTaskSubmission, useUpdateTaskSubmission, useTaskSubmission } from '../hooks';
+import { useCreateTaskSubmission, useUpdateTaskSubmission, useTaskSubmission, useSubmissionAttachments, useRemoveSubmissionAttachment } from '../hooks';
+import { FileUploader } from '@/modules/files/components/FileUploader';
+import type { FileAsset } from '@/api/types';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { Button } from '@/components/ui/Button';
@@ -23,6 +25,10 @@ export function TaskSubmissionFormPage() {
   const [content, setContent] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState('');
+  // Archivos subidos en esta sesión (aún no vinculados).
+  const [pendingFiles, setPendingFiles] = useState<FileAsset[]>([]);
+  const { data: existingAttachments } = useSubmissionAttachments(id ?? '');
+  const removeAttachmentMutation = useRemoveSubmissionAttachment();
 
   const isEditing = !!existingSubmission;
 
@@ -45,15 +51,16 @@ export function TaskSubmissionFormPage() {
     if (!validate() || !id) return;
 
     try {
+      const fileAssetIds = pendingFiles.map((f) => f.id);
       if (isEditing && existingSubmission) {
         await updateMutation.mutateAsync({
           assignmentId: id,
-          data: { content: content.trim() || undefined },
+          data: { content: content.trim() || undefined, fileAssetIds: fileAssetIds.length > 0 ? fileAssetIds : undefined },
         });
       } else {
         await createMutation.mutateAsync({
           assignmentId: id,
-          data: { content: content.trim() || undefined },
+          data: { content: content.trim() || undefined, fileAssetIds: fileAssetIds.length > 0 ? fileAssetIds : undefined },
         });
       }
       navigate(`/task-assignments/${id}`);
@@ -127,6 +134,70 @@ export function TaskSubmissionFormPage() {
             />
             {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content}</p>}
             <p className="mt-1 text-xs text-gray-500">{content.length}/5000 caracteres</p>
+          </div>
+
+          <div>
+            <span className="block text-sm font-medium text-gray-700 mb-1">
+              Archivos adjuntos
+            </span>
+            <p className="text-xs text-gray-500 mb-2">
+              Formatos: .doc, .docx, .xls, .xlsx, .pdf (máx. 10 MB por archivo, hasta 10 archivos).
+            </p>
+            <FileUploader
+              onUploadComplete={(file) => {
+                if (pendingFiles.length >= 10) return;
+                setPendingFiles((prev) =>
+                  prev.some((f) => f.id === file.id) ? prev : [...prev, file],
+                );
+              }}
+              disabled={isSubmitting || pendingFiles.length >= 10}
+            />
+            {pendingFiles.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {pendingFiles.map((f) => (
+                  <li
+                    key={f.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                  >
+                    <span className="truncate text-gray-900" title={f.originalName}>
+                      {f.originalName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPendingFiles((prev) => prev.filter((p) => p.id !== f.id))}
+                      className="text-sm text-red-600 hover:text-red-800"
+                      aria-label={`Quitar ${f.originalName}`}
+                    >
+                      Quitar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {isEditing && (existingAttachments ?? []).length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {(existingAttachments ?? []).map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                  >
+                    <span className="truncate text-gray-700" title={a.fileAsset.originalName}>
+                      {a.fileAsset.originalName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (id) removeAttachmentMutation.mutate({ assignmentId: id, attachmentId: a.id });
+                      }}
+                      className="text-sm text-red-600 hover:text-red-800"
+                      aria-label={`Eliminar ${a.fileAsset.originalName}`}
+                    >
+                      Eliminar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

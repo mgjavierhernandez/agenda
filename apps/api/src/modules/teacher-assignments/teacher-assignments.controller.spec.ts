@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import * as path from 'path';
+import * as fs from 'fs';
 import { PATH_METADATA, METHOD_METADATA } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
 import { TeacherAssignmentsController } from './teacher-assignments.controller';
@@ -41,8 +43,6 @@ describe('TeacherAssignmentsController routing (regression: uuid is expected)', 
   });
 
   it('mantiene ParseUUIDPipe en :id (validacion estricta, sin relajar)', () => {
-    const path = require('path');
-    const fs = require('fs');
     const src = fs.readFileSync(path.join(__dirname, 'teacher-assignments.controller.ts'), 'utf8') as string;
     expect(src).toContain("@Param('id', ParseUUIDPipe)");
     expect(src).not.toContain('ParseUUIDPipe({ optional');

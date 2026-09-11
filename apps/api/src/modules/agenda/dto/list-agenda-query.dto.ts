@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsEnum, IsInt, Min, Max } from 'class-validator';
+import { IsDateString, IsOptional, IsEnum, IsInt, IsUUID, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum AgendaView {
@@ -34,6 +34,11 @@ export class ListAgendaQueryDto {
   @IsOptional()
   @IsEnum(AgendaEventType, { each: true })
   eventTypes?: AgendaEventType[];
+
+  @ApiPropertyOptional({ description: 'Restrict agenda to one linked student (parents only, validated)' })
+  @IsOptional()
+  @IsUUID()
+  studentId?: string;
 
   @ApiPropertyOptional({ default: 1, minimum: 1 })
   @IsOptional()

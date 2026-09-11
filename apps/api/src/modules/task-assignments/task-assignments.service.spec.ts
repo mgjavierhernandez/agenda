@@ -1,6 +1,18 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { TaskAssignmentsService } from './task-assignments.service';
 import { TaskAssignmentStatus, TaskStatus } from '@prisma/client';
+import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
+
+jest.mock('../../common/auth/academic-scope', () => ({
+  resolveAccessibleStudentIds: jest.fn(),
+  resolveAccessibleCourseIds: jest.fn(),
+  getUserRoleNames: jest.fn(),
+  hasFullAccess: jest.fn(),
+  FULL_ACCESS_ROLES: new Set(),
+  TEACHER_SCOPED_ROLES: new Set(),
+}));
+
+const mockedResolveStudents = jest.mocked(resolveAccessibleStudentIds);
 
 describe('TaskAssignmentsService', () => {
   let service: TaskAssignmentsService;
@@ -56,6 +68,9 @@ describe('TaskAssignmentsService', () => {
       prismaMock as never,
       auditServiceMock as never,
     );
+
+    mockedResolveStudents.mockReset();
+    mockedResolveStudents.mockResolvedValue(null);
   });
 
   describe('create', () => {
@@ -114,6 +129,49 @@ describe('TaskAssignmentsService', () => {
       prismaMock.taskAssignment.findFirst.mockResolvedValue(null);
 
       await expect(service.findOne(institutionId, 'ta-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject an assignment outside the caller scope', async () => {
+      mockedResolveStudents.mockResolvedValue(['own-1']);
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId, studentId: 'other-1' });
+
+      await expect(service.findOne(institutionId, 'ta-1', 'student-1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('markOpened', () => {
+    it('should audit TASK_OPENED for an accessible assignment', async () => {
+      mockedResolveStudents.mockResolvedValue(['student-1']);
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: 'ta-1',
+        institutionId,
+        studentId,
+        taskId,
+      });
+
+      const result = await service.markOpened(institutionId, 'ta-1', userId);
+
+      expect(result.opened).toBe(true);
+      expect(auditServiceMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'TASK_OPENED', entityId: 'ta-1', userId }),
+      );
+    });
+
+    it('should not audit when out of scope', async () => {
+      mockedResolveStudents.mockResolvedValue(['own-1']);
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: 'ta-1',
+        institutionId,
+        studentId: 'other-1',
+        taskId,
+      });
+
+      await expect(service.markOpened(institutionId, 'ta-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(auditServiceMock.log).not.toHaveBeenCalled();
     });
   });
 

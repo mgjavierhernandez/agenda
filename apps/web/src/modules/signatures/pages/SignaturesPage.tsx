@@ -41,7 +41,7 @@ export function SignaturesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useSignatures({
+  const { data, isLoading, error, refetch } = useSignatures({
     page,
     limit,
     search: debouncedSearch || undefined,
@@ -59,7 +59,7 @@ export function SignaturesPage() {
   }, []);
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (

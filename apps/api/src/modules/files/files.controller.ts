@@ -28,7 +28,7 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
-import { FilesService } from './files.service';
+import { FilesService, MAX_FILE_SIZE_MB } from './files.service';
 
 @ApiTags('Files')
 @ApiBearerAuth('bearer')
@@ -39,7 +39,7 @@ export class FilesController {
 
   @Post()
   @RequirePermission('files:upload')
-  @UseInterceptors(FileInterceptor('file', { storage: undefined, limits: { fileSize: 10 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('file', { storage: undefined, limits: { fileSize: MAX_FILE_SIZE_MB * 1024 * 1024 } }))
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Upload a file' })
   @ApiConsumes('multipart/form-data')

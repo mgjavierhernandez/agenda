@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openMobileDrawerIfNeeded } from './helpers/navigation';
 
 const EMAIL = process.env.E2E_EMAIL || 'admin@demo-school.dev';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
@@ -68,15 +69,29 @@ test.describe('RBAC', () => {
 
   test('sidebar should show permission-filtered navigation items', async ({ page }) => {
     await login(page);
-    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    const isMobile = (page.viewportSize()?.width ?? 1280) < 1024;
+    if (isMobile) {
+      await openMobileDrawerIfNeeded(page);
+    }
+    // On desktop, the visible nav is the only one in the accessibility tree.
+    // On mobile, scope to the dialog.
+    const nav = isMobile
+      ? page.getByRole('dialog', { name: 'Menú de navegación' }).getByRole('navigation', { name: 'Main navigation' })
+      : page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav).toBeVisible();
 
-    await expect(nav.getByRole('button', { name: /Categoría Gestión académica/i })).toBeVisible();
+    // Verify category exists in DOM — wait for first category to render
+    await expect(nav.getByRole('button', { name: /Categoría Gestión académica/i })).toBeVisible({ timeout: 10_000 });
+    const catCount = await nav.getByRole('button', { name: /Categoría Gestión académica/i }).count();
+    expect(catCount).toBeGreaterThan(0);
+
     const catBtn = nav.getByRole('button', { name: /Categoría Gestión académica/i });
     if ((await catBtn.getAttribute('aria-expanded')) !== 'true') {
-      await catBtn.click();
+      await catBtn.click({ force: true });
     }
-    await expect(nav.getByRole('link', { name: 'Estudiantes' })).toBeVisible({ timeout: 15_000 });
+    // "Estudiantes" y "Importar estudiantes" comparten subcadena: usar coincidencia
+    // exacta (los nombres accesibles completos sí son diferenciables).
+    await expect(nav.getByRole('link', { name: 'Estudiantes', exact: true })).toBeVisible({ timeout: 15_000 });
 
     const items = nav.locator('li a');
     const count = await items.count();

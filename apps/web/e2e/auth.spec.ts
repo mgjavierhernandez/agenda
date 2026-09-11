@@ -60,7 +60,8 @@ test.describe('Authentication', () => {
     await login(page);
     const userButton = page.locator('header button').last();
     await userButton.click();
-    await page.getByRole('button', { name: /cerrar sesión/i }).click();
+    // El menú de usuario usa semántica menu/menuitem (a11y): no es un button.
+    await page.getByRole('menuitem', { name: /cerrar sesión/i }).click();
     await page.waitForURL(/\/login/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
   });
@@ -69,7 +70,7 @@ test.describe('Authentication', () => {
     await login(page);
     const userButton = page.locator('header button').last();
     await userButton.click();
-    await page.getByRole('button', { name: /cerrar sesión/i }).click();
+    await page.getByRole('menuitem', { name: /cerrar sesión/i }).click();
     await page.waitForURL(/\/login/, { timeout: 10_000 });
     await page.goto('/dashboard');
     await page.waitForURL(/\/login/, { timeout: 10_000 });

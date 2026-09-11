@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { resolveAccessibleCourseIds } from '../../common/auth/academic-scope';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { ListCoursesQueryDto } from './dto/list-courses-query.dto';
@@ -80,6 +81,7 @@ export class CoursesService {
   async findAll(
     institutionId: string,
     query: ListCoursesQueryDto,
+    userId?: string,
   ): Promise<{ data: Course[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -97,6 +99,13 @@ export class CoursesService {
           }
         : {}),
     };
+
+    if (userId) {
+      const accessible = await resolveAccessibleCourseIds(this.prisma, institutionId, userId);
+      if (accessible !== null) {
+        where.id = { in: accessible };
+      }
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.course.findMany({
@@ -119,7 +128,13 @@ export class CoursesService {
     };
   }
 
-  async findOne(institutionId: string, courseId: string): Promise<Course> {
+  async findOne(institutionId: string, courseId: string, userId?: string): Promise<Course> {
+    if (userId) {
+      const accessible = await resolveAccessibleCourseIds(this.prisma, institutionId, userId);
+      if (accessible !== null && !accessible.includes(courseId)) {
+        throw new NotFoundException('Course not found');
+      }
+    }
     const course = await this.prisma.course.findFirst({
       where: {
         id: courseId,

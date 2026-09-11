@@ -1,15 +1,35 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
+import { ScheduleExportFormat } from './dto/schedule-export-query.dto';
 import { ScheduleStatus, DayOfWeek } from '@prisma/client';
+import {
+  resolveAccessibleCourseIds,
+  resolveAccessibleStudentIds,
+} from '../../common/auth/academic-scope';
+
+jest.mock('../../common/auth/academic-scope', () => ({
+  resolveAccessibleCourseIds: jest.fn(),
+  resolveAccessibleStudentIds: jest.fn(),
+  getUserRoleNames: jest.fn(),
+  hasFullAccess: jest.fn(),
+  FULL_ACCESS_ROLES: new Set(),
+  TEACHER_SCOPED_ROLES: new Set(),
+}));
+
+const mockedResolveCourses = jest.mocked(resolveAccessibleCourseIds);
+const mockedResolveStudents = jest.mocked(resolveAccessibleStudentIds);
 
 describe('SchedulesService', () => {
   let service: SchedulesService;
   let prismaMock: {
-    course: { findFirst: jest.Mock };
-    subject: { findFirst: jest.Mock };
+    course: { findFirst: jest.Mock; findMany: jest.Mock };
+    subject: { findFirst: jest.Mock; findMany: jest.Mock };
     academicPeriod: { findFirst: jest.Mock };
     teacherAssignment: { findFirst: jest.Mock };
-    classroom: { findFirst: jest.Mock };
+    classroom: { findFirst: jest.Mock; findMany: jest.Mock };
+    user: { findMany: jest.Mock };
+    institution: { findUnique: jest.Mock };
+    enrollment: { findMany: jest.Mock };
     scheduleBlock: { findFirst: jest.Mock };
     schedule: {
       findFirst: jest.Mock;
@@ -32,11 +52,14 @@ describe('SchedulesService', () => {
 
   beforeEach(() => {
     prismaMock = {
-      course: { findFirst: jest.fn() },
-      subject: { findFirst: jest.fn() },
+      course: { findFirst: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+      subject: { findFirst: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
       academicPeriod: { findFirst: jest.fn() },
       teacherAssignment: { findFirst: jest.fn() },
-      classroom: { findFirst: jest.fn() },
+      classroom: { findFirst: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+      user: { findMany: jest.fn().mockResolvedValue([]) },
+      institution: { findUnique: jest.fn().mockResolvedValue({ name: 'Demo' }) },
+      enrollment: { findMany: jest.fn().mockResolvedValue([]) },
       scheduleBlock: { findFirst: jest.fn() },
       schedule: {
         findFirst: jest.fn(),
@@ -60,6 +83,11 @@ describe('SchedulesService', () => {
     prismaMock.teacherAssignment.findFirst.mockResolvedValue({ id: 'ta-1', institutionId });
     prismaMock.classroom.findFirst.mockResolvedValue({ id: classroomId, institutionId, status: 'ACTIVE' });
     prismaMock.scheduleBlock.findFirst.mockResolvedValue({ id: blockId, institutionId });
+
+    mockedResolveCourses.mockReset();
+    mockedResolveStudents.mockReset();
+    mockedResolveCourses.mockResolvedValue(null);
+    mockedResolveStudents.mockResolvedValue(null);
   });
 
   const baseCreate = (overrides: Record<string, unknown> = {}) => ({
@@ -314,6 +342,80 @@ describe('SchedulesService', () => {
           where: expect.objectContaining({ institutionId, status: ScheduleStatus.ACTIVE }),
         }),
       );
+    });
+  });
+
+  describe('exportSchedules', () => {
+    const scopedRow = {
+      id: 's1',
+      institutionId,
+      courseId,
+      subjectId,
+      classroomId,
+      teacherUserId,
+      dayOfWeek: DayOfWeek.MONDAY,
+      startTime: new Date('1970-01-01T08:00:00Z'),
+      endTime: new Date('1970-01-01T09:30:00Z'),
+      status: ScheduleStatus.ACTIVE,
+    };
+
+    function mockScopedData() {
+      prismaMock.schedule.findMany.mockResolvedValue([scopedRow]);
+      prismaMock.schedule.count.mockResolvedValue(1);
+      prismaMock.schedule.findFirst.mockResolvedValue(null);
+      prismaMock.course.findMany.mockResolvedValue([{ id: courseId, name: 'Curso 1' }]);
+      prismaMock.subject.findMany.mockResolvedValue([{ id: subjectId, name: 'Matemáticas' }]);
+      prismaMock.classroom.findMany.mockResolvedValue([{ id: classroomId, name: 'Aula 101' }]);
+      prismaMock.user.findMany.mockResolvedValue([{ id: teacherUserId, firstName: 'Ana', lastName: 'López' }]);
+    }
+
+    it('should export scoped schedules as PDF', async () => {
+      mockedResolveCourses.mockResolvedValue([courseId]);
+      mockScopedData();
+
+      const result = await service.exportSchedules(institutionId, 'parent-1', {});
+
+      expect(result.contentType).toBe('application/pdf');
+      expect(result.filename).toMatch(/\.pdf$/);
+      expect(result.buffer.length).toBeGreaterThan(0);
+      expect(auditServiceMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'SCHEDULE_EXPORTED' }),
+      );
+    });
+
+    it('should export scoped schedules as XLSX', async () => {
+      mockedResolveCourses.mockResolvedValue([courseId]);
+      mockScopedData();
+
+      const result = await service.exportSchedules(institutionId, 'parent-1', {
+        format: ScheduleExportFormat.XLSX,
+      });
+
+      expect(result.contentType).toContain('spreadsheetml');
+      expect(result.filename).toMatch(/\.xlsx$/);
+      expect(result.buffer.subarray(0, 2).toString()).toBe('PK');
+    });
+
+    it('should export scoped schedules as CSV', async () => {
+      mockedResolveCourses.mockResolvedValue([courseId]);
+      mockScopedData();
+
+      const result = await service.exportSchedules(institutionId, 'parent-1', {
+        format: ScheduleExportFormat.CSV,
+      });
+
+      expect(result.contentType).toContain('text/csv');
+      const text = result.buffer.toString('utf8');
+      expect(text).toContain('Matemáticas');
+    });
+
+    it('should reject a courseId outside the caller scope', async () => {
+      mockedResolveCourses.mockResolvedValue([courseId]);
+
+      await expect(
+        service.exportSchedules(institutionId, 'parent-1', { courseId: 'other-course' }),
+      ).rejects.toThrow(NotFoundException);
+      expect(auditServiceMock.log).not.toHaveBeenCalled();
     });
   });
 

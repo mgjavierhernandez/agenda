@@ -67,6 +67,7 @@ export class TaskAssignmentsController {
     return this.taskAssignmentsService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
   }
 
@@ -83,13 +84,32 @@ export class TaskAssignmentsController {
     return this.taskAssignmentsService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
+    );
+  }
+
+  @Post(':id/opened')
+  @RequirePermission('tasks:read')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Record that the current user opened a task assignment (trazabilidad)' })
+  @ApiParam({ name: 'id', description: 'Task assignment UUID' })
+  @ApiResponse({ status: 200, description: 'Opening recorded' })
+  @ApiResponse({ status: 404, description: 'Task assignment not found' })
+  async markOpened(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.taskAssignmentsService.markOpened(
+      req.tenant!.institutionId,
+      id,
+      req.user.userId,
+      req.ip,
     );
   }
 
   @Patch(':id')
   @RequirePermission('tasks:manage')
-  @ApiOperation({ summary: 'Update a task assignment' })
-  @ApiParam({ name: 'id', description: 'Task assignment UUID' })
+  @ApiOperation({ summary: 'Update a task assignment' })  @ApiParam({ name: 'id', description: 'Task assignment UUID' })
   @ApiResponse({ status: 200, description: 'Task assignment updated successfully' })
   @ApiResponse({ status: 404, description: 'Task assignment not found' })
   async update(

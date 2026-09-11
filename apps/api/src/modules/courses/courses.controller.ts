@@ -71,6 +71,7 @@ export class CoursesController {
     return this.coursesService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
   }
 
@@ -90,6 +91,7 @@ export class CoursesController {
     return this.coursesService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 

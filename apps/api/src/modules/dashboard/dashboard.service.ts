@@ -14,6 +14,12 @@ import {
 export type DashboardRole =
   | 'INSTITUTION_ADMIN'
   | 'SUPER_ADMIN'
+  | 'RECTOR'
+  | 'COORDINADOR_ACADEMICO'
+  | 'COORDINADOR_CONVIVENCIA'
+  | 'ORIENTADOR'
+  | 'PSICOLOGO'
+  | 'DIRECTOR_DE_GRUPO'
   | 'TEACHER'
   | 'PARENT'
   | 'STUDENT';
@@ -98,15 +104,28 @@ export class DashboardService {
     private readonly followUpAuthorization: StudentFollowUpAuthorizationService,
   ) {}
 
-  async getDashboard(userId: string, institutionId: string): Promise<DashboardData> {
+  async getDashboard(userId: string, institutionId: string, periodId?: string): Promise<DashboardData> {
     const role = await this.resolveRole(userId, institutionId);
     if (!role) {
       throw new ForbiddenException('No active role for this institution');
     }
 
+    if (periodId) {
+      const period = await this.prisma.academicPeriod.findFirst({
+        where: { id: periodId, institutionId },
+      });
+      if (!period) {
+        throw new ForbiddenException('Academic period not found in this institution');
+      }
+    }
+
+    const resolvedPeriodId = periodId ?? undefined;
+
     const [activePeriod, recentNotifications, upcomingEvents, followUpsList, pendingCommitments] =
       await Promise.all([
-        this.getActivePeriod(institutionId),
+        resolvedPeriodId
+          ? this.getPeriodById(resolvedPeriodId)
+          : this.getActivePeriod(institutionId),
         this.getRecentNotifications(userId, institutionId),
         this.getUpcomingEvents(institutionId, role),
         this.getFollowUps(userId, institutionId, role),
@@ -115,10 +134,10 @@ export class DashboardService {
 
     const [stats, children, courses, subjects, recentCommunications, pendingSignatures] =
       await Promise.all([
-        this.getStats(userId, institutionId, role),
+        this.getStats(userId, institutionId, role, resolvedPeriodId),
         this.getChildren(userId, institutionId, role),
-        this.getCourses(userId, institutionId, role),
-        this.getSubjects(userId, institutionId, role),
+        this.getCourses(userId, institutionId, role, resolvedPeriodId),
+        this.getSubjects(userId, institutionId, role, resolvedPeriodId),
         this.getRecentCommunications(institutionId, role),
         this.getPendingSignatures(userId, institutionId),
       ]);
@@ -144,6 +163,12 @@ export class DashboardService {
     const names = roles.map((r) => r.name);
 
     if (names.includes('INSTITUTION_ADMIN')) return 'INSTITUTION_ADMIN';
+    if (names.includes('RECTOR')) return 'RECTOR';
+    if (names.includes('COORDINADOR_ACADEMICO')) return 'COORDINADOR_ACADEMICO';
+    if (names.includes('COORDINADOR_CONVIVENCIA')) return 'COORDINADOR_CONVIVENCIA';
+    if (names.includes('ORIENTADOR')) return 'ORIENTADOR';
+    if (names.includes('PSICOLOGO')) return 'PSICOLOGO';
+    if (names.includes('DIRECTOR_DE_GRUPO')) return 'DIRECTOR_DE_GRUPO';
     if (names.includes('TEACHER')) return 'TEACHER';
     if (names.includes('PARENT')) return 'PARENT';
     if (names.includes('STUDENT')) return 'STUDENT';
@@ -167,12 +192,28 @@ export class DashboardService {
     });
   }
 
+  private async getPeriodById(periodId: string) {
+    return this.prisma.academicPeriod.findUnique({
+      where: { id: periodId },
+      select: { id: true, name: true, code: true, startDate: true, endDate: true, status: true },
+    });
+  }
+
   private async getStats(
     userId: string,
     institutionId: string,
     role: DashboardRole,
+    periodId?: string,
   ): Promise<Record<string, number>> {
-    if (role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN') {
+    if (
+      role === 'INSTITUTION_ADMIN' ||
+      role === 'SUPER_ADMIN' ||
+      role === 'RECTOR' ||
+      role === 'COORDINADOR_ACADEMICO' ||
+      role === 'COORDINADOR_CONVIVENCIA' ||
+      role === 'ORIENTADOR' ||
+      role === 'PSICOLOGO'
+    ) {
       const [students, teachers, courses, subjects, pendingFollowUps] = await Promise.all([
         this.prisma.student.count({ where: { institutionId, status: 'ACTIVE' } }),
         this.prisma.userInstitution.count({
@@ -191,9 +232,16 @@ export class DashboardService {
       return { students, teachers, courses, subjects, pendingFollowUps };
     }
 
-    if (role === 'TEACHER') {
+    if (role === 'TEACHER' || role === 'DIRECTOR_DE_GRUPO') {
+      const assignmentWhere: Prisma.TeacherAssignmentWhereInput = {
+        institutionId,
+        teacherUserId: userId,
+        status: 'ACTIVE',
+      };
+      if (periodId) assignmentWhere.academicPeriodId = periodId;
+
       const activeAssignments = await this.prisma.teacherAssignment.findMany({
-        where: { institutionId, teacherUserId: userId, status: 'ACTIVE' },
+        where: assignmentWhere,
         select: { courseId: true },
         distinct: ['courseId'],
       });
@@ -205,6 +253,7 @@ export class DashboardService {
                 institutionId,
                 status: 'ACTIVE',
                 courseId: { in: courseIds },
+                ...(periodId ? { academicPeriodId: periodId } : {}),
               },
               distinct: ['studentId'],
               select: { studentId: true },
@@ -224,10 +273,15 @@ export class DashboardService {
     // STUDENT
     const student = await this.getOwnStudent(userId, institutionId);
     if (!student) return {};
+    const enrollmentWhere: Prisma.EnrollmentWhereInput = {
+      institutionId,
+      studentId: student.id,
+      status: 'ACTIVE',
+    };
+    if (periodId) enrollmentWhere.academicPeriodId = periodId;
+
     const [enrollments, followUps] = await Promise.all([
-      this.prisma.enrollment.count({
-        where: { institutionId, studentId: student.id, status: 'ACTIVE' },
-      }),
+      this.prisma.enrollment.count({ where: enrollmentWhere }),
       this.prisma.studentFollowUp.count({ where: { institutionId, studentId: student.id } }),
     ]);
     return { enrollments, followUps };
@@ -255,28 +309,66 @@ export class DashboardService {
     userId: string,
     institutionId: string,
     role: DashboardRole,
+    periodId?: string,
   ): Promise<CourseBrief[]> {
-    if (role === 'TEACHER') {
-      const assignments = await this.prisma.teacherAssignment.findMany({
-        where: { institutionId, teacherUserId: userId, status: 'ACTIVE' },
-        select: {
-          course: { select: { id: true, code: true, name: true, status: true } },
-        },
-        distinct: ['courseId'],
-      });
-      return assignments.map((a) => ({
-        id: a.course.id,
-        code: a.course.code,
-        name: a.course.name,
-        status: a.course.status,
-      }));
+    if (role === 'TEACHER' || role === 'DIRECTOR_DE_GRUPO') {
+      const assignmentWhere: Prisma.TeacherAssignmentWhereInput = {
+        institutionId,
+        teacherUserId: userId,
+        status: 'ACTIVE',
+      };
+      if (periodId) assignmentWhere.academicPeriodId = periodId;
+
+      const directorWhere: Prisma.CourseDirectorAssignmentWhereInput = {
+        institutionId,
+        directorUserId: userId,
+        status: 'ACTIVE',
+      };
+      if (periodId) directorWhere.academicPeriodId = periodId;
+
+      const [assignments, directions] = await Promise.all([
+        this.prisma.teacherAssignment.findMany({
+          where: assignmentWhere,
+          select: {
+            course: { select: { id: true, code: true, name: true, status: true } },
+          },
+          distinct: ['courseId'],
+        }),
+        role === 'DIRECTOR_DE_GRUPO'
+          ? this.prisma.courseDirectorAssignment.findMany({
+              where: directorWhere,
+              select: {
+                course: { select: { id: true, code: true, name: true, status: true } },
+              },
+            })
+          : Promise.resolve([] as Array<{ course: CourseBrief }>),
+      ]);
+      const seen = new Map<string, CourseBrief>();
+      for (const a of [...assignments, ...directions]) {
+        if (!seen.has(a.course.id)) {
+          seen.set(a.course.id, {
+            id: a.course.id,
+            code: a.course.code,
+            name: a.course.name,
+            status: a.course.status,
+          });
+        }
+      }
+      return [...seen.values()];
     }
 
     if (role === 'STUDENT') {
       const student = await this.getOwnStudent(userId, institutionId);
       if (!student) return [];
+      const enrollmentWhere: Prisma.EnrollmentWhereInput = {
+        institutionId,
+        studentId: student.id,
+        status: 'ACTIVE',
+      };
+      if (periodId) enrollmentWhere.academicPeriodId = periodId;
+
       const enrollments = await this.prisma.enrollment.findMany({
-        where: { institutionId, studentId: student.id, status: 'ACTIVE' },
+        where: enrollmentWhere,
         select: {
           course: { select: { id: true, code: true, name: true, status: true } },
         },
@@ -296,10 +388,18 @@ export class DashboardService {
     userId: string,
     institutionId: string,
     role: DashboardRole,
+    periodId?: string,
   ) {
-    if (role === 'TEACHER') {
+    if (role === 'TEACHER' || role === 'DIRECTOR_DE_GRUPO') {
+      const assignmentWhere: Prisma.TeacherAssignmentWhereInput = {
+        institutionId,
+        teacherUserId: userId,
+        status: 'ACTIVE',
+      };
+      if (periodId) assignmentWhere.academicPeriodId = periodId;
+
       const assignments = await this.prisma.teacherAssignment.findMany({
-        where: { institutionId, teacherUserId: userId, status: 'ACTIVE' },
+        where: assignmentWhere,
         select: { subject: { select: { id: true, code: true, name: true, status: true } } },
         distinct: ['subjectId'],
       });
@@ -366,9 +466,16 @@ export class DashboardService {
 
   private eventVisibleToRole(audience: CommunicationAudience, role: DashboardRole): boolean {
     if (audience === CommunicationAudience.ALL) return true;
-    const admin = role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
-    if (admin) return true;
-    if (audience === CommunicationAudience.TEACHERS) return role === 'TEACHER';
+    const staffAdmin =
+      role === 'INSTITUTION_ADMIN' ||
+      role === 'SUPER_ADMIN' ||
+      role === 'RECTOR' ||
+      role === 'COORDINADOR_ACADEMICO' ||
+      role === 'COORDINADOR_CONVIVENCIA' ||
+      role === 'ORIENTADOR' ||
+      role === 'PSICOLOGO';
+    if (staffAdmin) return true;
+    if (audience === CommunicationAudience.TEACHERS) return role === 'TEACHER' || role === 'DIRECTOR_DE_GRUPO';
     if (audience === CommunicationAudience.PARENTS) return role === 'PARENT';
     if (audience === CommunicationAudience.STUDENTS) return role === 'STUDENT';
     return false;
@@ -407,7 +514,19 @@ export class DashboardService {
   }
 
   private async getFollowUps(userId: string, institutionId: string, role: DashboardRole) {
-    const effectiveRole = role === 'SUPER_ADMIN' ? 'INSTITUTION_ADMIN' : role;
+    // buildListFilter solo modela 4 roles: el staff directivo ve como
+    // administración y el director de grupo como docente.
+    const effectiveRole =
+      role === 'SUPER_ADMIN' ||
+      role === 'RECTOR' ||
+      role === 'COORDINADOR_ACADEMICO' ||
+      role === 'COORDINADOR_CONVIVENCIA' ||
+      role === 'ORIENTADOR' ||
+      role === 'PSICOLOGO'
+        ? 'INSTITUTION_ADMIN'
+        : role === 'DIRECTOR_DE_GRUPO'
+          ? 'TEACHER'
+          : role;
     const filter = this.followUpAuthorization.buildListFilter(
       userId,
       institutionId,
@@ -434,8 +553,9 @@ export class DashboardService {
     institutionId: string,
     role: DashboardRole,
   ) {
-    // Admin / super admin: all pending commitments in the institution.
-    if (role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN') {
+    // Admin: all pending commitments in the institution.
+    // SUPER_ADMIN is excluded (no functional access to school data).
+    if (role === 'INSTITUTION_ADMIN') {
       const rows = await this.prisma.commitment.findMany({
         where: {
           followUp: { institutionId },

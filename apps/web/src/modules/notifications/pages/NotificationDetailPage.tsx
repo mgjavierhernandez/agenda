@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useNotification, useMarkNotificationRead, useDeleteNotification } from '../hooks';
+import { useEffect } from 'react';
+import { useNotification, useMarkNotificationRead, useDeleteNotification, useTrackNotificationOpened } from '../hooks';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { Button } from '@/components/ui/Button';
@@ -47,6 +48,18 @@ export function NotificationDetailPage() {
   const { data: notification, isLoading, error } = useNotification(id ?? '');
   const markReadMutation = useMarkNotificationRead();
   const deleteMutation = useDeleteNotification();
+  const trackOpenedMutation = useTrackNotificationOpened();
+
+  // Abrir la notificación la marca como leída y registra apertura (trazabilidad en backend).
+  useEffect(() => {
+    if (id && notification) {
+      trackOpenedMutation.mutate(id);
+      if (notification.status === 'UNREAD') {
+        markReadMutation.mutate(id);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, notification?.status]);
 
   const handleMarkAsRead = () => {
     if (id) markReadMutation.mutate(id);

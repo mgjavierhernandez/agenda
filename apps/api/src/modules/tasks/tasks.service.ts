@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { resolveParentContext } from '../../common/auth/parent-context';
+import { resolveAccessibleStudentIds, resolveAccessibleCourseIds, getUserRoleNames, TEACHER_SCOPED_ROLES } from '../../common/auth/academic-scope';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
@@ -146,21 +146,50 @@ export class TasksService {
     };
 
     if (userId) {
-      const parentCtx = await resolveParentContext(this.prisma, institutionId, userId);
-      if (parentCtx.isParent && parentCtx.studentIds.length > 0) {
-        const taskAssignments = await this.prisma.taskAssignment.findMany({
-          where: {
-            institutionId,
-            studentId: { in: parentCtx.studentIds },
-            status: { not: 'CANCELLED' },
-          },
-          select: { taskId: true },
-        });
-        const taskIds = [...new Set(taskAssignments.map((ta) => ta.taskId))];
-        if (taskIds.length === 0) {
+      const [accessibleStudents, accessibleCourses] = await Promise.all([
+        resolveAccessibleStudentIds(this.prisma, institutionId, userId),
+        resolveAccessibleCourseIds(this.prisma, institutionId, userId),
+      ]);
+      if (accessibleStudents !== null || accessibleCourses !== null) {
+        if (query.courseId && accessibleCourses !== null && !accessibleCourses.includes(query.courseId)) {
+          throw new NotFoundException('Task not found');
+        }
+        if (query.studentId && accessibleStudents !== null && !accessibleStudents.includes(query.studentId)) {
+          throw new NotFoundException('Task not found');
+        }
+        // Estudiante explícito: restringir el alcance a ese estudiante.
+        const effectiveStudents =
+          query.studentId && accessibleStudents !== null ? [query.studentId] : accessibleStudents;
+        const scopeOr: Prisma.TaskWhereInput[] = [];
+        let hasScopeContent = false;
+        if (effectiveStudents !== null) {
+          const links = effectiveStudents.length > 0
+            ? await this.prisma.taskAssignment.findMany({
+                where: {
+                  institutionId,
+                  studentId: { in: effectiveStudents },
+                  status: { not: 'CANCELLED' },
+                },
+                select: { taskId: true },
+              })
+            : [];
+          const taskIds = [...new Set(links.map((l) => l.taskId))];
+          if (taskIds.length > 0) hasScopeContent = true;
+          scopeOr.push({ id: { in: taskIds } });
+        }
+        // Docentes: además ven las tareas de sus cursos asignados (aunque aún
+        // no tengan entregas/asignaciones individuales creadas).
+        if (!query.studentId && accessibleCourses !== null && accessibleCourses.length > 0) {
+          const roleNames = await getUserRoleNames(this.prisma, institutionId, userId);
+          if (roleNames.some((n) => TEACHER_SCOPED_ROLES.has(n))) {
+            scopeOr.push({ courseId: { in: accessibleCourses } });
+            hasScopeContent = true;
+          }
+        }
+        if (!hasScopeContent) {
           return { data: [], meta: { page, limit, total: 0, totalPages: 0 } };
         }
-        where.id = { in: taskIds };
+        where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { OR: scopeOr }];
       }
     }
 
@@ -185,7 +214,7 @@ export class TasksService {
     };
   }
 
-  async findOne(institutionId: string, taskId: string): Promise<Task> {
+  async findOne(institutionId: string, taskId: string, userId?: string): Promise<Task> {
     const task = await this.prisma.task.findFirst({
       where: {
         id: taskId,
@@ -197,7 +226,40 @@ export class TasksService {
       throw new NotFoundException('Task not found');
     }
 
+    if (userId) {
+      await this.assertTaskVisible(institutionId, task, userId);
+    }
+
     return task;
+  }
+
+  /**
+   * Verifica que el actor puede ver la tarea: asignación a un estudiante de su
+   * alcance, o (docentes) curso asignado.
+   */
+  private async assertTaskVisible(
+    institutionId: string,
+    task: { id: string; courseId: string },
+    userId: string,
+  ): Promise<void> {
+    const [accessibleStudents, accessibleCourses] = await Promise.all([
+      resolveAccessibleStudentIds(this.prisma, institutionId, userId),
+      resolveAccessibleCourseIds(this.prisma, institutionId, userId),
+    ]);
+    if (accessibleStudents === null && accessibleCourses === null) return;
+
+    if (accessibleStudents !== null && accessibleStudents.length > 0) {
+      const link = await this.prisma.taskAssignment.findFirst({
+        where: { institutionId, taskId: task.id, studentId: { in: accessibleStudents } },
+        select: { id: true },
+      });
+      if (link) return;
+    }
+    if (accessibleCourses !== null && accessibleCourses.includes(task.courseId)) {
+      const roleNames = await getUserRoleNames(this.prisma, institutionId, userId);
+      if (roleNames.some((n) => TEACHER_SCOPED_ROLES.has(n))) return;
+    }
+    throw new NotFoundException('Task not found');
   }
 
   async update(

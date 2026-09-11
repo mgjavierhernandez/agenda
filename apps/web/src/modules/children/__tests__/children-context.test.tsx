@@ -67,6 +67,7 @@ const mockGuardianStudentsResponse = {
 describe('ChildContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('provides empty children when no guardian links exist', async () => {
@@ -102,6 +103,45 @@ describe('ChildContext', () => {
     expect(screen.getByTestId('children-count').textContent).toBe('2');
   });
 
+  it('auto-selects the first child by default', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue(mockGuardianStudentsResponse);
+
+    render(
+      <ChildProvider>
+        <TestConsumer />
+      </ChildProvider>,
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(screen.getByTestId('selected').textContent).toBe('stu-1'));
+  });
+
+  it('restores a valid stored child and ignores an invalid one', async () => {
+    sessionStorage.setItem('agenda_selected_child_id:inst-1', 'stu-2');
+    vi.mocked(apiClient.get).mockResolvedValue(mockGuardianStudentsResponse);
+
+    const { unmount } = render(
+      <ChildProvider>
+        <TestConsumer />
+      </ChildProvider>,
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(screen.getByTestId('selected').textContent).toBe('stu-2'));
+    unmount();
+
+    sessionStorage.setItem('agenda_selected_child_id:inst-1', 'stranger-id');
+
+    render(
+      <ChildProvider>
+        <TestConsumer />
+      </ChildProvider>,
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(screen.getByTestId('selected').textContent).toBe('stu-1'));
+  });
+
   it('allows selecting and clearing a child', async () => {
     vi.mocked(apiClient.get).mockResolvedValue(mockGuardianStudentsResponse);
 
@@ -114,12 +154,31 @@ describe('ChildContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'));
 
-    expect(screen.getByTestId('selected').textContent).toBe('none');
-
     await userEvent.click(screen.getByText('Select child 2'));
     expect(screen.getByTestId('selected').textContent).toBe('stu-2');
 
     await userEvent.click(screen.getByText('Clear'));
+    expect(screen.getByTestId('selected').textContent).toBe('none');
+  });
+
+  it('rejects a foreign child id', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue(mockGuardianStudentsResponse);
+
+    function ForeignConsumer() {
+      const ctx = useChildContext();
+      return <button onClick={() => ctx.setSelectedChildId('not-my-child')}>Foreign</button>;
+    }
+
+    render(
+      <ChildProvider>
+        <TestConsumer />
+        <ForeignConsumer />
+      </ChildProvider>,
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(screen.getByTestId('selected').textContent).toBe('stu-1'));
+    await userEvent.click(screen.getByText('Foreign'));
     expect(screen.getByTestId('selected').textContent).toBe('none');
   });
 });
@@ -127,6 +186,7 @@ describe('ChildContext', () => {
 describe('ChildSelector', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('renders nothing when loading', () => {

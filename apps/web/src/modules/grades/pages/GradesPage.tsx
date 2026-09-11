@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGrades } from '../hooks';
+import { useSubjects } from '@/modules/subjects/hooks';
+import { useParentStudentFilter } from '@/modules/children';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -23,7 +25,12 @@ export function GradesPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<GradeStatus | ''>('');
   const [periodFilter, setPeriodFilter] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('');
   const limit = 20;
+
+  // Padres: las notas pertenecen inequívocamente al hijo seleccionado.
+  const { isParent, studentId: childStudentId, selectedChild } = useParentStudentFilter();
+  const { data: subjectsData } = useSubjects({ limit: 100 });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,32 +40,41 @@ export function GradesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useGrades({
+  const { data, isLoading, error, refetch } = useGrades({
     page,
     limit,
     search: debouncedSearch || undefined,
     status: (statusFilter as GradeStatus) || undefined,
     period: periodFilter || undefined,
+    subjectId: subjectFilter || undefined,
+    studentId: childStudentId,
   });
 
   const grades = data?.data ?? [];
   const meta = data?.meta;
 
-  const handleClearSearch = useCallback(() => {
+  const handleClearFilters = useCallback(() => {
     setSearch('');
     setDebouncedSearch('');
+    setStatusFilter('');
+    setPeriodFilter('');
+    setSubjectFilter('');
     setPage(1);
   }, []);
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Calificaciones"
-        description="Gestionar calificaciones de la institución"
+        description={
+          isParent && selectedChild
+            ? `Notas de ${selectedChild.firstName} ${selectedChild.lastName}`
+            : 'Gestionar calificaciones de la institución'
+        }
         actions={
           canManage ? (
             <Button onClick={() => navigate('/grades/new')}>
@@ -106,13 +122,34 @@ export function GradesPage() {
             }}
           />
         </div>
-        {(debouncedSearch || periodFilter) && (
+        <div className="w-full sm:w-48">
+          <label htmlFor="subjectFilter" className="block text-sm font-medium text-gray-700 mb-1">
+            Materia
+          </label>
+          <select
+            id="subjectFilter"
+            value={subjectFilter}
+            onChange={(e) => {
+              setSubjectFilter(e.target.value);
+              setPage(1);
+            }}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="">Todas</option>
+            {(subjectsData?.data ?? []).map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        {(debouncedSearch || statusFilter || periodFilter || subjectFilter) && (
           <button
             type="button"
-            onClick={handleClearSearch}
+            onClick={handleClearFilters}
             className="text-sm text-blue-600 hover:text-blue-800 self-end mb-1"
           >
-            Limpiar búsqueda
+            Limpiar filtros
           </button>
         )}
       </div>

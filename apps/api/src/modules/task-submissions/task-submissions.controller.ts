@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -66,6 +67,7 @@ export class TaskSubmissionsController {
     return this.taskSubmissionsService.findByAssignment(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 
@@ -83,11 +85,49 @@ export class TaskSubmissionsController {
     const submission = await this.taskSubmissionsService.findByAssignment(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
     return this.taskSubmissionsService.update(
       req.tenant!.institutionId,
       submission.id,
       dto,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @Get(':id/submission/attachments')
+  @RequirePermission('tasks:read')
+  @ApiOperation({ summary: 'List attachments of a task assignment submission' })
+  @ApiParam({ name: 'id', description: 'Task assignment UUID' })
+  @ApiResponse({ status: 200, description: 'Attachments retrieved successfully' })
+  async listAttachments(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.taskSubmissionsService.listAttachments(
+      req.tenant!.institutionId,
+      id,
+      req.user.userId,
+    );
+  }
+
+  @Delete(':id/submission/attachments/:attachmentId')
+  @RequirePermission('tasks:read')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove an attachment from a submission (before grading)' })
+  @ApiParam({ name: 'id', description: 'Task assignment UUID' })
+  @ApiParam({ name: 'attachmentId', description: 'Submission attachment UUID' })
+  @ApiResponse({ status: 200, description: 'Attachment removed' })
+  async removeAttachment(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('attachmentId', ParseUUIDPipe) attachmentId: string,
+  ) {
+    return this.taskSubmissionsService.removeAttachment(
+      req.tenant!.institutionId,
+      id,
+      attachmentId,
       req.user.userId,
       req.ip,
     );

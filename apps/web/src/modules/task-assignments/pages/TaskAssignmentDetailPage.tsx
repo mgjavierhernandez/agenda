@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { useTaskAssignment, useUpdateTaskAssignment, useDeactivateTaskAssignment } from '../hooks';
-import { useTaskSubmission } from '@/modules/task-submissions/hooks';
+import { useState, useEffect, useRef } from 'react';
+import { useTaskAssignment, useUpdateTaskAssignment, useDeactivateTaskAssignment, useMarkTaskAssignmentOpened } from '../hooks';
+import { useTaskSubmission, useSubmissionAttachments } from '@/modules/task-submissions/hooks';
 import { useTask } from '@/modules/tasks/hooks';
 import { useStudents } from '@/modules/students/hooks';
 import { usePermissions } from '@/permissions/usePermissions';
@@ -38,7 +38,19 @@ export function TaskAssignmentDetailPage() {
   const { data: assignment, isLoading, error } = useTaskAssignment(id ?? '');
   const updateMutation = useUpdateTaskAssignment();
   const deactivateMutation = useDeactivateTaskAssignment();
+  const markOpenedMutation = useMarkTaskAssignmentOpened();
+  const openedRef = useRef<string | null>(null);
   const { data: submission } = useTaskSubmission(id ?? '');
+  const { data: submissionAttachments } = useSubmissionAttachments(id ?? '');
+
+  // Trazabilidad de apertura (abrir ≠ completar): una sola vez por visita.
+  useEffect(() => {
+    if (id && assignment && openedRef.current !== id) {
+      openedRef.current = id;
+      markOpenedMutation.mutate(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, assignment]);
 
   const { data: task } = useTask(assignment?.taskId ?? '');
   const { data: studentsData } = useStudents({ limit: 100 });
@@ -222,6 +234,23 @@ export function TaskAssignmentDetailPage() {
               <div>
                 <dt className="text-sm text-gray-500">Feedback</dt>
                 <dd className="text-gray-900 whitespace-pre-wrap">{submission.feedback}</dd>
+              </div>
+            )}
+            {(submissionAttachments ?? []).length > 0 && (
+              <div>
+                <dt className="text-sm text-gray-500">Archivos adjuntos</dt>
+                <dd>
+                  <ul className="mt-1 space-y-1">
+                    {(submissionAttachments ?? []).map((a) => (
+                      <li key={a.id} className="text-sm text-gray-900">
+                        {a.fileAsset.originalName}{' '}
+                        <span className="text-xs text-gray-500">
+                          ({(a.fileAsset.sizeBytes / 1024).toFixed(0)} KB)
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
               </div>
             )}
           </dl>

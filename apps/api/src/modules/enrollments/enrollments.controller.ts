@@ -71,6 +71,7 @@ export class EnrollmentsController {
     return this.enrollmentsService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
   }
 
@@ -90,6 +91,7 @@ export class EnrollmentsController {
     return this.enrollmentsService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 

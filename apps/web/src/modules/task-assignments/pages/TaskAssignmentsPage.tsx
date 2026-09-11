@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTaskAssignments } from '../hooks';
 import { useTasks } from '@/modules/tasks/hooks';
 import { useStudents } from '@/modules/students/hooks';
+import { useParentStudentFilter } from '@/modules/children';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -32,6 +33,10 @@ export function TaskAssignmentsPage() {
   const [studentFilter, setStudentFilter] = useState('');
   const limit = 20;
 
+  // Padres: entregas del hijo seleccionado (el backend valida el vínculo).
+  const { isParent, studentId: childStudentId, selectedChild } = useParentStudentFilter();
+  const effectiveStudentId = childStudentId ?? studentFilter ?? undefined;
+
   const { data: tasksData } = useTasks({ limit: 100 });
   const { data: studentsData } = useStudents({ limit: 100 });
 
@@ -59,7 +64,7 @@ export function TaskAssignmentsPage() {
     limit,
     status: (statusFilter as TaskAssignmentStatus) || undefined,
     taskId: taskFilter || undefined,
-    studentId: studentFilter || undefined,
+    studentId: effectiveStudentId || undefined,
   });
 
   const assignments = data?.data ?? [];
@@ -77,7 +82,11 @@ export function TaskAssignmentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Asignaciones de Tareas"
-        description="Gestionar asignaciones de tareas a estudiantes"
+        description={
+          isParent && selectedChild
+            ? `Entregas de ${selectedChild.firstName} ${selectedChild.lastName}`
+            : 'Gestionar asignaciones de tareas a estudiantes'
+        }
         actions={
           canManage ? (
             <Button onClick={() => navigate('/task-assignments/new')}>

@@ -19,8 +19,14 @@ export function GoogleCallbackPage() {
       const errDesc = searchParams.get('error_description');
 
       if (err) {
-        setStatus('error');
-        setError(errDesc || err || 'Error en la autenticación con Google');
+        const normalized = (err || '').toLowerCase();
+        if (normalized.includes('not-configured') || normalized.includes('not_configured')) {
+          setStatus('not-configured');
+          setError(errDesc || 'Google OAuth no está configurado en el servidor');
+        } else {
+          setStatus('error');
+          setError(errDesc || err || 'Error en la autenticación con Google');
+        }
         return;
       }
 
@@ -30,15 +36,23 @@ export function GoogleCallbackPage() {
           sessionStorage.setItem('agenda_access_token', accessToken);
           sessionStorage.setItem('agenda_refresh_token', refreshToken);
 
-          await apiClient.get<{ id: string; email: string; status: string }>('/auth/profile');
+          const profile = await apiClient.get<{ id: string; email: string; status: string }>('/auth/profile');
+          void profile;
           const insts = await apiClient.get<{ institutions: { id: string }[] }>('/auth/institutions');
 
           if (insts.institutions.length === 1) {
             await apiClient.post('/auth/tenant/select', { institutionId: insts.institutions[0].id });
+            try {
+              sessionStorage.setItem('agenda_institution_id', insts.institutions[0].id);
+              apiClient.setInstitutionId(insts.institutions[0].id);
+            } catch {
+              // storage unavailable
+            }
           }
 
           setStatus('success');
-          setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
+          // Recargar para que AuthProvider restaure sesión (tokens + institución)
+          setTimeout(() => window.location.replace('/dashboard'), 1500);
         } catch (err) {
           setStatus('error');
           setError(getErrorMessage(err) || 'Error al completar el inicio de sesión');

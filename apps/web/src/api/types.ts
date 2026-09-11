@@ -348,6 +348,7 @@ export interface ListSchedulesParams {
   courseId?: string;
   subjectId?: string;
   dayOfWeek?: DayOfWeek;
+  studentId?: string;
 }
 
 export interface ScheduleBlock {
@@ -446,6 +447,7 @@ export interface ListTasksParams {
   status?: TaskStatus;
   courseId?: string;
   subjectId?: string;
+  studentId?: string;
   dueDateFrom?: string;
   dueDateTo?: string;
 }
@@ -515,10 +517,12 @@ export interface TaskSubmission {
 
 export interface CreateTaskSubmissionInput {
   content?: string;
+  fileAssetIds?: string[];
 }
 
 export interface UpdateTaskSubmissionInput {
   content?: string;
+  fileAssetIds?: string[];
 }
 
 export interface GradeTaskSubmissionInput {
@@ -1335,7 +1339,7 @@ export interface UpdateCourseDirectorAssignmentInput {
   endDate?: string | null;
 }
 
-export type AgendaView = 'day' | 'week' | 'month';
+export type AgendaView = 'day' | 'week' | 'month' | 'year';
 
 export type AgendaEventType = 'SCHEDULE' | 'TASK' | 'COMMUNICATION' | 'SIGNATURE' | 'EVENT';
 
@@ -1368,6 +1372,7 @@ export interface ListAgendaParams {
   end: string;
   view?: AgendaView;
   eventTypes?: AgendaEventType[];
+  studentId?: string;
   page?: number;
   limit?: number;
 }

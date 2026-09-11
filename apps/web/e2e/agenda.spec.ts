@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openMobileDrawerIfNeeded } from './helpers/navigation';
 
 const EMAIL = process.env.E2E_EMAIL || 'admin@demo-school.dev';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
@@ -31,6 +32,7 @@ async function login(page: import('@playwright/test').Page) {
 test.describe('Digital Agenda', () => {
   test('should access agenda from sidebar', async ({ page }) => {
     await login(page);
+    await openMobileDrawerIfNeeded(page);
     await page.getByRole('navigation', { name: 'Main navigation' }).getByText('Agenda').click();
     await page.waitForURL(/\/agenda/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible();
@@ -41,16 +43,17 @@ test.describe('Digital Agenda', () => {
     await page.goto('/agenda');
     await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByRole('button', { name: 'Dia', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Día', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Semana', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Mes', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Año', exact: true })).toBeVisible();
   });
 
   test('should switch between day view', async ({ page }) => {
     await login(page);
     await page.goto('/agenda');
     await page.waitForTimeout(1000);
-    await page.getByRole('button', { name: 'Dia', exact: true }).click();
+    await page.getByRole('button', { name: 'Día', exact: true }).click();
     await page.waitForTimeout(500);
   });
 

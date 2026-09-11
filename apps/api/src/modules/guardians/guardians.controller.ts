@@ -73,6 +73,7 @@ export class GuardiansController {
     return this.guardiansService.findByStudent(
       req.tenant!.institutionId,
       studentId,
+      req.user.userId,
     );
   }
 

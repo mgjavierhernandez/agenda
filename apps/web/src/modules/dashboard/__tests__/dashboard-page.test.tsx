@@ -147,20 +147,22 @@ describe('DashboardPage', () => {
   it('renders institution name', async () => {
     mockDashboard(adminDashboard);
     render(<DashboardPage />, { wrapper: createWrapper() });
-    expect(screen.getByText('Colegio San José')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Colegio San José')).toBeInTheDocument();
+    });
   });
 
-  it('shows loading state while fetching', () => {
+  it('shows loading skeleton while fetching', () => {
     vi.mocked(apiClient.get).mockReturnValue(new Promise(() => {}));
     render(<DashboardPage />, { wrapper: createWrapper() });
-    expect(screen.getByText(/Bienvenido, carlos/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Cargando panel')).toBeInTheDocument();
   });
 
   it('shows error state when the dashboard request fails', async () => {
     vi.mocked(apiClient.get).mockRejectedValue(new Error('boom'));
     render(<DashboardPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText('No se pudo cargar el panel. Inténtalo de nuevo más tarde.')).toBeInTheDocument();
+      expect(screen.getByText('No se pudo cargar el panel.')).toBeInTheDocument();
     });
   });
 

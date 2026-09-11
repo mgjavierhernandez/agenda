@@ -64,7 +64,7 @@ describe('follow-up-notification.helper', () => {
       const prisma = createPrismaMock();
       mockFindGuardianUserIds.mockResolvedValue(['guardian-1', 'guardian-2']);
 
-      await sendFollowUpNotification(asPrisma(prisma), createCtx(), 'CREATED');
+      await sendFollowUpNotification(asPrisma(prisma), createCtx({ confidentiality: FollowUpConfidentiality.PUBLIC }), 'CREATED');
 
       expect(prisma.notification.createMany).toHaveBeenCalledWith({
         data: expect.arrayContaining([
@@ -118,7 +118,7 @@ describe('follow-up-notification.helper', () => {
       const prisma = createPrismaMock();
       mockFindGuardianUserIds.mockResolvedValue(['actor-1', 'guardian-1']);
 
-      await sendFollowUpNotification(asPrisma(prisma), createCtx({ actorUserId: 'actor-1' }), 'CREATED');
+      await sendFollowUpNotification(asPrisma(prisma), createCtx({ actorUserId: 'actor-1', confidentiality: FollowUpConfidentiality.PUBLIC }), 'CREATED');
 
       const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
       const recipients = call.data.map((n) => n.userId);
@@ -233,7 +233,7 @@ describe('follow-up-notification.helper', () => {
 
       await sendFollowUpNotification(
         asPrisma(prisma),
-        createCtx({ institutionId: 'tenant-a' }),
+        createCtx({ institutionId: 'tenant-a', confidentiality: FollowUpConfidentiality.PUBLIC }),
         'CREATED',
       );
 
@@ -299,13 +299,13 @@ describe('follow-up-notification.helper', () => {
       });
     });
 
-    it('notifies guardians for commitment when confidentiality allows', async () => {
+    it('notifies guardians for commitment when confidentiality allows (PUBLIC)', async () => {
       const prisma = createPrismaMock();
       mockFindGuardianUserIds.mockResolvedValue(['guardian-1']);
 
       await sendCommitmentNotification(
         asPrisma(prisma),
-        createCtx(),
+        createCtx({ confidentiality: FollowUpConfidentiality.PUBLIC }),
         'COMMITMENT_CREATED',
         'responsible-1',
       );
@@ -314,6 +314,23 @@ describe('follow-up-notification.helper', () => {
       const recipients = call.data.map((n) => n.userId);
       expect(recipients).toContain('responsible-1');
       expect(recipients).toContain('guardian-1');
+    });
+
+    it('does not notify guardians for INTERNAL commitments', async () => {
+      const prisma = createPrismaMock();
+      mockFindGuardianUserIds.mockResolvedValue(['guardian-1']);
+
+      await sendCommitmentNotification(
+        asPrisma(prisma),
+        createCtx({ confidentiality: FollowUpConfidentiality.INTERNAL }),
+        'COMMITMENT_CREATED',
+        'responsible-1',
+      );
+
+      const call = prisma.notification.createMany.mock.calls[0][0] as { data: Array<{ userId: string }> };
+      const recipients = call.data.map((n) => n.userId);
+      expect(recipients).toContain('responsible-1');
+      expect(recipients).not.toContain('guardian-1');
     });
 
     it('does not notify guardians for CONFIDENTIAL commitments', async () => {

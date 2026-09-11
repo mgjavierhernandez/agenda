@@ -73,8 +73,7 @@ describe('Sidebar por categorias', () => {
     renderSidebar('/dashboard');
     expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
     expect(screen.queryByText('Mi institución')).not.toBeInTheDocument();
-    // Expandir Administración para ver Mi perfil
-    fireEvent.click(screen.getByRole('button', { name: /Categoría Administración/i }));
+    // Mi perfil vive en Inicio, visible sin permisos administrativos
     expect(screen.getByText('Mi perfil')).toBeInTheDocument();
   });
 
@@ -86,8 +85,8 @@ describe('Sidebar por categorias', () => {
     expect(screen.queryByText('Directores de grupo')).not.toBeInTheDocument();
     expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Categoría Gestión docente/i })).not.toBeInTheDocument();
-    // Expandir Administración para ver Mi perfil
-    fireEvent.click(screen.getByRole('button', { name: /Categoría Administración/i }));
+    // Mi perfil vive en Inicio (expandir si está colapsada)
+    fireEvent.click(screen.getByRole('button', { name: /Categoría Inicio/i }));
     expect(screen.getByText('Mi perfil')).toBeInTheDocument();
   });
 
@@ -109,5 +108,43 @@ describe('Sidebar por categorias', () => {
     expect(screen.getByText('Directores de grupo')).toBeInTheDocument();
     const link = screen.getByRole('link', { name: /Directores de grupo/ });
     expect(link.className).toMatch(/bg-blue-50/);
+  });
+
+  it('acordeón: solo la categoría activa permanece abierta', () => {
+    mockHasPermission.mockReturnValue(true);
+    renderSidebar('/grades');
+    // Activa abierta…
+    expect(screen.getByText('Notas')).toBeInTheDocument();
+    // …y las demás colapsadas aunque hubiera estado persistido múltiple.
+    expect(screen.queryByText('Bandeja de entrada')).not.toBeInTheDocument();
+    expect(screen.queryByText('Directores de grupo')).not.toBeInTheDocument();
+  });
+
+  it('normaliza estado persistido múltiple a solo la activa', () => {
+    mockHasPermission.mockReturnValue(true);
+    localStorage.setItem(
+      'agenda-sidebar-expanded',
+      JSON.stringify({ comunicacion: true, 'gestion-docente': true }),
+    );
+    renderSidebar('/dashboard');
+    // Al navegar, la persistencia no impide que solo la activa controle el estado.
+    expect(screen.queryByText('Bandeja de entrada')).not.toBeInTheDocument();
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+  });
+
+  it('no muestra franjas ni aulas sin permiso de gestión', () => {
+    mockHasPermission.mockImplementation((code: string) =>
+      ['schedules:read'].includes(code),
+    );
+    renderSidebar('/schedules');
+    expect(screen.getByText('Horarios', { selector: 'a' })).toBeDefined();
+    expect(screen.queryByText('Franjas horarias')).not.toBeInTheDocument();
+    expect(screen.queryByText('Aulas')).not.toBeInTheDocument();
+  });
+
+  it('no renderiza iconos en el menú', () => {
+    mockHasPermission.mockReturnValue(true);
+    const { container } = renderSidebar('/dashboard');
+    expect(container.textContent).not.toMatch(/🏠|📊|🎓|📚|📢|⚙️/);
   });
 });

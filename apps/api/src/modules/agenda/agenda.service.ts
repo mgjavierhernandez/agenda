@@ -42,7 +42,7 @@ export class AgendaService {
       throw new BadRequestException('Date range cannot exceed 62 days');
     }
 
-    const userContext = await this.resolveUserContext(institutionId, userId);
+    const userContext = await this.resolveUserContext(institutionId, userId, query.studentId);
     const eventTypes = query.eventTypes ?? [
       AgendaEventType.SCHEDULE,
       AgendaEventType.TASK,
@@ -110,6 +110,7 @@ export class AgendaService {
   private async resolveUserContext(
     institutionId: string,
     userId: string,
+    requestedStudentId?: string,
   ): Promise<{
     role: 'student' | 'parent' | 'teacher' | 'admin';
     studentIds: string[];
@@ -172,7 +173,12 @@ export class AgendaService {
       select: { studentId: true },
     });
     if (guardianLinks.length > 0) {
-      const studentIds = guardianLinks.map((gl) => gl.studentId);
+      let studentIds = guardianLinks.map((gl) => gl.studentId);
+      // Hijo seleccionado: restringir al vinculado solicitado; un ID ajeno
+      // se ignora silenciosamente (se mantiene el conjunto de hijos).
+      if (requestedStudentId && studentIds.includes(requestedStudentId)) {
+        studentIds = [requestedStudentId];
+      }
       const enrollments = await this.prisma.enrollment.findMany({
         where: {
           studentId: { in: studentIds },

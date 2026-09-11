@@ -16,7 +16,7 @@ export class ListSchedulesQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(200)
   limit?: number = 20;
 
   @ApiPropertyOptional()
@@ -63,4 +63,9 @@ export class ListSchedulesQueryDto {
   @IsOptional()
   @IsEnum(DayOfWeek)
   dayOfWeek?: DayOfWeek;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Restrict to courses of one accessible student' })
+  @IsOptional()
+  @IsUUID()
+  studentId?: string;
 }

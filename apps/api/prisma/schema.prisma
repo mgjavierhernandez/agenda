@@ -420,6 +420,7 @@ model Institution {
   studentFollowUps         StudentFollowUp[]
   followUpCategories       FollowUpCategory[]
   followUpAttachments      FollowUpAttachment[]
+  submissionAttachments    SubmissionAttachment[]
   followUpCitations        FollowUpCitation[]
   attendances              Attendance[]
   agendaEvents             AgendaEvent[]
@@ -1064,6 +1065,7 @@ model Notification {
   entityType    String?            @db.VarChar(100)
   entityId      String?
   readAt        DateTime?          @map("read_at")
+  openedAt      DateTime?          @map("opened_at")
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
 
@@ -1348,6 +1350,7 @@ model TaskSubmission {
   institution    Institution    @relation(fields: [institutionId], references: [id], onDelete: Restrict)
   taskAssignment TaskAssignment @relation(fields: [taskAssignmentId], references: [id], onDelete: Restrict)
   student        Student        @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  attachments    SubmissionAttachment[]
 
   @@unique([taskAssignmentId])
   @@index([institutionId])
@@ -1404,6 +1407,7 @@ model FileAsset {
   taskAttachments          TaskAttachment[]
   communicationAttachments CommunicationAttachment[]
   followUpAttachments      FollowUpAttachment[]
+  submissionAttachments    SubmissionAttachment[]
 
   @@unique([institutionId, storageKey])
   @@index([institutionId])
@@ -1412,6 +1416,29 @@ model FileAsset {
   @@index([institutionId, createdAt])
   @@index([checksum])
   @@map("file_assets")
+}
+
+// ============================================================
+// SUBMISSION ATTACHMENT (Links student files to task submissions)
+// ============================================================
+
+model SubmissionAttachment {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @map("institution_id") @db.Uuid
+  submissionId  String   @map("submission_id") @db.Uuid
+  fileAssetId   String   @map("file_asset_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+  submission  TaskSubmission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  fileAsset   FileAsset      @relation(fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([submissionId, fileAssetId])
+  @@index([institutionId])
+  @@index([institutionId, submissionId])
+  @@index([submissionId])
+  @@index([fileAssetId])
+  @@map("submission_attachments")
 }
 
 // ============================================================

@@ -105,8 +105,16 @@ test.describe('Task Flow', () => {
       await publishE2ETask(task.id);
 
       await page.goto('/tasks');
-      await page.waitForTimeout(1500);
-      await expect(page.getByText('E2E Task - UI Verification').first()).toBeVisible({ timeout: 10_000 });
+      await page.waitForLoadState('networkidle');
+      // On desktop: the <td> is visible, the mobile card <p> is hidden (md:hidden).
+      // On mobile: the <td> is hidden (hidden md:block), the card <p> is visible.
+      // Use .first() on desktop (td first in DOM), .last() on mobile (p last in DOM).
+      const width = page.viewportSize()?.width ?? 1280;
+      if (width < 768) {
+        await expect(page.getByText('E2E Task - UI Verification').last()).toBeVisible({ timeout: 10_000 });
+      } else {
+        await expect(page.getByText('E2E Task - UI Verification').first()).toBeVisible({ timeout: 10_000 });
+      }
     } finally {
       if (task) await cleanupE2EEntity('tasks', task.id).catch(() => {});
       if (subject) await cleanupE2EEntity('subjects', subject.id).catch(() => {});

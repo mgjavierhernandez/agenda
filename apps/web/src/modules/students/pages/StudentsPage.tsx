@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudents } from '../hooks';
 import { usePermissions } from '@/permissions/usePermissions';
+import { useParentStudentFilter } from '@/modules/children';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -21,6 +22,9 @@ export function StudentsPage() {
   const [page, setPage] = useState(1);
   const limit = 20;
 
+  // Padres: solo ven a sus hijos vinculados (scope aplicado en backend).
+  const { isParent } = useParentStudentFilter();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -29,7 +33,7 @@ export function StudentsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useStudents({
+  const { data, isLoading, error, refetch } = useStudents({
     page,
     limit,
     search: debouncedSearch || undefined,
@@ -45,14 +49,18 @@ export function StudentsPage() {
   }, []);
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Estudiantes"
-        description="Gestionar estudiantes de la institución"
+        description={
+          isParent
+            ? 'Tus hijos vinculados a la institución'
+            : 'Gestionar estudiantes de la institución'
+        }
         actions={
           canCreate ? (
             <div className="flex gap-2">

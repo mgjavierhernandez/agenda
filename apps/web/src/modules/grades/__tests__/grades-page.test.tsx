@@ -18,6 +18,21 @@ vi.mock('../hooks', () => ({
   useGrades: (...args: unknown[]) => mockUseGrades(...args),
 }));
 
+const mockParentFilter = vi.fn((): {
+  isParent: boolean;
+  studentId: string | undefined;
+  selectedChild: { studentId: string; firstName: string; lastName: string; relationshipType: string } | null;
+  children: unknown[];
+} => ({ isParent: false, studentId: undefined, selectedChild: null, children: [] }));
+
+vi.mock('@/modules/children', () => ({
+  useParentStudentFilter: () => mockParentFilter(),
+}));
+
+vi.mock('@/modules/subjects/hooks', () => ({
+  useSubjects: () => ({ data: { data: [] } }),
+}));
+
 vi.mock('@/auth/auth.store', () => ({
   useAuth: () => ({
     user: { id: '1', email: 'admin@test.com', status: 'ACTIVE' },
@@ -144,5 +159,23 @@ describe('GradesPage', () => {
     const verButtons = screen.getAllByText('Ver');
     await user.click(verButtons[0]);
     expect(mockNavigate).toHaveBeenCalledWith('/grades/g1');
+  });
+
+  it('passes the selected child studentId for parents and shows ownership', async () => {
+    mockParentFilter.mockReturnValue({
+      isParent: true,
+      studentId: 'stu-1',
+      selectedChild: { studentId: 'stu-1', firstName: 'Juan', lastName: 'Pérez', relationshipType: 'FATHER' },
+      children: [],
+    });
+    mockUseGrades.mockReturnValue({
+      data: { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+    expect(mockUseGrades).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'stu-1' }));
+    expect(screen.getByText('Notas de Juan Pérez')).toBeDefined();
   });
 });

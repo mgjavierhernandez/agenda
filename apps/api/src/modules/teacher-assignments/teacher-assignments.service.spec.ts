@@ -22,6 +22,7 @@ describe('TeacherAssignmentsService', () => {
     academicPeriod: { findFirst: jest.Mock };
     courseDirectorAssignment: { findFirst: jest.Mock; findMany: jest.Mock; create: jest.Mock; update: jest.Mock };
     schedule: { findMany: jest.Mock; updateMany: jest.Mock };
+    auditLog: { findMany: jest.Mock };
     $transaction: jest.Mock;
   };
   let auditService: { log: jest.Mock };
@@ -46,11 +47,13 @@ describe('TeacherAssignmentsService', () => {
       academicPeriod: { findFirst: jest.fn() },
       courseDirectorAssignment: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
       schedule: { findMany: jest.fn(), updateMany: jest.fn() },
+      auditLog: { findMany: jest.fn() },
       $transaction: jest.fn(),
     };
     prisma.$transaction.mockImplementation((cb: (tx: unknown) => unknown) => cb(prisma));
     prisma.schedule.findMany.mockResolvedValue([]);
     prisma.schedule.updateMany.mockResolvedValue({ count: 0 });
+    prisma.auditLog.findMany.mockResolvedValue([]);
     auditService = { log: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { getUserRoleNames, hasFullAccess } from '../../common/auth/academic-scope';
 import { LinkGuardianDto } from './dto/link-guardian.dto';
 import { ListGuardiansQueryDto } from './dto/list-guardians-query.dto';
 import { GuardianStudent, Student, Prisma } from '@prisma/client';
@@ -24,6 +25,15 @@ export class GuardiansService {
     });
     if (!student) {
       throw new NotFoundException('Student not found in this institution');
+    }
+
+    // Only administrative roles may link an arbitrary guardian user.
+    // A non-admin caller may only link themselves.
+    if (guardianUserId !== performingUserId) {
+      const roleNames = await getUserRoleNames(this.prisma, institutionId, performingUserId);
+      if (!hasFullAccess(roleNames)) {
+        throw new ForbiddenException('You can only link students to your own guardian account');
+      }
     }
 
     const guardianMembership = await this.prisma.userInstitution.findFirst({
@@ -113,6 +123,7 @@ export class GuardiansService {
   async findByStudent(
     institutionId: string,
     studentId: string,
+    requestingUserId?: string,
   ): Promise<GuardianStudent[]> {
     const student = await this.prisma.student.findFirst({
       where: { id: studentId, institutionId },
@@ -121,6 +132,19 @@ export class GuardiansService {
       throw new NotFoundException('Student not found in this institution');
     }
 
+    if (requestingUserId) {
+      const roleNames = await getUserRoleNames(this.prisma, institutionId, requestingUserId);
+      if (!hasFullAccess(roleNames)) {
+        const link = await this.prisma.guardianStudent.findFirst({
+          where: { institutionId, studentId, guardianUserId: requestingUserId, status: 'ACTIVE' },
+          select: { id: true },
+        });
+        const isSelf = student.userId === requestingUserId;
+        if (!link && !isSelf) {
+          throw new NotFoundException('Student not found in this institution');
+        }
+      }
+    }
     return this.prisma.guardianStudent.findMany({
       where: { institutionId, studentId, status: 'ACTIVE' },
       orderBy: { createdAt: 'desc' },

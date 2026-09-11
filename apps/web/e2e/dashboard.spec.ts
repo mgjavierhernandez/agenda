@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { navigateViaSidebar, openMobileDrawerIfNeeded } from './helpers/navigation';
 
 const EMAIL = process.env.E2E_EMAIL || 'admin@demo-school.dev';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
@@ -43,6 +44,7 @@ test.describe('Dashboard', () => {
   });
 
   test('should have sidebar navigation', async ({ page }) => {
+    await openMobileDrawerIfNeeded(page);
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav).toBeVisible();
 
@@ -52,32 +54,48 @@ test.describe('Dashboard', () => {
 
     const trabajoBtn = nav.getByRole('button', { name: /Categoría Trabajo académico/i });
     if ((await trabajoBtn.getAttribute('aria-expanded')) !== 'true') {
+      await trabajoBtn.scrollIntoViewIfNeeded();
       await trabajoBtn.click();
     }
     await expect(nav.getByText('Tareas')).toBeVisible();
   });
 
   test('should navigate to tasks from sidebar', async ({ page }) => {
-    const nav = page.getByRole('navigation', { name: 'Main navigation' });
-
-    async function openCategoryAndClick(category: RegExp, item: string) {
-      const cat = nav.getByRole('button', { name: category });
-      if ((await cat.getAttribute('aria-expanded')) !== 'true') {
-        await cat.click();
-      }
-      await nav.getByRole('link', { name: item, exact: true }).waitFor({ state: 'visible', timeout: 10_000 });
-      await nav.getByRole('link', { name: item, exact: true }).click();
-    }
-
-    await openCategoryAndClick(/Categoría Trabajo académico/i, 'Tareas');
+    await navigateViaSidebar(page, /Categoría Trabajo académico/i, 'Tareas');
     await page.waitForURL(/\/tasks/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Tareas' })).toBeVisible();
   });
 
   test('should navigate to agenda from sidebar', async ({ page }) => {
+    await openMobileDrawerIfNeeded(page);
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await nav.getByText('Agenda').click();
     await page.waitForURL(/\/agenda/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible();
+  });
+
+  test('should show period filter when multiple periods exist', async ({ page }) => {
+    const periodSelect = page.locator('#dash-period-filter');
+    if (await periodSelect.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await expect(periodSelect).toBeVisible();
+      const options = await periodSelect.locator('option').count();
+      expect(options).toBeGreaterThan(1);
+    }
+  });
+
+  test('should filter dashboard by period', async ({ page }) => {
+    const periodSelect = page.locator('#dash-period-filter');
+    if (await periodSelect.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      const options = await periodSelect.locator('option').allTextContents();
+      if (options.length > 1) {
+        const secondOption = periodSelect.locator('option').nth(1);
+        const value = await secondOption.getAttribute('value');
+        if (value) {
+          await periodSelect.selectOption(value);
+          await page.waitForTimeout(1_000);
+          await expect(page.getByRole('heading', { name: /Bienvenido/ })).toBeVisible();
+        }
+      }
+    }
   });
 });

@@ -65,8 +65,14 @@ test.describe('Communications', () => {
       await publishE2ECommunication(comm.id);
 
       await page.goto('/communications');
-      await page.waitForTimeout(1500);
-      await expect(page.getByText('E2E Communication - UI Test').first()).toBeVisible({ timeout: 10_000 });
+      await page.waitForLoadState('networkidle');
+      // On desktop, <td> is visible; on mobile, the card <p> is visible.
+      const width = page.viewportSize()?.width ?? 1280;
+      if (width < 768) {
+        await expect(page.getByText('E2E Communication - UI Test').last()).toBeVisible({ timeout: 10_000 });
+      } else {
+        await expect(page.getByText('E2E Communication - UI Test').first()).toBeVisible({ timeout: 10_000 });
+      }
     } finally {
       if (comm) await cleanupE2EEntity('communications', comm.id).catch(() => {});
     }

@@ -46,8 +46,8 @@ services:
       JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       CORS_ORIGIN: http://localhost:80,http://localhost
-      RATE_LIMIT_TTL: 60
-      RATE_LIMIT_LIMIT: 50
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60}
+      RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT:-50}
       FILE_STORAGE_PROVIDER: local
       FILE_STORAGE_PATH: ./storage
       FILE_MAX_SIZE_MB: 10

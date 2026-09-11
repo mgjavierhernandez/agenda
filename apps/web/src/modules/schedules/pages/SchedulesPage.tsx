@@ -1,6 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSchedules } from '../hooks';
+import { useSchedules, useExportSchedules } from '../hooks';
+import { ScheduleMatrixView } from '../components/ScheduleMatrixView';
+import { useParentStudentFilter } from '@/modules/children';
+import { useCourses } from '@/modules/courses/hooks';
+import { useSubjects } from '@/modules/subjects/hooks';
+import { useClassrooms } from '../hooks/useClassrooms';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -26,6 +31,11 @@ export function SchedulesPage() {
   const [dayOfWeekFilter, setDayOfWeekFilter] = useState<DayOfWeek | ''>('');
   const limit = 20;
 
+  // Padres: horario del hijo seleccionado (el backend valida el vínculo).
+  const { isParent, studentId: childStudentId, selectedChild } = useParentStudentFilter();
+  const [scheduleView, setScheduleView] = useState<'list' | 'matrix'>('matrix');
+  const { exportSchedules, isExporting, error: exportError } = useExportSchedules();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -34,16 +44,27 @@ export function SchedulesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useSchedules({
+  const { data, isLoading, error, refetch } = useSchedules({
     page,
     limit,
     search: debouncedSearch || undefined,
     status: (statusFilter as ScheduleStatus) || undefined,
     dayOfWeek: (dayOfWeekFilter as DayOfWeek) || undefined,
+    studentId: childStudentId,
   });
 
   const schedules = data?.data ?? [];
   const meta = data?.meta;
+
+  const { data: coursesData } = useCourses({ limit: 200 });
+  const { data: subjectsData } = useSubjects({ limit: 200 });
+  const { data: classroomsData } = useClassrooms({ limit: 200 });
+
+  const nameMaps = useMemo(() => ({
+    courses: new Map((coursesData?.data ?? []).map((c) => [c.id, c.name])),
+    subjects: new Map((subjectsData?.data ?? []).map((s) => [s.id, s.name])),
+    classrooms: new Map((classroomsData?.data ?? []).map((c) => [c.id, c.name])),
+  }), [coursesData, subjectsData, classroomsData]);
 
   const handleClearSearch = useCallback(() => {
     setSearch('');
@@ -54,22 +75,69 @@ export function SchedulesPage() {
   }, []);
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Horarios"
-        description="Gestionar horarios de clases de la institución"
+        description={
+          isParent && selectedChild
+            ? `Horario de ${selectedChild.firstName} ${selectedChild.lastName}`
+            : 'Gestionar horarios de clases de la institución'
+        }
         actions={
-          canManage ? (
-            <Button onClick={() => navigate('/schedules/new')}>
-              Nuevo horario
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => window.print()}>
+              Imprimir
             </Button>
-          ) : undefined
+            <Button
+              variant="secondary"
+              isLoading={isExporting}
+              onClick={() => void exportSchedules({ format: 'pdf', studentId: childStudentId })}
+            >
+              PDF
+            </Button>
+            <Button
+              variant="secondary"
+              isLoading={isExporting}
+              onClick={() => void exportSchedules({ format: 'xlsx', studentId: childStudentId })}
+            >
+              Excel
+            </Button>
+            {canManage ? (
+              <Button onClick={() => navigate('/schedules/new')}>
+                Nuevo horario
+              </Button>
+            ) : undefined}
+          </div>
         }
       />
+
+      {exportError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3" role="alert">
+          <p className="text-sm text-red-700">{exportError}</p>
+        </div>
+      )}
+
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit" role="group" aria-label="Vista de horarios">
+        {(['matrix', 'list'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={scheduleView === v}
+            onClick={() => setScheduleView(v)}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              scheduleView === v
+                ? 'bg-white text-gray-900 shadow-sm font-medium'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            {v === 'matrix' ? 'Matriz' : 'Lista'}
+          </button>
+        ))}
+      </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex-1">
@@ -132,7 +200,9 @@ export function SchedulesPage() {
         )}
       </div>
 
-      {isLoading ? (
+      {scheduleView === 'matrix' ? (
+        <ScheduleMatrixView studentId={childStudentId} />
+      ) : isLoading ? (
         <div className="flex justify-center py-12">
           <Spinner size="lg" />
         </div>
@@ -155,17 +225,17 @@ export function SchedulesPage() {
           {/* Desktop table */}
           <div className="hidden md:block">
             <Card padding="none">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" aria-label="Horarios de clases">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Día</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Inicio</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Fin</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Curso</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Asignatura</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Aula</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Día</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Inicio</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Fin</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Curso</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Asignatura</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Aula</th>
+                    <th scope="col" className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -174,20 +244,16 @@ export function SchedulesPage() {
                       <td className="px-4 py-3">{DAY_OF_WEEK_LABELS[schedule.dayOfWeek]}</td>
                       <td className="px-4 py-3 font-mono text-xs">{schedule.startTime}</td>
                       <td className="px-4 py-3 font-mono text-xs">{schedule.endTime}</td>
-                      <td className="px-4 py-3 font-mono text-xs" title={schedule.courseId}>
-                        {schedule.courseId.slice(0, 8)}…
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs" title={schedule.subjectId}>
-                        {schedule.subjectId.slice(0, 8)}…
+                      <td className="px-4 py-3">
+                        {nameMaps.courses.get(schedule.courseId) ?? schedule.courseId.slice(0, 8)}
                       </td>
                       <td className="px-4 py-3">
-                        {schedule.classroomId ? (
-                          <span className="font-mono text-xs" title={schedule.classroomId}>
-                            {schedule.classroomId.slice(0, 8)}…
-                          </span>
-                        ) : (
-                          '—'
-                        )}
+                        {nameMaps.subjects.get(schedule.subjectId) ?? schedule.subjectId.slice(0, 8)}
+                      </td>
+                      <td className="px-4 py-3">
+                        {schedule.classroomId
+                          ? (nameMaps.classrooms.get(schedule.classroomId) ?? schedule.classroomId.slice(0, 8))
+                          : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={schedule.status === 'ACTIVE' ? 'success' : 'default'}>
@@ -226,11 +292,11 @@ export function SchedulesPage() {
                     </p>
                     {schedule.classroomId && (
                       <p className="text-sm text-gray-500">
-                        Aula: {schedule.classroomId.slice(0, 8)}…
+                        Aula: {nameMaps.classrooms.get(schedule.classroomId) ?? schedule.classroomId.slice(0, 8)}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 font-mono">
-                      Curso: {schedule.courseId.slice(0, 8)}…
+                    <p className="text-xs text-gray-500">
+                      Curso: {nameMaps.courses.get(schedule.courseId) ?? schedule.courseId.slice(0, 8)}
                     </p>
                   </div>
                   <Badge variant={schedule.status === 'ACTIVE' ? 'success' : 'default'}>

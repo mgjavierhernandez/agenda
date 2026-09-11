@@ -76,6 +76,55 @@ describe('CommunicationRecipientsService', () => {
         service.markAsRead(institutionId, 'r-1', userId),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should only mark the caller own recipient row (IDOR)', async () => {
+      prismaMock.communicationRecipient.findFirst.mockResolvedValue({
+        id: 'r-1',
+        institutionId,
+        status: CommunicationRecipientStatus.DELIVERED,
+      });
+      prismaMock.communicationRecipient.update.mockResolvedValue({
+        id: 'r-1',
+        status: CommunicationRecipientStatus.READ,
+        readAt: new Date(),
+      });
+
+      await service.markAsRead(institutionId, 'r-1', userId);
+
+      expect(prismaMock.communicationRecipient.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'r-1', institutionId, userId } }),
+      );
+    });
+  });
+
+  describe('markOpenedByCommunication', () => {
+    it('should mark the caller recipient row for the communication', async () => {
+      prismaMock.communicationRecipient.findFirst.mockResolvedValue({
+        id: 'r-1',
+        status: CommunicationRecipientStatus.DELIVERED,
+      });
+      prismaMock.communicationRecipient.update.mockResolvedValue({
+        id: 'r-1',
+        status: CommunicationRecipientStatus.READ,
+        readAt: new Date(),
+      });
+
+      const result = await service.markOpenedByCommunication(institutionId, 'comm-1', userId);
+
+      expect(result.opened).toBe(true);
+      expect(auditServiceMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'COMMUNICATION_READ' }),
+      );
+    });
+
+    it('should no-op when the caller has no recipient row', async () => {
+      prismaMock.communicationRecipient.findFirst.mockResolvedValue(null);
+
+      const result = await service.markOpenedByCommunication(institutionId, 'comm-1', userId);
+
+      expect(result.opened).toBe(false);
+      expect(prismaMock.communicationRecipient.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('getUnreadCount', () => {

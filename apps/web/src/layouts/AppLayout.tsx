@@ -16,7 +16,11 @@ export function AppLayout() {
   useEffect(() => {
     if (mobileMenuOpen) {
       document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
     }
   }, [mobileMenuOpen, handleEscape]);
 
@@ -38,18 +42,28 @@ export function AppLayout() {
 
       {/* Mobile sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] bg-white shadow-xl flex flex-col h-full max-h-screen overflow-hidden transform transition-transform lg:hidden ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Menú de navegación"
       >
-        <div className="flex items-center gap-2 px-4 h-16 border-b border-gray-200">
+        <div className="flex items-center gap-2 px-4 h-16 border-b border-gray-200 shrink-0">
           <span className="text-xl" aria-hidden="true">🎓</span>
           <span className="font-bold text-gray-900">Agenda Escolar</span>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Cerrar menú"
+            className="ml-auto inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+          >
+            ✕
+          </button>
         </div>
-        <Sidebar isMobile onNavigate={() => setMobileMenuOpen(false)} />
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <Sidebar isMobile onNavigate={() => setMobileMenuOpen(false)} />
+        </div>
       </div>
 
       {/* Desktop sidebar */}

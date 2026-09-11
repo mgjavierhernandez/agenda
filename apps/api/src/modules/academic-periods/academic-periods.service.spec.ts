@@ -22,7 +22,7 @@ describe('AcademicPeriodsService', () => {
 
   beforeEach(() => {
     prismaMock = {
-      $transaction: jest.fn(async (callback: (tx: any) => Promise<unknown>) =>
+      $transaction: jest.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
         callback({
           ...prismaMock,
         }),

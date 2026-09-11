@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
-import { resolveParentContext, findGuardianUserIds } from '../../common/auth/parent-context';
+import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
+import { findGuardianUserIds } from '../../common/auth/parent-context';
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 import { ListGradesQueryDto } from './dto/list-grades-query.dto';
@@ -157,10 +158,13 @@ export class GradesService {
         : {}),
     };
 
-    if (userId && !query.studentId) {
-      const parentCtx = await resolveParentContext(this.prisma, institutionId, userId);
-      if (parentCtx.isParent && parentCtx.studentIds.length > 0) {
-        where.studentId = { in: parentCtx.studentIds };
+    if (userId) {
+      const accessible = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+      if (accessible !== null) {
+        if (query.studentId && !accessible.includes(query.studentId)) {
+          throw new NotFoundException('Grade not found');
+        }
+        where.studentId = query.studentId ?? { in: accessible };
       }
     }
 
@@ -185,7 +189,7 @@ export class GradesService {
     };
   }
 
-  async findOne(institutionId: string, gradeId: string): Promise<Grade> {
+  async findOne(institutionId: string, gradeId: string, userId?: string): Promise<Grade> {
     const grade = await this.prisma.grade.findFirst({
       where: {
         id: gradeId,
@@ -195,6 +199,13 @@ export class GradesService {
 
     if (!grade) {
       throw new NotFoundException('Grade not found');
+    }
+
+    if (userId) {
+      const accessible = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+      if (accessible !== null && !accessible.includes(grade.studentId)) {
+        throw new NotFoundException('Grade not found');
+      }
     }
 
     return grade;

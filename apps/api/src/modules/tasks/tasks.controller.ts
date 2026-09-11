@@ -95,6 +95,7 @@ export class TasksController {
     return this.tasksService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 

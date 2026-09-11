@@ -1,6 +1,19 @@
 import { NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { GuardiansService } from './guardians.service';
 import { RelationshipType, GuardianStudentStatus } from '@prisma/client';
+import { getUserRoleNames, hasFullAccess } from '../../common/auth/academic-scope';
+
+jest.mock('../../common/auth/academic-scope', () => ({
+  getUserRoleNames: jest.fn(),
+  hasFullAccess: jest.fn(),
+  FULL_ACCESS_ROLES: new Set(),
+  TEACHER_SCOPED_ROLES: new Set(),
+  resolveAccessibleStudentIds: jest.fn(),
+  resolveAccessibleCourseIds: jest.fn(),
+}));
+
+const mockedGetUserRoleNames = jest.mocked(getUserRoleNames);
+const mockedHasFullAccess = jest.mocked(hasFullAccess);
 
 describe('GuardiansService', () => {
   let service: GuardiansService;
@@ -49,6 +62,12 @@ describe('GuardiansService', () => {
       prismaMock as never,
       auditServiceMock as never,
     );
+
+    mockedGetUserRoleNames.mockReset();
+    mockedHasFullAccess.mockReset();
+    // Default: administrative performer.
+    mockedGetUserRoleNames.mockResolvedValue(['INSTITUTION_ADMIN']);
+    mockedHasFullAccess.mockReturnValue(true);
   });
 
   describe('linkStudent', () => {
@@ -114,8 +133,7 @@ describe('GuardiansService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should throw ConflictException for duplicate link', async () => {
-      prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
+    it('should throw ConflictException for duplicate link', async () => {      prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
       prismaMock.userInstitution.findFirst.mockResolvedValue({ userId: guardianUserId, institutionId, status: 'ACTIVE' });
       prismaMock.guardianStudent.findUnique.mockResolvedValue({
         id: 'existing',
@@ -132,6 +150,21 @@ describe('GuardiansService', () => {
           performingUserId,
         ),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw ForbiddenException when non-admin links another guardian user', async () => {
+      mockedGetUserRoleNames.mockResolvedValue(['PARENT']);
+      mockedHasFullAccess.mockReturnValue(false);
+      prismaMock.student.findFirst.mockResolvedValue({ id: studentId, institutionId });
+
+      await expect(
+        service.linkStudent(
+          institutionId,
+          'other-guardian',
+          { studentId, relationshipType: RelationshipType.FATHER },
+          performingUserId,
+        ),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

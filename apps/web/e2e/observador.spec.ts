@@ -1,10 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import { createE2EStudent, listE2ENotifications } from './helpers/api';
+import { openMobileDrawerIfNeeded } from './helpers/navigation';
 
 const EMAIL = process.env.E2E_EMAIL || 'admin@demo-school.dev';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
 
-const UNIQUE = `obs-e2e-${Date.now()}`;
+const UNIQUE = `obs-e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
 async function login(page: Page) {
   await page.goto('/login');
@@ -21,6 +22,19 @@ async function login(page: Page) {
     if (await btn.isVisible({ timeout: 3_000 }).catch(() => false)) await btn.click();
   }
   await page.waitForURL(/\/dashboard/, { timeout: 10_000 });
+}
+
+async function openObservador(page: Page) {
+  // El sidebar es acordeón single-open: expandir "Convivencia" antes de
+  // acceder al enlace "Observador".
+  await openMobileDrawerIfNeeded(page);
+  const nav = page.getByRole('navigation', { name: 'Main navigation' });
+  const catBtn = nav.getByRole('button', { name: /Categoría Convivencia/i });
+  if ((await catBtn.getAttribute('aria-expanded')) !== 'true') {
+    await catBtn.scrollIntoViewIfNeeded();
+    await catBtn.click();
+  }
+  await nav.getByRole('link', { name: 'Observador', exact: true }).click();
 }
 
 /**
@@ -53,7 +67,7 @@ test.describe('Observador del Alumno (smoke)', () => {
     await login(page);
 
     // 2. Access Observador from the sidebar.
-    await page.getByRole('navigation', { name: 'Main navigation' }).getByText('Observador').click();
+    await openObservador(page);
     await page.waitForURL(/\/student-follow-ups/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Observador del Alumno' })).toBeVisible();
 
@@ -81,17 +95,23 @@ test.describe('Observador del Alumno (smoke)', () => {
     await page.getByRole('button', { name: 'Agregar entrada' }).click();
     await expect(page.getByText('Entrada de reunion smoke')).toBeVisible();
 
-    // 6. Add a commitment via UI.
+    // 6. Add a commitment via UI (el formulario se revela con "Nuevo compromiso").
     await page.getByRole('button', { name: /Compromisos/ }).click();
+    await page.getByRole('button', { name: 'Nuevo compromiso' }).click();
     await page.locator('#commitmentDescription').fill('Compromiso smoke con el estudiante');
     await page.getByRole('button', { name: 'Crear compromiso' }).click();
     await expect(page.getByText('Compromiso smoke con el estudiante')).toBeVisible();
 
-    // 7. Change status: Resolve the follow-up (OPEN -> RESOLVED).
+    // 7. Change status: OPEN -> IN_PROGRESS -> RESOLVED (transiciones válidas).
+    await page.getByRole('button', { name: 'Seguimiento', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Confirmar seguimiento' })).toBeVisible();
+    await page.getByRole('button', { name: 'Seguimiento', exact: true }).last().click();
+    await expect(page.getByText('En progreso').first()).toBeVisible({ timeout: 10_000 });
     await page.getByRole('button', { name: 'Resolver' }).click();
     await expect(page.getByRole('heading', { name: 'Confirmar resolución' })).toBeVisible();
-    await page.getByRole('button', { name: 'Resolver' }).click();
-    await expect(page.getByText('Resuelto')).toBeVisible();
+    // El modal y el header comparten el nombre: confirmar dentro del modal.
+    await page.getByRole('button', { name: 'Resolver' }).last().click();
+    await expect(page.getByText('Resuelto').first()).toBeVisible({ timeout: 10_000 });
 
     // 8. Notification created (verified via API).
     const notif = await listE2ENotifications();
@@ -117,7 +137,7 @@ test.describe('Observador del Alumno (smoke)', () => {
     await login(page);
 
     // Create a fresh follow-up to attach citations and signature request to.
-    await page.getByRole('navigation', { name: 'Main navigation' }).getByText('Observador').click();
+    await openObservador(page);
     await page.waitForURL(/\/student-follow-ups/, { timeout: 10_000 });
     await page.getByRole('button', { name: 'Nuevo seguimiento' }).click();
     await page.waitForURL(/\/student-follow-ups\/new/, { timeout: 10_000 });
@@ -134,7 +154,9 @@ test.describe('Observador del Alumno (smoke)', () => {
     // Create a citation via the Citaciones tab (H2).
     await page.getByRole('button', { name: /Citaciones/ }).click();
     await page.getByRole('button', { name: 'Nueva citación' }).click();
-    await expect(page.getByText('Crear citación')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Crear citación' })).toBeVisible();
+    // La fecha de citación es obligatoria en el formulario actual.
+    await page.getByLabel('Fecha de citación *').fill('2026-09-15T10:00');
     await page.locator('#citationReason').fill('Citación a acudiente por observación');
     await page.locator('#citationObjective').fill('Tratar la conducta observada');
     await page.getByRole('button', { name: 'Crear citación' }).click();
@@ -142,12 +164,12 @@ test.describe('Observador del Alumno (smoke)', () => {
 
     // Complete the citation (status transition) to exercise the workflow.
     await page.getByRole('button', { name: 'Completar' }).click();
-    await expect(page.getByText('Completada')).toBeVisible();
+    await expect(page.getByText('Realizada').first()).toBeVisible({ timeout: 10_000 });
 
     // Request a signature/acknowledgement via the Firmas tab (H1 integration).
     await page.getByRole('button', { name: /Firmas/ }).click();
     await page.getByRole('button', { name: 'Solicitar firma' }).click();
-    await expect(page.getByText('Solicitar firma / recibido')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Solicitar firma / recibido' })).toBeVisible();
     await page.locator('#signatureTitle').fill('Recibido de citación');
     const firstRecipient = page.locator('input[type="checkbox"]').first();
     await firstRecipient.check();

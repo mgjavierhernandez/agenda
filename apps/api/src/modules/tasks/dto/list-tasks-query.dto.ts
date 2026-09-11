@@ -16,7 +16,7 @@ export class ListTasksQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(200)
   limit?: number = 20;
 
   @ApiPropertyOptional()
@@ -38,6 +38,11 @@ export class ListTasksQueryDto {
   @IsOptional()
   @IsUUID()
   subjectId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Restrict to tasks assigned to one accessible student' })
+  @IsOptional()
+  @IsUUID()
+  studentId?: string;
 
   @ApiPropertyOptional({ format: 'date-time' })
   @IsOptional()

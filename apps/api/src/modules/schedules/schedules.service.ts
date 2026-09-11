@@ -5,9 +5,17 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { resolveAccessibleCourseIds, resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ListSchedulesQueryDto } from './dto/list-schedules-query.dto';
+import { ScheduleExportQueryDto, ScheduleExportFormat } from './dto/schedule-export-query.dto';
+import {
+  buildScheduleCsv,
+  buildSchedulePdf,
+  buildScheduleXlsx,
+  ScheduleExportRow,
+} from './schedule-export';
 import {
   Schedule,
   ScheduleStatus,
@@ -269,6 +277,7 @@ export class SchedulesService {
   async findAll(
     institutionId: string,
     query: ListSchedulesQueryDto,
+    userId?: string,
   ): Promise<{ data: Schedule[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -291,6 +300,39 @@ export class SchedulesService {
         : {}),
     };
 
+    if (userId) {
+      const accessible = await resolveAccessibleCourseIds(this.prisma, institutionId, userId);
+      if (accessible !== null) {
+        let effectiveCourses = accessible;
+        if (query.studentId) {
+          const accessibleStudents = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+          if (accessibleStudents === null || !accessibleStudents.includes(query.studentId)) {
+            throw new NotFoundException('Schedule not found');
+          }
+          const enrollments = await this.prisma.enrollment.findMany({
+            where: { institutionId, studentId: query.studentId, status: 'ACTIVE' },
+            select: { courseId: true },
+          });
+          effectiveCourses = [...new Set(enrollments.map((e) => e.courseId))].filter((c) =>
+            accessible.includes(c),
+          );
+        }
+        if (query.courseId && !effectiveCourses.includes(query.courseId)) {
+          throw new NotFoundException('Schedule not found');
+        }
+        if (!query.courseId) {
+          // Docentes ven además los bloques donde son el profesor asignado.
+          const or: Prisma.ScheduleWhereInput[] = [{ courseId: { in: effectiveCourses } }];
+          const own = await this.prisma.schedule.findFirst({
+            where: { institutionId, teacherUserId: userId },
+            select: { id: true },
+          });
+          if (own && !query.studentId) or.push({ teacherUserId: userId });
+          where.OR = or;
+        }
+      }
+    }
+
     const [data, total] = await Promise.all([
       this.prisma.schedule.findMany({
         where,
@@ -312,7 +354,7 @@ export class SchedulesService {
     };
   }
 
-  async findOne(institutionId: string, scheduleId: string): Promise<Schedule> {
+  async findOne(institutionId: string, scheduleId: string, userId?: string): Promise<Schedule> {
     const schedule = await this.prisma.schedule.findFirst({
       where: {
         id: scheduleId,
@@ -322,6 +364,17 @@ export class SchedulesService {
 
     if (!schedule) {
       throw new NotFoundException('Schedule not found');
+    }
+
+    if (userId) {
+      const accessible = await resolveAccessibleCourseIds(this.prisma, institutionId, userId);
+      if (
+        accessible !== null &&
+        !accessible.includes(schedule.courseId) &&
+        schedule.teacherUserId !== userId
+      ) {
+        throw new NotFoundException('Schedule not found');
+      }
     }
 
     return schedule;
@@ -464,5 +517,99 @@ export class SchedulesService {
       userId,
       ipAddress,
     );
+  }
+
+  /**
+   * Exporta el horario visible para el actor (mismo scoping que findAll).
+   * El archivo solo contiene datos del alcance autorizado.
+   */
+  async exportSchedules(
+    institutionId: string,
+    userId: string,
+    query: ScheduleExportQueryDto,
+    ipAddress?: string,
+  ): Promise<{ buffer: Buffer; contentType: string; filename: string }> {
+    const format = query.format ?? ScheduleExportFormat.PDF;
+    const { data } = await this.findAll(
+      institutionId,
+      {
+        page: 1,
+        limit: 500,
+        status: ScheduleStatus.ACTIVE,
+        dayOfWeek: query.dayOfWeek,
+        courseId: query.courseId,
+        studentId: query.studentId,
+      },
+      userId,
+    );
+
+    const [courses, subjects, classrooms, users, institution] = await Promise.all([
+      this.prisma.course.findMany({
+        where: { institutionId, id: { in: [...new Set(data.map((s) => s.courseId))] } },
+        select: { id: true, name: true },
+      }),
+      this.prisma.subject.findMany({
+        where: { institutionId, id: { in: [...new Set(data.map((s) => s.subjectId))] } },
+        select: { id: true, name: true },
+      }),
+      this.prisma.classroom.findMany({
+        where: { institutionId, id: { in: [...new Set(data.map((s) => s.classroomId).filter(Boolean) as string[])] } },
+        select: { id: true, name: true },
+      }),
+      this.prisma.user.findMany({
+        where: { id: { in: [...new Set(data.map((s) => s.teacherUserId).filter(Boolean) as string[])] } },
+        select: { id: true, firstName: true, lastName: true },
+      }),
+      this.prisma.institution.findUnique({ where: { id: institutionId }, select: { name: true } }),
+    ]);
+
+    const courseNames = new Map(courses.map((c) => [c.id, c.name]));
+    const subjectNames = new Map(subjects.map((s) => [s.id, s.name]));
+    const classroomNames = new Map(classrooms.map((c) => [c.id, c.name]));
+    const teacherNames = new Map(users.map((u) => [u.id, `${u.firstName} ${u.lastName}`.trim()]));
+
+    const rows: ScheduleExportRow[] = data.map((s) => ({
+      day: s.dayOfWeek,
+      startTime: this.dateToTimeString(s.startTime),
+      endTime: this.dateToTimeString(s.endTime),
+      courseName: courseNames.get(s.courseId) ?? '—',
+      subjectName: subjectNames.get(s.subjectId) ?? '—',
+      classroomName: (s.classroomId && classroomNames.get(s.classroomId)) || '—',
+      teacherName: (s.teacherUserId && teacherNames.get(s.teacherUserId)) || '—',
+    }));
+
+    await this.auditService.log({
+      userId,
+      institutionId,
+      action: 'SCHEDULE_EXPORTED',
+      entityType: 'Schedule',
+      newValues: { format, rows: rows.length },
+      ipAddress,
+    });
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (format === ScheduleExportFormat.XLSX) {
+      return {
+        buffer: await buildScheduleXlsx(rows),
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        filename: `horario-${stamp}.xlsx`,
+      };
+    }
+    if (format === ScheduleExportFormat.CSV) {
+      return {
+        buffer: buildScheduleCsv(rows),
+        contentType: 'text/csv; charset=utf-8',
+        filename: `horario-${stamp}.csv`,
+      };
+    }
+    return {
+      buffer: await buildSchedulePdf(
+        institution?.name ?? 'Institución',
+        `Horario de clases (${rows.length} bloques)`,
+        rows,
+      ),
+      contentType: 'application/pdf',
+      filename: `horario-${stamp}.pdf`,
+    };
   }
 }

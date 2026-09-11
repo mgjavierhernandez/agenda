@@ -16,7 +16,7 @@ const CONFIDENTIALITY_NOTIFY_LEVELS: Record<
     FollowUpConfidentiality.SENSITIVE,
   ],
   TEACHER: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
-  PARENT: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
+  PARENT: [FollowUpConfidentiality.PUBLIC],
   STUDENT: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
 };
 

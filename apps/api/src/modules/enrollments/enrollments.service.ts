@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { resolveAccessibleStudentIds, resolveAccessibleCourseIds } from '../../common/auth/academic-scope';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { ListEnrollmentsQueryDto } from './dto/list-enrollments-query.dto';
@@ -96,6 +97,7 @@ export class EnrollmentsService {
   async findAll(
     institutionId: string,
     query: ListEnrollmentsQueryDto,
+    userId?: string,
   ): Promise<{ data: Enrollment[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -110,6 +112,27 @@ export class EnrollmentsService {
         ? { academicPeriodId: query.academicPeriodId }
         : {}),
     };
+
+    if (userId) {
+      const [accessibleStudents, accessibleCourses] = await Promise.all([
+        resolveAccessibleStudentIds(this.prisma, institutionId, userId),
+        resolveAccessibleCourseIds(this.prisma, institutionId, userId),
+      ]);
+      if (accessibleStudents !== null) {
+        if (query.studentId && !accessibleStudents.includes(query.studentId)) {
+          throw new NotFoundException('Enrollment not found');
+        }
+        where.studentId = query.studentId ?? { in: accessibleStudents };
+      }
+      if (accessibleCourses !== null) {
+        if (query.courseId && !accessibleCourses.includes(query.courseId)) {
+          throw new NotFoundException('Enrollment not found');
+        }
+        if (!query.courseId) {
+          where.courseId = { in: accessibleCourses };
+        }
+      }
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.enrollment.findMany({
@@ -132,7 +155,7 @@ export class EnrollmentsService {
     };
   }
 
-  async findOne(institutionId: string, enrollmentId: string): Promise<Enrollment> {
+  async findOne(institutionId: string, enrollmentId: string, userId?: string): Promise<Enrollment> {
     const enrollment = await this.prisma.enrollment.findFirst({
       where: {
         id: enrollmentId,
@@ -142,6 +165,13 @@ export class EnrollmentsService {
 
     if (!enrollment) {
       throw new NotFoundException('Enrollment not found');
+    }
+
+    if (userId) {
+      const accessible = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+      if (accessible !== null && !accessible.includes(enrollment.studentId)) {
+        throw new NotFoundException('Enrollment not found');
+      }
     }
 
     return enrollment;

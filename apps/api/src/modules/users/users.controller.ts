@@ -16,10 +16,12 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
 import { RequirePermission } from '../auth/authorization/require-permission.decorator';
+import { AuthorizationService } from '../auth/authorization/authorization.service';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, ListUsersQueryDto } from './dto/user.dto';
 import { UpsertUserProfileDto } from './dto/user-profile.dto';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ForbiddenException } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 
 @ApiTags('Users')
@@ -27,7 +29,27 @@ import { UserStatus } from '@prisma/client';
 @Controller('users')
 @UseGuards(AccessTokenGuard, TenantContextGuard, PermissionGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authorizationService: AuthorizationService,
+  ) {}
+
+  /**
+   * Perfil propio: cualquier miembro activo puede leer/actualizar SU perfil
+   * sin permisos administrativos. Para terceros se exige users:read/update.
+   */
+  private async assertProfileAccess(
+    callerUserId: string,
+    targetUserId: string,
+    institutionId: string,
+    permission: string,
+  ): Promise<void> {
+    if (callerUserId === targetUserId) return;
+    const allowed = await this.authorizationService.hasPermission(callerUserId, institutionId, permission);
+    if (!allowed) {
+      throw new ForbiddenException('Access denied');
+    }
+  }
 
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User created' })
@@ -107,11 +129,11 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User profile found (null when not set)' })
   @ApiResponse({ status: 404, description: 'User not found in this institution' })
   @Get(':id/profile')
-  @RequirePermission('users:read')
   async findProfile(
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
+    await this.assertProfileAccess(req.user.userId, id, req.tenant!.institutionId, 'users:read');
     return this.usersService.findProfile(
       req.tenant!.institutionId,
       id,
@@ -125,12 +147,12 @@ export class UsersController {
   @ApiResponse({ status: 409, description: 'Document already registered in this institution' })
   @ApiBody({ type: UpsertUserProfileDto })
   @Patch(':id/profile')
-  @RequirePermission('users:update')
   async upsertProfile(
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpsertUserProfileDto,
   ) {
+    await this.assertProfileAccess(req.user.userId, id, req.tenant!.institutionId, 'users:update');
     return this.usersService.upsertProfile(
       req.tenant!.institutionId,
       id,

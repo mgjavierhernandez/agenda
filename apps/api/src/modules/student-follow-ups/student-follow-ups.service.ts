@@ -148,14 +148,21 @@ export class StudentFollowUpsService {
     const visibleLevels =
       this.authorizationService.getVisibleConfidentialityLevels(role);
 
+    // Un filtro explícito nunca puede ampliar los niveles visibles del rol
+    // (evita ?confidentiality=INTERNAL para eludir la restricción).
+    const requestedLevel = query.confidentiality;
+    const confidentialityFilter =
+      requestedLevel && (visibleLevels as string[]).includes(requestedLevel)
+        ? requestedLevel
+        : { in: visibleLevels };
+
     const where: Prisma.StudentFollowUpWhereInput = {
       institutionId,
-      confidentiality: { in: visibleLevels },
+      confidentiality: confidentialityFilter,
       ...(query.studentId ? { studentId: query.studentId } : {}),
       ...(query.type ? { type: query.type } : {}),
       ...(query.severity ? { severity: query.severity } : {}),
       ...(query.status ? { status: query.status } : {}),
-      ...(query.confidentiality ? { confidentiality: query.confidentiality } : {}),
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
       ...(query.createdById ? { createdById: query.createdById } : {}),
       ...(query.createdFrom || query.createdTo

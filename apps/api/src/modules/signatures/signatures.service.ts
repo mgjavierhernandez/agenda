@@ -288,6 +288,7 @@ export class SignaturesService {
     requestId: string,
     userId: string,
     isManager: boolean,
+    ipAddress?: string,
   ): Promise<SignatureRequest & { recipients: SignatureRecipient[] }> {
     const request = await this.prisma.signatureRequest.findFirst({
       where: { id: requestId, institutionId },
@@ -317,12 +318,28 @@ export class SignaturesService {
     }
 
     const checked = await this.checkExpiration(institutionId, request);
+
+    // Trazabilidad de apertura para firmantes (abrir ≠ firmar).
+    if (!isManager) {
+      await this.auditService.log({
+        userId,
+        institutionId,
+        action: 'SIGNATURE_VIEWED',
+        entityType: 'SignatureRequest',
+        entityId: checked.id,
+        newValues: { status: checked.status },
+        ipAddress,
+      });
+    }
+
     return checked;
   }
 
   async findByFollowUp(
     institutionId: string,
     followUpId: string,
+    userId: string,
+    isManager: boolean,
   ): Promise<(SignatureRequest & { recipients: SignatureRecipient[] })[]> {
     const requests = await this.prisma.signatureRequest.findMany({
       where: { institutionId, followUpId },
@@ -334,8 +351,19 @@ export class SignaturesService {
       },
     });
 
+    // Sin rol de gestión solo se exponen las solicitudes donde el actor es
+    // firmante y no están en borrador/inactivas (igual que findOne).
+    const visible = isManager
+      ? requests
+      : requests.filter(
+          (r) =>
+            r.recipients.some((rec) => rec.userId === userId) &&
+            r.status !== SignatureRequestStatus.DRAFT &&
+            r.status !== SignatureRequestStatus.INACTIVE,
+        );
+
     const checked: (SignatureRequest & { recipients: SignatureRecipient[] })[] = [];
-    for (const request of requests) {
+    for (const request of visible) {
       checked.push(await this.checkExpiration(institutionId, request));
     }
     return checked;

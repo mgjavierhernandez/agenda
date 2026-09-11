@@ -16,6 +16,19 @@ vi.mock('react-router-dom', async () => {
 
 vi.mock('../hooks', () => ({
   useSchedules: (...args: unknown[]) => mockUseSchedules(...args),
+  useExportSchedules: () => ({
+    exportSchedules: vi.fn(),
+    isExporting: false,
+    error: '',
+  }),
+}));
+
+vi.mock('@/modules/children', () => ({
+  useParentStudentFilter: () => ({ isParent: false, studentId: undefined, selectedChild: null, children: [] }),
+}));
+
+vi.mock('../components/ScheduleMatrixView', () => ({
+  ScheduleMatrixView: () => <div data-testid="schedule-matrix">matrix</div>,
 }));
 
 vi.mock('@/auth/auth.store', () => ({
@@ -64,6 +77,7 @@ describe('SchedulesPage', () => {
   });
 
   it('shows empty state when no schedules', async () => {
+    const user = userEvent.setup();
     mockUseSchedules.mockReturnValue({
       data: { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } },
       isLoading: false,
@@ -71,6 +85,7 @@ describe('SchedulesPage', () => {
     });
 
     renderPage();
+    await user.click(screen.getByText('Lista'));
     expect(screen.getByText(/no hay horarios/i)).toBeDefined();
   });
 
@@ -87,6 +102,7 @@ describe('SchedulesPage', () => {
   });
 
   it('renders schedule list', async () => {
+    const user = userEvent.setup();
     mockUseSchedules.mockReturnValue({
       data: {
         data: [
@@ -110,8 +126,20 @@ describe('SchedulesPage', () => {
     });
 
     renderPage();
+    await user.click(screen.getByText('Lista'));
     expect(screen.getAllByText('Lunes').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('08:00').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders matrix view by default', async () => {
+    mockUseSchedules.mockReturnValue({
+      data: { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+    expect(screen.getByTestId('schedule-matrix')).toBeDefined();
   });
 
   it('navigates to detail on click', async () => {
@@ -139,6 +167,7 @@ describe('SchedulesPage', () => {
     });
 
     renderPage();
+    await user.click(screen.getByText('Lista'));
     const verButtons = screen.getAllByText('Ver');
     await user.click(verButtons[0]);
     expect(mockNavigate).toHaveBeenCalledWith('/schedules/s1');

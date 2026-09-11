@@ -113,6 +113,7 @@ export class NotificationsController {
         req.tenant!.institutionId,
         id,
         req.user.userId,
+        req.ip,
       );
     }
     return this.notificationsService.findOne(
@@ -131,7 +132,27 @@ export class NotificationsController {
     return this.notificationsService.markAllAsRead(
       req.tenant!.institutionId,
       req.user.userId,
+      req.ip,
     );
+  }
+
+  @Post(':id/opened')
+  @RequirePermission('notifications:read')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Track notification opening (first-view timestamp)' })
+  @ApiParam({ name: 'id', description: 'Notification UUID' })
+  @ApiResponse({ status: 200, description: 'Opening tracked successfully' })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async trackOpened(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.notificationsService.trackOpened(
+      req.tenant!.institutionId,
+      id,
+      req.user.userId,
+    );
+    return { ok: true };
   }
 
   @Delete(':id')

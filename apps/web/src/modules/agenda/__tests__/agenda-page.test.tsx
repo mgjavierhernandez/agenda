@@ -34,6 +34,7 @@ vi.mock('@/tenant/tenant.store', () => ({
 }));
 
 const mockUseAgenda = vi.mocked(agendaHook.useAgenda);
+const mockUseYearAgenda = vi.mocked(agendaHook.useYearAgenda);
 
 function createWrapper() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -108,6 +109,11 @@ describe('AgendaPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHasPermission.mockReturnValue(true);
+    mockUseYearAgenda.mockReturnValue({
+      countsByMonth: Array.from({ length: 12 }, () => 0),
+      isLoading: false,
+      error: null,
+    } as never);
   });
 
   it('should render the agenda page with header', () => {
@@ -165,9 +171,10 @@ describe('AgendaPage', () => {
     } as never);
 
     render(<AgendaPage />, { wrapper: createWrapper() });
-    expect(screen.getByText('Dia')).toBeDefined();
+    expect(screen.getByText('Día')).toBeDefined();
     expect(screen.getByText('Semana')).toBeDefined();
     expect(screen.getByText('Mes')).toBeDefined();
+    expect(screen.getByText('Año')).toBeDefined();
   });
 
   it('should show Hoy button', () => {

@@ -1,6 +1,8 @@
 import type { ApiError } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
+// Normaliza la URL base: sin espacios accidentales ni barras finales,
+// para que `${API_URL}${path}` nunca genere rutas como `/api/v1%20/...`.
+const API_URL = (import.meta.env.VITE_API_URL || '/api/v1').trim().replace(/\/+$/, '');
 
 let accessToken: string | null = null;
 let institutionId: string | null = null;

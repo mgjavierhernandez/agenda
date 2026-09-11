@@ -144,6 +144,25 @@ export function TeacherAssignmentDetailPage() {
                 </Badge>
               </dd>
             </div>
+            <div>
+              <dt className="text-sm text-gray-500">Origen de horarios</dt>
+              <dd>
+                {(assignment as unknown as { autoBackfilled?: number }).autoBackfilled &&
+                Number((assignment as unknown as { autoBackfilled?: number }).autoBackfilled) > 0 ? (
+                  <span>
+                    <Badge variant="info">Auto</Badge>{' '}
+                    <span className="text-xs text-gray-500">
+                      {Number((assignment as unknown as { autoBackfilled?: number }).autoBackfilled)} horario(s) asignado(s) automáticamente al crear (informativo)
+                    </span>
+                  </span>
+                ) : (
+                  <span>
+                    <Badge variant="default">Manual</Badge>{' '}
+                    <span className="text-xs text-gray-500">Sin horarios auto-asignados registrados</span>
+                  </span>
+                )}
+              </dd>
+            </div>
           </dl>
         </Card>
 

@@ -47,7 +47,7 @@ export function CommunicationsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useCommunications({
+  const { data, isLoading, error, refetch } = useCommunications({
     page,
     limit,
     search: debouncedSearch || undefined,
@@ -67,7 +67,7 @@ export function CommunicationsPage() {
   }, []);
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (

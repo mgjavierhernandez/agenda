@@ -98,4 +98,32 @@ describe('useAgenda', () => {
       expect.stringContaining('view=month'),
     );
   });
+
+  it('should include studentId in query when provided', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: [],
+      start: '2026-08-24',
+      end: '2026-08-24',
+      total: 0,
+    });
+
+    const { result } = renderHook(
+      () =>
+        useAgenda({
+          start: '2026-08-24',
+          end: '2026-08-24',
+          view: 'day',
+          studentId: 'stu-1',
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('studentId=stu-1'),
+    );
+  });
 });

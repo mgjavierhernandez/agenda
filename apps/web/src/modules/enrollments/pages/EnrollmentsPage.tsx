@@ -5,6 +5,7 @@ import { useStudents } from '@/modules/students/hooks';
 import { useCourses } from '@/modules/courses/hooks';
 import { useAcademicPeriods } from '@/modules/academic-periods/hooks';
 import { useSchoolGrades } from '@/modules/school-grades/hooks';
+import { useParentStudentFilter } from '@/modules/children';
 import { usePermissions } from '@/permissions/usePermissions';
 import { PageHeader } from '@/components/feedback/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -35,10 +36,14 @@ export function EnrollmentsPage() {
   const [academicPeriodIdFilter, setAcademicPeriodIdFilter] = useState('');
   const limit = 20;
 
-  const { data, isLoading, error } = useEnrollments({
+  // Padres: matrículas del hijo seleccionado (el backend valida el vínculo).
+  const { isParent, studentId: childStudentId, selectedChild } = useParentStudentFilter();
+  const effectiveStudentId = childStudentId ?? studentIdFilter ?? undefined;
+
+  const { data, isLoading, error, refetch } = useEnrollments({
     page,
     limit,
-    studentId: studentIdFilter || undefined,
+    studentId: effectiveStudentId || undefined,
     courseId: courseIdFilter || undefined,
     schoolGradeId: schoolGradeIdFilter || undefined,
     academicPeriodId: academicPeriodIdFilter || undefined,
@@ -97,7 +102,7 @@ export function EnrollmentsPage() {
   const enrollments = data?.data ?? [];
   const meta = data?.meta;
 
-  const hasActiveFilters = studentIdFilter || courseIdFilter || schoolGradeIdFilter || academicPeriodIdFilter;
+  const hasActiveFilters = studentIdFilter || courseIdFilter || schoolGradeIdFilter || academicPeriodIdFilter || isParent;
 
   const handleClearFilters = () => {
     setStudentIdFilter('');
@@ -108,14 +113,18 @@ export function EnrollmentsPage() {
   };
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    return <ErrorState error={error} onRetry={() => refetch()} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Matrículas"
-        description="Gestionar matrículas de estudiantes en cursos"
+        description={
+          isParent && selectedChild
+            ? `Matrículas de ${selectedChild.firstName} ${selectedChild.lastName}`
+            : 'Gestionar matrículas de estudiantes en cursos'
+        }
         actions={
           canManage ? (
             <Button onClick={() => navigate('/enrollments/new')}>
@@ -127,6 +136,7 @@ export function EnrollmentsPage() {
 
       <Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {!isParent && (
           <div>
             <label htmlFor="filter-student" className="block text-sm font-medium text-gray-700 mb-1">
               Estudiante
@@ -143,6 +153,7 @@ export function EnrollmentsPage() {
               ))}
             </select>
           </div>
+          )}
           <div>
             <label htmlFor="filter-course" className="block text-sm font-medium text-gray-700 mb-1">
               Curso

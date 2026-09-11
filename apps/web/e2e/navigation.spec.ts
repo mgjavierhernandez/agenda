@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { navigateViaSidebar } from './helpers/navigation';
 
 const EMAIL = process.env.E2E_EMAIL || 'admin@demo-school.dev';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
@@ -69,26 +70,15 @@ test.describe('Navigation - Critical Routes', () => {
   }
 
   test('should navigate between routes via sidebar', async ({ page }) => {
-    const nav = page.getByRole('navigation', { name: 'Main navigation' });
-
-    async function openCategoryAndClick(category: RegExp, item: string) {
-      const cat = nav.getByRole('button', { name: category });
-      if ((await cat.getAttribute('aria-expanded')) !== 'true') {
-        await cat.click();
-      }
-      await nav.getByRole('link', { name: item, exact: true }).waitFor({ state: 'visible', timeout: 10_000 });
-      await nav.getByRole('link', { name: item, exact: true }).click();
-    }
-
-    await openCategoryAndClick(/Categoría Gestión académica/i, 'Cursos');
+    await navigateViaSidebar(page, /Categoría Gestión académica/i, 'Cursos');
     await page.waitForURL(/\/courses/);
     await expect(page.getByRole('heading', { name: 'Cursos' })).toBeVisible();
 
-    await openCategoryAndClick(/Categoría Trabajo académico/i, 'Tareas');
+    await navigateViaSidebar(page, /Categoría Trabajo académico/i, 'Tareas');
     await page.waitForURL(/\/tasks/);
     await expect(page.getByRole('heading', { name: 'Tareas' })).toBeVisible();
 
-    await openCategoryAndClick(/Categoría Comunicación/i, 'Notificaciones');
+    await navigateViaSidebar(page, /Categoría Comunicación/i, 'Notificaciones');
     await page.waitForURL(/\/notifications/);
     await expect(page.getByRole('heading', { name: 'Notificaciones' })).toBeVisible();
   });

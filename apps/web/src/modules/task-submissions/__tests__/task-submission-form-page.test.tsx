@@ -26,6 +26,8 @@ vi.mock('../hooks', () => ({
   useTaskSubmission: (...args: unknown[]) => mockUseTaskSubmission(...args),
   useCreateTaskSubmission: () => mockUseCreateTaskSubmission(),
   useUpdateTaskSubmission: () => mockUseUpdateTaskSubmission(),
+  useSubmissionAttachments: () => ({ data: [] }),
+  useRemoveSubmissionAttachment: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
 vi.mock('@/modules/tasks/hooks', () => ({
@@ -152,5 +154,12 @@ describe('TaskSubmissionFormPage', () => {
     });
     renderUpdateForm();
     expect(screen.getAllByText(/actualizar entrega/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows allowed formats and size limit for attachments', () => {
+    renderCreateForm();
+    expect(screen.getByText('Archivos adjuntos')).toBeDefined();
+    expect(screen.getByText(/\.docx.*\.xlsx.*\.pdf/)).toBeDefined();
+    expect(screen.getAllByText(/10 MB/).length).toBeGreaterThanOrEqual(1);
   });
 });

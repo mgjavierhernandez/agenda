@@ -91,6 +91,7 @@ export class GradesController {
     return this.gradesService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 

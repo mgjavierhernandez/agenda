@@ -2,10 +2,13 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Param,
   Query,
   UseGuards,
   Request,
+  HttpCode,
+  HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import {
@@ -87,6 +90,24 @@ export class CommunicationRecipientsController {
     return this.service.markAsRead(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
+      req.ip,
+    );
+  }
+
+  @Post('by-communication/:communicationId/opened')
+  @RequirePermission('communications:read')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Record opening of a communication by the current recipient (trazabilidad)' })
+  @ApiParam({ name: 'communicationId', description: 'Communication UUID' })
+  @ApiResponse({ status: 200, description: 'Opening recorded (or no recipient row)' })
+  async markOpenedByCommunication(
+    @Request() req: AuthenticatedRequest,
+    @Param('communicationId', ParseUUIDPipe) communicationId: string,
+  ) {
+    return this.service.markOpenedByCommunication(
+      req.tenant!.institutionId,
+      communicationId,
       req.user.userId,
       req.ip,
     );

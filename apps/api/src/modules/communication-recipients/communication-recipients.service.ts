@@ -21,7 +21,7 @@ export class CommunicationRecipientsService {
     ipAddress?: string,
   ) {
     const recipient = await this.prisma.communicationRecipient.findFirst({
-      where: { id, institutionId },
+      where: { id, institutionId, userId },
     });
     if (!recipient) throw new NotFoundException('Recipient not found');
 
@@ -49,6 +49,26 @@ export class CommunicationRecipientsService {
     });
 
     return updated;
+  }
+
+  /**
+   * Trazabilidad de apertura desde el detalle de la comunicación: localiza la
+   * fila recipient del propio usuario para esa comunicación y la marca leída.
+   * Sin fila (p. ej. gestores) no hace nada. Abrir ≠ responder.
+   */
+  async markOpenedByCommunication(
+    institutionId: string,
+    communicationId: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<{ opened: boolean }> {
+    const recipient = await this.prisma.communicationRecipient.findFirst({
+      where: { institutionId, communicationId, userId },
+      select: { id: true, status: true },
+    });
+    if (!recipient) return { opened: false };
+    await this.markAsRead(institutionId, recipient.id, userId, ipAddress);
+    return { opened: true };
   }
 
   async findAll(

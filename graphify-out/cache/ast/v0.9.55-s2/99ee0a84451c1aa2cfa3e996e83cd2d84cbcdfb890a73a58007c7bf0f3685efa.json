@@ -1,1 +1,0 @@
-{"nodes": [{"id": "$graphify-root$_rename_col_sql", "label": "rename_col.sql", "file_type": "code", "source_file": "rename_col.sql", "source_location": null}, {"id": "subjects", "label": "subjects", "file_type": "code", "source_file": "", "source_location": "", "origin_file": "$graphify-root$/rename_col.sql"}], "edges": []}

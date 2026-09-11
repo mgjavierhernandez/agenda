@@ -1,14 +1,24 @@
 import { NotFoundException } from '@nestjs/common';
 import { GradesService } from './grades.service';
 import { GradeStatus } from '@prisma/client';
-import { resolveParentContext, findGuardianUserIds } from '../../common/auth/parent-context';
+import { findGuardianUserIds } from '../../common/auth/parent-context';
+import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
 
 jest.mock('../../common/auth/parent-context', () => ({
   resolveParentContext: jest.fn(),
   findGuardianUserIds: jest.fn(),
 }));
 
-const mockedResolveParentContext = jest.mocked(resolveParentContext);
+jest.mock('../../common/auth/academic-scope', () => ({
+  resolveAccessibleStudentIds: jest.fn(),
+  resolveAccessibleCourseIds: jest.fn(),
+  getUserRoleNames: jest.fn(),
+  hasFullAccess: jest.fn(),
+  FULL_ACCESS_ROLES: new Set(),
+  TEACHER_SCOPED_ROLES: new Set(),
+}));
+
+const mockedResolveAccessibleStudentIds = jest.mocked(resolveAccessibleStudentIds);
 const mockedFindGuardianUserIds = jest.mocked(findGuardianUserIds);
 
 describe('GradesService', () => {
@@ -39,7 +49,7 @@ describe('GradesService', () => {
 
   beforeEach(() => {
     prismaMock = {
-      $transaction: jest.fn(async (callback: (tx: any) => Promise<unknown>) =>
+      $transaction: jest.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
         callback({
           ...prismaMock,
           $queryRaw: jest.fn().mockResolvedValue([]),
@@ -71,8 +81,8 @@ describe('GradesService', () => {
     prismaMock.course.findFirst.mockResolvedValue({ id: courseId, institutionId });
     prismaMock.subject.findFirst.mockResolvedValue({ id: subjectId, institutionId });
 
-    mockedResolveParentContext.mockReset();
-    mockedResolveParentContext.mockResolvedValue({ isParent: false, studentIds: [] });
+    mockedResolveAccessibleStudentIds.mockReset();
+    mockedResolveAccessibleStudentIds.mockResolvedValue(null);
     mockedFindGuardianUserIds.mockReset();
     mockedFindGuardianUserIds.mockResolvedValue([]);
   });
@@ -413,7 +423,7 @@ describe('GradesService', () => {
 
   describe('findAll - parent filtering', () => {
     it('should filter grades to only parent student IDs', async () => {
-      mockedResolveParentContext.mockResolvedValue({ isParent: true, studentIds: ['stu-1', 'stu-2'] });
+      mockedResolveAccessibleStudentIds.mockResolvedValue(['stu-1', 'stu-2']);
       prismaMock.grade.findMany.mockResolvedValue([
         { id: 'g1', institutionId, studentId: 'stu-1' },
         { id: 'g2', institutionId, studentId: 'stu-2' },
@@ -431,7 +441,7 @@ describe('GradesService', () => {
     });
 
     it('should not filter when userId is not a parent', async () => {
-      mockedResolveParentContext.mockResolvedValue({ isParent: false, studentIds: [] });
+      mockedResolveAccessibleStudentIds.mockResolvedValue(null);
       prismaMock.grade.findMany.mockResolvedValue([
         { id: 'g1', institutionId },
         { id: 'g2', institutionId },
@@ -455,21 +465,17 @@ describe('GradesService', () => {
 
       await service.findAll(institutionId, {});
 
-      expect(mockedResolveParentContext).not.toHaveBeenCalled();
+      expect(mockedResolveAccessibleStudentIds).not.toHaveBeenCalled();
     });
 
-    it('should not override explicit studentId query filter', async () => {
+    it('should reject explicit studentId outside the caller scope', async () => {
+      mockedResolveAccessibleStudentIds.mockResolvedValue(['stu-1']);
       prismaMock.grade.findMany.mockResolvedValue([]);
       prismaMock.grade.count.mockResolvedValue(0);
 
-      await service.findAll(institutionId, { studentId: 'explicit-student' }, 'parent-user-1');
-
-      expect(mockedResolveParentContext).not.toHaveBeenCalled();
-      expect(prismaMock.grade.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ studentId: 'explicit-student' }),
-        }),
-      );
+      await expect(
+        service.findAll(institutionId, { studentId: 'explicit-student' }, 'parent-user-1'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

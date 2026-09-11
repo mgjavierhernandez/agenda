@@ -7,122 +7,113 @@ import { useUnreadCommunicationsCount } from '@/modules/communication-recipients
 export interface NavItem {
   to: string;
   label: string;
-  icon: string;
   permission?: string;
 }
 
 export interface NavCategory {
   id: string;
   label: string;
-  icon: string;
   items: NavItem[];
 }
 
 const STORAGE_KEY = 'agenda-sidebar-expanded';
 
+// Menú sin iconos (decisión de producto): texto, jerarquía y estados.
+// "Franjas horarias" y "Aulas" son administración de horarios: requieren
+// SCHEDULES_MANAGE para no aparecer a PARENT/STUDENT ni a docentes sin gestión.
 export const NAV_CATEGORIES: NavCategory[] = [
   {
     id: 'inicio',
     label: 'Inicio',
-    icon: '🏠',
     items: [
-      { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-      { to: '/agenda', label: 'Agenda', icon: '📅', permission: PERMISSIONS.AGENDA_READ },
+      { to: '/dashboard', label: 'Dashboard' },
+      { to: '/agenda', label: 'Agenda', permission: PERMISSIONS.AGENDA_READ },
+      { to: '/profile', label: 'Mi perfil' },
     ],
   },
   {
     id: 'gestion-academica',
     label: 'Gestión académica',
-    icon: '🎓',
     items: [
-      { to: '/students', label: 'Estudiantes', icon: '👨‍🎓', permission: PERMISSIONS.STUDENTS_READ },
-      { to: '/students/import', label: 'Importar estudiantes', icon: '📥', permission: PERMISSIONS.STUDENTS_MANAGE },
-      { to: '/enrollments', label: 'Matrículas', icon: '📋', permission: PERMISSIONS.ENROLLMENTS_READ },
-      { to: '/courses', label: 'Cursos', icon: '📚', permission: PERMISSIONS.COURSES_READ },
-      { to: '/subjects', label: 'Asignaturas', icon: '📝', permission: PERMISSIONS.SUBJECTS_READ },
-      { to: '/areas', label: 'Áreas', icon: '🗂️', permission: PERMISSIONS.AREAS_READ },
-      { to: '/school-grades', label: 'Grados académicos', icon: '🎓', permission: PERMISSIONS.SCHOOL_GRADES_READ },
-      { to: '/academic-periods', label: 'Periodos académicos', icon: '🗓️', permission: PERMISSIONS.ACADEMIC_PERIODS_READ },
+      { to: '/students', label: 'Estudiantes', permission: PERMISSIONS.STUDENTS_READ },
+      { to: '/students/import', label: 'Importar estudiantes', permission: PERMISSIONS.STUDENTS_MANAGE },
+      { to: '/enrollments', label: 'Matrículas', permission: PERMISSIONS.ENROLLMENTS_READ },
+      { to: '/courses', label: 'Cursos', permission: PERMISSIONS.COURSES_READ },
+      { to: '/subjects', label: 'Asignaturas', permission: PERMISSIONS.SUBJECTS_READ },
+      { to: '/areas', label: 'Áreas', permission: PERMISSIONS.AREAS_READ },
+      { to: '/school-grades', label: 'Grados académicos', permission: PERMISSIONS.SCHOOL_GRADES_READ },
+      { to: '/academic-periods', label: 'Periodos académicos', permission: PERMISSIONS.ACADEMIC_PERIODS_READ },
     ],
   },
   {
     id: 'gestion-docente',
     label: 'Gestión docente',
-    icon: '🧑‍🏫',
     items: [
-      { to: '/teachers', label: 'Docentes', icon: '🧑‍🏫', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
-      { to: '/teacher-assignments', label: 'Asignaciones docentes', icon: '👨‍🏫', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
-      { to: '/course-directors', label: 'Directores de grupo', icon: '🧑‍🏫', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
+      { to: '/teachers', label: 'Docentes', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
+      { to: '/teacher-assignments', label: 'Asignaciones docentes', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
+      { to: '/course-directors', label: 'Directores de grupo', permission: PERMISSIONS.TEACHER_ASSIGNMENTS_READ },
     ],
   },
   {
     id: 'evaluacion',
     label: 'Evaluación',
-    icon: '📈',
     items: [
-      { to: '/grades', label: 'Notas', icon: '📈', permission: PERMISSIONS.GRADES_READ },
-      { to: '/attendance', label: 'Asistencia', icon: '✅', permission: PERMISSIONS.ATTENDANCE_READ },
-      { to: '/reports', label: 'Reportes y boletín', icon: '📄', permission: PERMISSIONS.REPORTS_READ },
-      { to: '/reports/course', label: 'Reporte de curso', icon: '📈', permission: PERMISSIONS.REPORTS_READ },
+      { to: '/grades', label: 'Notas', permission: PERMISSIONS.GRADES_READ },
+      { to: '/attendance', label: 'Asistencia', permission: PERMISSIONS.ATTENDANCE_READ },
+      { to: '/reports', label: 'Reportes y boletín', permission: PERMISSIONS.REPORTS_READ },
+      { to: '/reports/course', label: 'Reporte de curso', permission: PERMISSIONS.REPORTS_READ },
     ],
   },
   {
     id: 'horarios',
     label: 'Horarios',
-    icon: '🕒',
     items: [
-      { to: '/schedules', label: 'Horarios', icon: '📅', permission: PERMISSIONS.SCHEDULES_READ },
-      { to: '/schedules/blocks', label: 'Franjas horarias', icon: '⏰', permission: PERMISSIONS.SCHEDULES_READ },
-      { to: '/schedules/classrooms', label: 'Aulas', icon: '🏫', permission: PERMISSIONS.SCHEDULES_READ },
+      { to: '/schedules', label: 'Horarios', permission: PERMISSIONS.SCHEDULES_READ },
+      { to: '/schedules/blocks', label: 'Franjas horarias', permission: PERMISSIONS.SCHEDULES_MANAGE },
+      { to: '/schedules/classrooms', label: 'Aulas', permission: PERMISSIONS.SCHEDULES_MANAGE },
     ],
   },
   {
     id: 'trabajo-academico',
     label: 'Trabajo académico',
-    icon: '📚',
     items: [
-      { to: '/tasks', label: 'Tareas', icon: '✅', permission: PERMISSIONS.TASKS_READ },
-      { to: '/task-assignments', label: 'Asignaciones', icon: '📋', permission: PERMISSIONS.TASKS_READ },
-      { to: '/task-submissions', label: 'Entregas', icon: '📤', permission: PERMISSIONS.TASKS_READ },
+      { to: '/tasks', label: 'Tareas', permission: PERMISSIONS.TASKS_READ },
+      { to: '/task-assignments', label: 'Asignaciones', permission: PERMISSIONS.TASKS_READ },
+      { to: '/task-submissions', label: 'Entregas', permission: PERMISSIONS.TASKS_READ },
     ],
   },
   {
     id: 'comunicacion',
     label: 'Comunicación',
-    icon: '📢',
     items: [
-      { to: '/communications', label: 'Comunicaciones', icon: '📢', permission: PERMISSIONS.COMMUNICATIONS_READ },
-      { to: '/communication-inbox', label: 'Bandeja de entrada', icon: '📥', permission: PERMISSIONS.COMMUNICATIONS_READ },
-      { to: '/signatures', label: 'Firmas', icon: '✍️', permission: PERMISSIONS.SIGNATURES_READ },
-      { to: '/notifications', label: 'Notificaciones', icon: '🔔', permission: PERMISSIONS.NOTIFICATIONS_READ },
+      { to: '/communications', label: 'Comunicaciones', permission: PERMISSIONS.COMMUNICATIONS_READ },
+      { to: '/communication-inbox', label: 'Bandeja de entrada', permission: PERMISSIONS.COMMUNICATIONS_READ },
+      { to: '/signatures', label: 'Firmas', permission: PERMISSIONS.SIGNATURES_READ },
+      { to: '/notifications', label: 'Notificaciones', permission: PERMISSIONS.NOTIFICATIONS_READ },
     ],
   },
   {
     id: 'convivencia',
     label: 'Convivencia',
-    icon: '🤝',
     items: [
-      { to: '/student-follow-ups', label: 'Observador', icon: '📋', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_READ },
-      { to: '/student-follow-ups/categories', label: 'Categorías', icon: '🏷️', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_CATEGORIES },
+      { to: '/student-follow-ups', label: 'Observador', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_READ },
+      { to: '/student-follow-ups/categories', label: 'Categorías', permission: PERMISSIONS.STUDENT_FOLLOW_UPS_CATEGORIES },
     ],
   },
   {
     id: 'comunidad',
     label: 'Comunidad',
-    icon: '👨‍👩‍👧',
     items: [
-      { to: '/guardians', label: 'Acudientes', icon: '👨‍👩‍👧', permission: PERMISSIONS.GUARDIANS_READ },
+      { to: '/guardians', label: 'Acudientes', permission: PERMISSIONS.GUARDIANS_READ },
     ],
   },
   {
     id: 'administracion',
     label: 'Administración',
-    icon: '⚙️',
     items: [
-      { to: '/profile', label: 'Mi perfil', icon: '👤' },
-      { to: '/institution', label: 'Mi institución', icon: '🏫', permission: PERMISSIONS.INSTITUTION_READ },
-      { to: '/admin/users', label: 'Usuarios', icon: '👥', permission: PERMISSIONS.USERS_READ },
-      { to: '/admin/requests', label: 'Solicitudes de acceso', icon: '📨', permission: PERMISSIONS.MEMBERSHIPS_MANAGE },
+      { to: '/institution', label: 'Mi institución', permission: PERMISSIONS.INSTITUTION_READ },
+      { to: '/admin/users', label: 'Usuarios', permission: PERMISSIONS.USERS_READ },
+      { to: '/admin/requests', label: 'Solicitudes de acceso', permission: PERMISSIONS.MEMBERSHIPS_MANAGE },
     ],
   },
 ];
@@ -137,6 +128,14 @@ function loadExpanded(): Record<string, boolean> {
   return {};
 }
 
+function persistExpanded(next: Record<string, boolean>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // almacenamiento no disponible: no bloquear navegacion
+  }
+}
+
 function isPathActive(itemTo: string, pathname: string): boolean {
   if (itemTo === '/dashboard') return pathname === '/dashboard' || pathname === '/';
   // Las rutas hijas (detalle/form) deben mantener la categoria padre expandida y resaltada
@@ -148,8 +147,37 @@ interface SidebarProps {
   onNavigate?: () => void;
 }
 
+function SidebarSkeleton({ isMobile }: { isMobile: boolean }) {
+  return (
+    <nav className={`${isMobile ? 'flex flex-col gap-1 h-full max-h-full' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`} aria-label="Main navigation" aria-busy="true">
+      <div className="flex-1 py-4 overflow-y-auto overscroll-contain min-h-0">
+        <ul className="space-y-1 px-3">
+          {[1, 2, 3, 4].map((i) => (
+            <li key={i}>
+              <div className="flex w-full items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-lg">
+                <div className="h-3 bg-gray-200 rounded animate-pulse" style={{ width: `${60 + i * 10}%` }} />
+              </div>
+              {i <= 2 && (
+                <ul className="mt-1 ml-2 space-y-1 border-l border-gray-200 pl-2">
+                  {[1, 2].map((j) => (
+                    <li key={j}>
+                      <div className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-lg">
+                        <div className="h-3 bg-gray-100 rounded animate-pulse" style={{ width: `${50 + j * 15}%` }} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  );
+}
+
 export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isLoading } = usePermissions();
   const { data: unreadData } = useUnreadCommunicationsCount();
   const unreadCount = unreadData?.count ?? 0;
   const location = useLocation();
@@ -175,32 +203,58 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>(loadExpanded);
 
-  // Auto-expandir la categoria activa al navegar (sin cerrar las que el usuario abrio manualmente)
+  // Acordeón: la categoría activa controla el estado. Al navegar, la activa
+  // se abre y las demás se colapsan (incluido back/forward y rutas directas).
+  // La persistencia es informativa y nunca impide este comportamiento.
   useEffect(() => {
     if (activeCategoryId) {
       setExpanded((prev) => {
-        if (prev[activeCategoryId]) return prev;
-        const next = { ...prev, [activeCategoryId]: true };
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // almacenamiento no disponible: no bloquear navegacion
-        }
+        const next: Record<string, boolean> = { [activeCategoryId]: true };
+        if (prev[activeCategoryId] === true && Object.keys(prev).length === 1) return prev;
+        persistExpanded(next);
         return next;
       });
     }
   }, [activeCategoryId]);
 
+  if (isLoading) {
+    return <SidebarSkeleton isMobile={isMobile} />;
+  }
+
   const toggleCategory = (id: string) => {
+    // La categoría activa permanece abierta mientras se navega en ella.
+    if (id === activeCategoryId && isExpanded(id)) return;
     setExpanded((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignorar
-      }
+      const next: Record<string, boolean> = prev[id] ? {} : { [id]: true };
+      persistExpanded(next);
       return next;
     });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
+    const target = e.target as HTMLElement;
+    const list = e.currentTarget;
+    const focusable = Array.from(
+      list.querySelectorAll<HTMLButtonElement | HTMLAnchorElement>(
+        'button[aria-expanded], a[href]'
+      )
+    );
+    const idx = focusable.indexOf(target as HTMLButtonElement & HTMLAnchorElement);
+    if (idx === -1) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusable[idx + 1]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusable[idx - 1]?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      focusable[0]?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      focusable[focusable.length - 1]?.focus();
+    }
   };
 
   const isExpanded = (id: string) => {
@@ -210,9 +264,9 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
   };
 
   return (
-    <nav className={`${isMobile ? 'flex flex-col gap-1' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`} aria-label="Main navigation">
-      <div className="flex-1 py-4 overflow-y-auto">
-        <ul className="space-y-1 px-3">
+    <nav className={`${isMobile ? 'flex flex-col gap-1 h-full max-h-full' : 'hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200'}`} aria-label="Main navigation">
+      <div className="flex-1 py-4 overflow-y-auto overscroll-contain min-h-0">
+        <ul className="space-y-1 px-3" onKeyDown={handleKeyDown}>
           {visibleCategories.map((cat) => {
             const open = isExpanded(cat.id);
             const containsActive = cat.items.some((item) => isPathActive(item.to, location.pathname));
@@ -223,11 +277,10 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
                   onClick={() => toggleCategory(cat.id)}
                   aria-expanded={open}
                   aria-label={`Categoría ${cat.label}`}
-                  className={`flex w-full items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wide transition-colors ${
+                  className={`flex w-full items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-lg text-xs font-semibold uppercase tracking-wide transition-colors ${
                     containsActive ? 'text-blue-700' : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <span className="text-base" aria-hidden="true">{cat.icon}</span>
                   <span className="flex-1 text-left">{cat.label}</span>
                   <span
                     className={`text-gray-400 transition-transform ${open ? 'rotate-90' : ''}`}
@@ -243,15 +296,15 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
                         <NavLink
                           to={item.to}
                           onClick={onNavigate}
+                          end={item.to === '/dashboard'}
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                            `flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
                               isActive || isPathActive(item.to, location.pathname)
                                 ? 'bg-blue-50 text-blue-700'
                                 : 'text-gray-700 hover:bg-gray-100'
                             }`
                           }
                         >
-                          <span className="text-lg" aria-hidden="true">{item.icon}</span>
                           {item.label}
                           {item.to === '/communication-inbox' && unreadCount > 0 && (
                             <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white" aria-label={`${unreadCount} mensajes sin leer`}>

@@ -11,7 +11,10 @@ const CONFIDENTIALITY_VISIBILITY: Record<string, FollowUpConfidentiality[]> = {
     FollowUpConfidentiality.SENSITIVE,
   ],
   TEACHER: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
-  PARENT: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
+  // PARENT solo ve contenido público: la información INTERNAL/CONFIDENTIAL/
+  // SENSITIVE es de uso interno (administración, docentes, orientación,
+  // psicología, convivencia) y nunca debe exponerse al acudiente.
+  PARENT: [FollowUpConfidentiality.PUBLIC],
   STUDENT: [FollowUpConfidentiality.PUBLIC, FollowUpConfidentiality.INTERNAL],
 };
 
@@ -285,6 +288,8 @@ export class StudentFollowUpAuthorizationService {
       const userRoles = await this.authorizationService.getUserRoles(userId, institutionId);
       const roleNames = userRoles.map((r) => r.name);
       if (roleNames.includes('INSTITUTION_ADMIN')) return 'INSTITUTION_ADMIN';
+      if (this.isStaffAdminRole(roleNames)) return 'INSTITUTION_ADMIN';
+      if (roleNames.includes('DIRECTOR_DE_GRUPO')) return 'TEACHER';
       if (roleNames.includes('TEACHER')) return 'TEACHER';
       if (roleNames.includes('PARENT')) return 'PARENT';
       if (roleNames.includes('STUDENT')) return 'STUDENT';
@@ -300,10 +305,25 @@ export class StudentFollowUpAuthorizationService {
 
     const roleNames = roles.map((r) => r.name);
     if (roleNames.includes('INSTITUTION_ADMIN')) return 'INSTITUTION_ADMIN';
+    if (this.isStaffAdminRole(roleNames)) return 'INSTITUTION_ADMIN';
+    if (roleNames.includes('DIRECTOR_DE_GRUPO')) return 'TEACHER';
     if (roleNames.includes('TEACHER')) return 'TEACHER';
     if (roleNames.includes('PARENT')) return 'PARENT';
     if (roleNames.includes('STUDENT')) return 'STUDENT';
     return null;
+  }
+
+  /**
+   * Roles directivos/orientadores con visibilidad administrativa en convivencia.
+   */
+  private isStaffAdminRole(roleNames: string[]): boolean {
+    return (
+      roleNames.includes('RECTOR') ||
+      roleNames.includes('COORDINADOR_ACADEMICO') ||
+      roleNames.includes('COORDINADOR_CONVIVENCIA') ||
+      roleNames.includes('ORIENTADOR') ||
+      roleNames.includes('PSICOLOGO')
+    );
   }
 
   private async hasStudentRelationship(

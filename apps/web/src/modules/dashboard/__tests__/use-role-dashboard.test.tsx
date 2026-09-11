@@ -49,6 +49,15 @@ describe('useRoleDashboard', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/dashboard');
   });
 
+  it('fetches the dashboard with periodId', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue(payload);
+    const { result } = renderHook(() => useRoleDashboard(true, 'period-123'), { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(result.current.data).toEqual(payload);
+    });
+    expect(apiClient.get).toHaveBeenCalledWith('/dashboard?periodId=period-123');
+  });
+
   it('does not fetch when disabled', () => {
     vi.mocked(apiClient.get).mockResolvedValue(payload);
     renderHook(() => useRoleDashboard(false), { wrapper: createWrapper() });

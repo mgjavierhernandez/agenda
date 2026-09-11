@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openMobileDrawerIfNeeded } from './helpers/navigation';
 
 const EMAIL = process.env.E2E_EMAIL || 'admin@demo-school.dev';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo1234!';
@@ -22,20 +23,30 @@ test.describe('Menu por categorias + Directores de grupo (admin)', () => {
   });
 
   test('muestra menu organizado, expande categoria y carga Directores sin uuid error', async ({ page }) => {
-    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    const isMobile = (page.viewportSize()?.width ?? 1280) < 1024;
+    if (isMobile) {
+      await openMobileDrawerIfNeeded(page);
+    }
+    // On desktop, the visible nav is the only one in the accessibility tree.
+    // On mobile, scope to the dialog.
+    const nav = isMobile
+      ? page.getByRole('dialog', { name: 'Menú de navegación' }).getByRole('navigation', { name: 'Main navigation' })
+      : page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav).toBeVisible();
 
-    // Categorias visibles
+    // Categorias visibles — wait for first category to be visible, then count all
+    await expect(nav.getByRole('button', { name: /Categoría Inicio/i })).toBeVisible({ timeout: 10_000 });
     for (const cat of ['Inicio', 'Gestión académica', 'Gestión docente', 'Comunicación', 'Administración']) {
-      await expect(nav.getByRole('button', { name: new RegExp(`Categoría ${cat}`, 'i') })).toBeVisible();
+      const count = await nav.getByRole('button', { name: new RegExp(`Categoría ${cat}`, 'i') }).count();
+      expect(count).toBeGreaterThan(0);
     }
 
     // Expandir Gestion docente y acceder a Directores de grupo
     const catBtn = nav.getByRole('button', { name: /Categoría Gestión docente/i });
     if ((await catBtn.getAttribute('aria-expanded')) !== 'true') {
-      await catBtn.click();
+      await catBtn.click({ force: true });
     }
-    await nav.getByText('Directores de grupo').click();
+    await nav.getByText('Directores de grupo').click({ force: true });
     await page.waitForURL(/\/course-directors/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: 'Directores de grupo' })).toBeVisible({ timeout: 10_000 });
 

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma';
 import { AuditService } from '../../common/audit/audit.service';
+import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
 import { findGuardianUserIds } from '../../common/auth/parent-context';
 import { CreateTaskAssignmentDto, UpdateTaskAssignmentDto, ListTaskAssignmentsQueryDto } from './dto/task-assignment.dto';
 import { TaskAssignment, Prisma, TaskAssignmentStatus } from '@prisma/client';
@@ -112,6 +113,7 @@ export class TaskAssignmentsService {
   async findAll(
     institutionId: string,
     query: ListTaskAssignmentsQueryDto,
+    userId?: string,
   ): Promise<{ data: TaskAssignment[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -123,6 +125,16 @@ export class TaskAssignmentsService {
       ...(query.studentId ? { studentId: query.studentId } : {}),
       ...(query.status ? { status: query.status } : {}),
     };
+
+    if (userId) {
+      const accessible = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+      if (accessible !== null) {
+        if (query.studentId && !accessible.includes(query.studentId)) {
+          throw new NotFoundException('Task assignment not found');
+        }
+        where.studentId = query.studentId ?? { in: accessible };
+      }
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.taskAssignment.findMany({
@@ -137,12 +149,41 @@ export class TaskAssignmentsService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(institutionId: string, id: string): Promise<TaskAssignment> {
+  async findOne(institutionId: string, id: string, userId?: string): Promise<TaskAssignment> {
     const assignment = await this.prisma.taskAssignment.findFirst({
       where: { id, institutionId },
     });
     if (!assignment) throw new NotFoundException('Task assignment not found');
+    if (userId) {
+      const accessible = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+      if (accessible !== null && !accessible.includes(assignment.studentId)) {
+        throw new NotFoundException('Task assignment not found');
+      }
+    }
     return assignment;
+  }
+
+  /**
+   * Trazabilidad de apertura: registra que el usuario abrió la asignación
+   * (abrir ≠ completar). Requiere el mismo alcance que la lectura.
+   */
+  async markOpened(
+    institutionId: string,
+    id: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<{ opened: boolean }> {
+    const assignment = await this.findOne(institutionId, id, userId);
+    await this.auditService.log({
+      userId,
+      institutionId,
+      action: 'TASK_OPENED',
+      entityType: 'TaskAssignment',
+      entityId: assignment.id,
+      newValues: { taskId: assignment.taskId, studentId: assignment.studentId },
+      ipAddress,
+    });
+    return { opened: true };
   }
 
   async update(

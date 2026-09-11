@@ -73,7 +73,11 @@ export function GuardiansPage() {
     <div className="space-y-6">
       <PageHeader
         title="Acudientes"
-        description="Vinculaciones entre acudientes y estudiantes"
+        description={
+          canManage
+            ? 'Vinculaciones entre acudientes y estudiantes'
+            : 'Tus vinculaciones familiares: estudiantes a tu cargo y tipo de parentesco'
+        }
         actions={
           canManage ? (
             <Button onClick={() => navigate('/guardians/new')}>

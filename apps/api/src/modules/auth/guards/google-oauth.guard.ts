@@ -16,12 +16,7 @@ export class GoogleOAuthGuard extends AuthGuard('google') {
     return super.canActivate(context);
   }
 
-  override handleRequest<TUser = unknown>(
-    err: unknown,
-    user: TUser,
-    _info?: unknown,
-    _context?: ExecutionContext,
-  ): TUser {
+  override handleRequest<TUser = unknown>(err: unknown, user: TUser): TUser {
     if (err || !user) {
       throw err instanceof Error ? err : new UnauthorizedException('Google authentication failed');
     }

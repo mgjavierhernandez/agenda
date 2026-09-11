@@ -1,6 +1,6 @@
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { StudentsService } from './students.service';
-import { DocumentType, StudentStatus } from '@prisma/client';
+import { DocumentType, StudentStatus, Prisma } from '@prisma/client';
 
 describe('StudentsService', () => {
   let service: StudentsService;
@@ -55,6 +55,14 @@ describe('StudentsService', () => {
       prismaMock as never,
       auditServiceMock as never,
     );
+
+    // Default: administrative caller with unrestricted scope.
+    prismaMock.userInstitution.findUnique.mockResolvedValue({ id: 'mem-1' });
+    prismaMock.userRole.findMany.mockResolvedValue([{ role: { name: 'INSTITUTION_ADMIN' } }]);
+    prismaMock.teacherAssignment.findMany.mockResolvedValue([]);
+    prismaMock.courseDirectorAssignment.findMany.mockResolvedValue([]);
+    prismaMock.enrollment.findMany.mockResolvedValue([]);
+    prismaMock.guardianStudent.findMany.mockResolvedValue([]);
   });
 
   describe('create', () => {
@@ -105,6 +113,29 @@ describe('StudentsService', () => {
         id: 'existing',
         institutionId,
       });
+
+      await expect(
+        service.create(
+          institutionId,
+          {
+            firstName: 'Lucía',
+            lastName: 'Fernández',
+            documentType: DocumentType.DNI,
+            documentNumber: '30123456',
+          },
+          userId,
+        ),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should map concurrent duplicate insert (P2002) to ConflictException', async () => {
+      prismaMock.student.findUnique.mockResolvedValue(null);
+      prismaMock.student.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      );
 
       await expect(
         service.create(

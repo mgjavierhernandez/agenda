@@ -9,20 +9,7 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { ListStudentsQueryDto } from './dto/list-students-query.dto';
 import { Student, StudentStatus, Prisma } from '@prisma/client';
-
-// Roles with unrestricted student visibility within their institution.
-const FULL_ACCESS_ROLES = new Set([
-  'SUPER_ADMIN',
-  'INSTITUTION_ADMIN',
-  'RECTOR',
-  'COORDINADOR_ACADEMICO',
-  'COORDINADOR_CONVIVENCIA',
-  'ORIENTADOR',
-  'PSICOLOGO',
-]);
-
-// Roles scoped to the courses they teach or direct.
-const TEACHER_SCOPED_ROLES = new Set(['TEACHER', 'DIRECTOR_DE_GRUPO']);
+import { resolveAccessibleStudentIds } from '../../common/auth/academic-scope';
 
 @Injectable()
 export class StudentsService {
@@ -51,16 +38,28 @@ export class StudentsService {
       throw new ConflictException('Student with this document already exists in this institution');
     }
 
-    const student = await this.prisma.student.create({
-      data: {
-        institutionId,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        documentType: dto.documentType,
-        documentNumber: dto.documentNumber,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
-      },
-    });
+    let student;
+    try {
+      student = await this.prisma.student.create({
+        data: {
+          institutionId,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          documentType: dto.documentType,
+          documentNumber: dto.documentNumber,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
+        },
+      });
+    } catch (err) {
+      // Carrera check-then-create bajo concurrencia: el constraint único manda.
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        throw new ConflictException('Student with this document already exists in this institution');
+      }
+      throw err;
+    }
 
     await this.auditService.log({
       userId,
@@ -78,67 +77,6 @@ export class StudentsService {
     });
 
     return student;
-  }
-
-  /**
-   * Resolves which students the actor may see.
-   * @returns null for unrestricted (administrative) access, otherwise the allowed student ids.
-   */
-  private async resolveAccessibleStudentIds(institutionId: string, userId: string): Promise<string[] | null> {
-    const membership = await this.prisma.userInstitution.findUnique({
-      where: { userId_institutionId: { userId, institutionId } },
-      select: { id: true },
-    });
-    if (!membership) return [];
-
-    const userRoles = await this.prisma.userRole.findMany({
-      where: { userInstitutionId: membership.id },
-      include: { role: { select: { name: true } } },
-    });
-    const roleNames = userRoles.map((ur) => ur.role.name);
-
-    if (roleNames.some((name) => FULL_ACCESS_ROLES.has(name))) {
-      return null;
-    }
-
-    const allowed = new Set<string>();
-
-    if (roleNames.some((name) => TEACHER_SCOPED_ROLES.has(name))) {
-      const [assignments, directions] = await Promise.all([
-        this.prisma.teacherAssignment.findMany({
-          where: { institutionId, teacherUserId: userId, status: 'ACTIVE' },
-          select: { courseId: true },
-        }),
-        this.prisma.courseDirectorAssignment.findMany({
-          where: { institutionId, directorUserId: userId, status: 'ACTIVE' },
-          select: { courseId: true },
-        }),
-      ]);
-      const courseIds = [...new Set([...assignments.map((a) => a.courseId), ...directions.map((d) => d.courseId)])];
-      if (courseIds.length > 0) {
-        const enrollments = await this.prisma.enrollment.findMany({
-          where: { institutionId, courseId: { in: courseIds }, status: 'ACTIVE' },
-          select: { studentId: true },
-        });
-        for (const e of enrollments) allowed.add(e.studentId);
-      }
-    }
-
-    if (roleNames.includes('STUDENT')) {
-      const own = await this.prisma.student.findFirst({
-        where: { institutionId, userId },
-        select: { id: true },
-      });
-      if (own) allowed.add(own.id);
-    }
-
-    const linked = await this.prisma.guardianStudent.findMany({
-      where: { guardianUserId: userId, institutionId, status: 'ACTIVE' },
-      select: { studentId: true },
-    });
-    for (const gs of linked) allowed.add(gs.studentId);
-
-    return [...allowed];
   }
 
   async findAll(
@@ -163,7 +101,7 @@ export class StudentsService {
     let where: Prisma.StudentWhereInput;
 
     if (userId) {
-      const accessibleIds = await this.resolveAccessibleStudentIds(institutionId, userId);
+      const accessibleIds = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
       if (accessibleIds === null) {
         where = { institutionId, ...searchFilter };
       } else {
@@ -196,7 +134,7 @@ export class StudentsService {
 
   async findOne(institutionId: string, studentId: string, userId?: string): Promise<Student> {
     if (userId) {
-      const accessibleIds = await this.resolveAccessibleStudentIds(institutionId, userId);
+      const accessibleIds = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
       if (accessibleIds !== null && !accessibleIds.includes(studentId)) {
         throw new NotFoundException('Student not found');
       }
@@ -231,6 +169,14 @@ export class StudentsService {
     });
 
     if (!existing) {
+      throw new NotFoundException('Student not found');
+    }
+
+    // Defense in depth: even with students:manage, a scoped actor (e.g.
+    // TEACHER/DIRECTOR_DE_GRUPO if ever granted manage) may only mutate
+    // students inside their assigned scope.
+    const accessibleIds = await resolveAccessibleStudentIds(this.prisma, institutionId, userId);
+    if (accessibleIds !== null && !accessibleIds.includes(studentId)) {
       throw new NotFoundException('Student not found');
     }
 

@@ -1,11 +1,28 @@
-import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { TaskSubmissionsService } from './task-submissions.service';
 import { TaskSubmissionStatus } from '@prisma/client';
+import { getUserRoleNames, hasFullAccess } from '../../common/auth/academic-scope';
+
+jest.mock('../../common/auth/academic-scope', () => ({
+  getUserRoleNames: jest.fn(),
+  hasFullAccess: jest.fn(),
+  resolveAccessibleStudentIds: jest.fn(),
+  resolveAccessibleCourseIds: jest.fn(),
+  FULL_ACCESS_ROLES: new Set(),
+  TEACHER_SCOPED_ROLES: new Set(),
+}));
+
+const mockedGetRoles = jest.mocked(getUserRoleNames);
+const mockedHasFull = jest.mocked(hasFullAccess);
 
 describe('TaskSubmissionsService', () => {
   let service: TaskSubmissionsService;
   let prismaMock: {
     taskAssignment: { findFirst: jest.Mock };
+    student: { findFirst: jest.Mock };
+    teacherAssignment: { findFirst: jest.Mock };
+    fileAsset: { findFirst: jest.Mock };
+    submissionAttachment: { count: jest.Mock; findUnique: jest.Mock; create: jest.Mock; findFirst: jest.Mock; delete: jest.Mock };
     taskSubmission: {
       findUnique: jest.Mock;
       findFirst: jest.Mock;
@@ -24,6 +41,16 @@ describe('TaskSubmissionsService', () => {
   beforeEach(() => {
     prismaMock = {
       taskAssignment: { findFirst: jest.fn() },
+      student: { findFirst: jest.fn() },
+      teacherAssignment: { findFirst: jest.fn() },
+      fileAsset: { findFirst: jest.fn() },
+      submissionAttachment: {
+        count: jest.fn().mockResolvedValue(0),
+        findUnique: jest.fn().mockResolvedValue(null),
+        create: jest.fn(),
+        findFirst: jest.fn(),
+        delete: jest.fn(),
+      },
       taskSubmission: {
         findUnique: jest.fn(),
         findFirst: jest.fn(),
@@ -40,6 +67,14 @@ describe('TaskSubmissionsService', () => {
       prismaMock as never,
       auditServiceMock as never,
     );
+
+    // Default: administrative caller.
+    mockedGetRoles.mockReset();
+    mockedHasFull.mockReset();
+    mockedGetRoles.mockResolvedValue(['INSTITUTION_ADMIN']);
+    mockedHasFull.mockReturnValue(true);
+    prismaMock.student.findFirst.mockResolvedValue(null);
+    prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
   });
 
   describe('create', () => {
@@ -103,6 +138,97 @@ describe('TaskSubmissionsService', () => {
       const result = await service.create(institutionId, taskAssignmentId, {}, userId);
       expect(result.status).toBe(TaskSubmissionStatus.LATE);
     });
+
+    it('should allow the owning student to submit', async () => {
+      mockedGetRoles.mockResolvedValue(['STUDENT']);
+      mockedHasFull.mockReturnValue(false);
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: taskAssignmentId,
+        institutionId,
+        studentId: 'student-1',
+        task: { dueDate: new Date(Date.now() + 86400000), courseId: 'course-1' },
+      });
+      prismaMock.student.findFirst.mockResolvedValue({ id: 'student-1', userId });
+      prismaMock.taskSubmission.findUnique.mockResolvedValue(null);
+      prismaMock.taskSubmission.create.mockResolvedValue({
+        id: 'sub-1',
+        status: TaskSubmissionStatus.SUBMITTED,
+      });
+
+      const result = await service.create(institutionId, taskAssignmentId, { content: 'x' }, userId);
+      expect(result.status).toBe(TaskSubmissionStatus.SUBMITTED);
+    });
+
+    it('should forbid a stranger from submitting', async () => {
+      mockedGetRoles.mockResolvedValue(['STUDENT']);
+      mockedHasFull.mockReturnValue(false);
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: taskAssignmentId,
+        institutionId,
+        studentId: 'student-1',
+        task: { dueDate: new Date(Date.now() + 86400000), courseId: 'course-1' },
+      });
+      prismaMock.student.findFirst.mockResolvedValue({ id: 'student-1', userId: 'other-user' });
+      prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(institutionId, taskAssignmentId, { content: 'x' }, userId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should attach uploaded files on submit', async () => {
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: taskAssignmentId,
+        institutionId,
+        studentId: 'student-1',
+        task: { dueDate: new Date(Date.now() + 86400000), courseId: 'course-1' },
+      });
+      prismaMock.taskSubmission.findUnique.mockResolvedValue(null);
+      prismaMock.taskSubmission.create.mockResolvedValue({
+        id: 'sub-1',
+        status: TaskSubmissionStatus.SUBMITTED,
+      });
+      prismaMock.fileAsset.findFirst.mockResolvedValue({
+        id: 'file-1',
+        institutionId,
+        originalName: 'tarea.pdf',
+        mimeType: 'application/pdf',
+      });
+      prismaMock.submissionAttachment.create.mockResolvedValue({ id: 'att-1' });
+
+      const result = await service.create(
+        institutionId,
+        taskAssignmentId,
+        { content: 'x', fileAssetIds: ['file-1'] },
+        userId,
+      );
+
+      expect(result.status).toBe(TaskSubmissionStatus.SUBMITTED);
+      expect(prismaMock.submissionAttachment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ submissionId: 'sub-1', fileAssetId: 'file-1' }),
+        }),
+      );
+    });
+
+    it('should reject files from another institution', async () => {
+      prismaMock.taskAssignment.findFirst.mockResolvedValue({
+        id: taskAssignmentId,
+        institutionId,
+        studentId: 'student-1',
+        task: { dueDate: new Date(Date.now() + 86400000), courseId: 'course-1' },
+      });
+      prismaMock.taskSubmission.findUnique.mockResolvedValue(null);
+      prismaMock.taskSubmission.create.mockResolvedValue({
+        id: 'sub-1',
+        status: TaskSubmissionStatus.SUBMITTED,
+      });
+      prismaMock.fileAsset.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(institutionId, taskAssignmentId, { content: 'x', fileAssetIds: ['file-x'] }, userId),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('grade', () => {
@@ -134,6 +260,22 @@ describe('TaskSubmissionsService', () => {
       await expect(
         service.grade(institutionId, 'sub-1', { grade: '85' }, userId),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should forbid grading by a teacher of another course', async () => {
+      mockedGetRoles.mockResolvedValue(['TEACHER']);
+      mockedHasFull.mockReturnValue(false);
+      prismaMock.taskSubmission.findFirst.mockResolvedValue({
+        id: 'sub-1',
+        institutionId,
+        status: TaskSubmissionStatus.SUBMITTED,
+        taskAssignment: { task: { dueDate: new Date(), courseId: 'course-1' } },
+      });
+      prismaMock.teacherAssignment.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.grade(institutionId, 'sub-1', { grade: '85' }, userId),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

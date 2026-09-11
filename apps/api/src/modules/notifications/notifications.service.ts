@@ -158,6 +158,7 @@ export class NotificationsService {
     institutionId: string,
     notificationId: string,
     currentUserId: string,
+    ipAddress?: string,
   ): Promise<Notification> {
     const notification = await this.prisma.notification.findFirst({
       where: {
@@ -175,18 +176,63 @@ export class NotificationsService {
       return notification;
     }
 
-    return this.prisma.notification.update({
+    const now = new Date();
+    const updated = await this.prisma.notification.update({
       where: { id: notificationId },
       data: {
         status: NotificationStatus.READ,
-        readAt: new Date(),
+        readAt: now,
+        openedAt: notification.openedAt ?? now,
       },
+    });
+
+    // Trazabilidad de apertura: quién, qué recurso, cuándo.
+    await this.auditService.log({
+      userId: currentUserId,
+      institutionId,
+      action: 'NOTIFICATION_READ',
+      entityType: 'Notification',
+      entityId: updated.id,
+      oldValues: { status: notification.status },
+      newValues: {
+        status: updated.status,
+        entityType: updated.entityType,
+        entityId: updated.entityId,
+      },
+      ipAddress,
+    });
+
+    return updated;
+  }
+
+  async trackOpened(
+    institutionId: string,
+    notificationId: string,
+    currentUserId: string,
+  ): Promise<void> {
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        institutionId,
+        userId: currentUserId,
+      },
+      select: { id: true, openedAt: true },
+    });
+
+    if (!notification || notification.openedAt) {
+      return;
+    }
+
+    await this.prisma.notification.update({
+      where: { id: notificationId },
+      data: { openedAt: new Date() },
     });
   }
 
   async markAllAsRead(
     institutionId: string,
     currentUserId: string,
+    ipAddress?: string,
   ): Promise<{ count: number }> {
     const result = await this.prisma.notification.updateMany({
       where: {
@@ -199,6 +245,18 @@ export class NotificationsService {
         readAt: new Date(),
       },
     });
+
+    if (result.count > 0) {
+      await this.auditService.log({
+        userId: currentUserId,
+        institutionId,
+        action: 'NOTIFICATIONS_ALL_READ',
+        entityType: 'Notification',
+        entityId: currentUserId,
+        newValues: { count: result.count },
+        ipAddress,
+      });
+    }
 
     return { count: result.count };
   }

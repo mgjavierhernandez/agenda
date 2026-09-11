@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Request,
+  Res,
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
@@ -19,6 +20,7 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { TenantContextGuard, AuthenticatedRequest } from '../auth/tenant/tenant-context.guard';
 import { PermissionGuard } from '../auth/authorization/permission.guard';
@@ -27,6 +29,7 @@ import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ListSchedulesQueryDto } from './dto/list-schedules-query.dto';
+import { ScheduleExportQueryDto } from './dto/schedule-export-query.dto';
 
 @ApiTags('Schedules')
 @ApiBearerAuth('bearer')
@@ -71,7 +74,31 @@ export class SchedulesController {
     return this.schedulesService.findAll(
       req.tenant!.institutionId,
       query,
+      req.user.userId,
     );
+  }
+
+  @Get('export')
+  @RequirePermission('schedules:read')
+  @ApiOperation({ summary: 'Export scoped schedules as PDF, XLSX or CSV' })
+  @ApiResponse({ status: 200, description: 'File download' })
+  @ApiResponse({ status: 400, description: 'Invalid format' })
+  async exportSchedules(
+    @Request() req: AuthenticatedRequest,
+    @Query() query: ScheduleExportQueryDto,
+    @Res() res: Response,
+  ): Promise<void> {
+    const result = await this.schedulesService.exportSchedules(
+      req.tenant!.institutionId,
+      req.user.userId,
+      query,
+      req.ip,
+    );
+    const safeFilename = result.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    res.setHeader('Content-Type', result.contentType);
+    res.setHeader('Content-Length', result.buffer.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    res.send(result.buffer);
   }
 
   @Get(':id')
@@ -90,6 +117,7 @@ export class SchedulesController {
     return this.schedulesService.findOne(
       req.tenant!.institutionId,
       id,
+      req.user.userId,
     );
   }
 

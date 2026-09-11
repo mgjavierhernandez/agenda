@@ -4,6 +4,12 @@ import { apiClient } from '@/api/client';
 export type DashboardRole =
   | 'INSTITUTION_ADMIN'
   | 'SUPER_ADMIN'
+  | 'RECTOR'
+  | 'COORDINADOR_ACADEMICO'
+  | 'COORDINADOR_CONVIVENCIA'
+  | 'ORIENTADOR'
+  | 'PSICOLOGO'
+  | 'DIRECTOR_DE_GRUPO'
   | 'TEACHER'
   | 'PARENT'
   | 'STUDENT';
@@ -66,10 +72,13 @@ export interface RoleDashboard {
   }>;
 }
 
-export function useRoleDashboard(isReady: boolean) {
+export function useRoleDashboard(isReady: boolean, periodId?: string) {
   return useQuery<RoleDashboard>({
-    queryKey: ['dashboard', 'role'],
-    queryFn: () => apiClient.get<RoleDashboard>('/dashboard'),
+    queryKey: ['dashboard', 'role', periodId ?? ''],
+    queryFn: () => {
+      const params = periodId ? `?periodId=${encodeURIComponent(periodId)}` : '';
+      return apiClient.get<RoleDashboard>(`/dashboard${params}`);
+    },
     enabled: isReady,
     retry: false,
   });

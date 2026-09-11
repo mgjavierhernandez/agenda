@@ -24,6 +24,9 @@ export function useRequestSignatureFromFollowUp() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['signature-requests'] });
       queryClient.invalidateQueries({
+        queryKey: ['student-follow-up-signatures', variables.followUpId],
+      });
+      queryClient.invalidateQueries({
         queryKey: ['student-follow-ups', variables.followUpId],
       });
       queryClient.invalidateQueries({ queryKey: ['student-follow-up-entries', variables.followUpId] });

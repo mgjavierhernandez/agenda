@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCommunication, usePublishCommunication, useDeactivateCommunication } from '../hooks';
+import { useMarkCommunicationOpened } from '@/modules/communication-recipients/hooks';
 import { useCommunicationAttachments, useCreateCommunicationAttachment } from '@/modules/files/hooks';
 import { FileUploader } from '@/modules/files/components/FileUploader';
 import { AttachmentList } from '@/modules/files/components/AttachmentList';
@@ -33,6 +34,17 @@ export function CommunicationDetailPage() {
   const { data: attachments = [], refetch: refetchAttachments } = useCommunicationAttachments(id ?? '');
   const createAttachmentMutation = useCreateCommunicationAttachment();
   const canAttach = canManage && communication?.status === 'DRAFT';
+  const markOpenedMutation = useMarkCommunicationOpened();
+  const openedRef = useRef<string | null>(null);
+
+  // Trazabilidad de apertura para destinatarios (abrir ≠ responder).
+  useEffect(() => {
+    if (id && communication && openedRef.current !== id) {
+      openedRef.current = id;
+      markOpenedMutation.mutate(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, communication]);
 
   const handleUploadComplete = async (fileAsset: FileAsset) => {
     if (!id) return;
