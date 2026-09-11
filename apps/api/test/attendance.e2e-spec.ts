@@ -138,6 +138,7 @@ describe('Attendance Module (e2e)', () => {
         subjectId: attSubject.id,
         academicPeriodId: attPeriodId,
         status: 'ACTIVE',
+        startDate: new Date('2026-01-01'),
       },
     });
 
@@ -304,6 +305,7 @@ describe('Attendance Module (e2e)', () => {
         subjectId: secSubject.id,
         academicPeriodId: secPeriodId,
         status: 'ACTIVE',
+        startDate: new Date('2026-01-01'),
       },
     });
 

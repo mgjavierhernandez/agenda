@@ -317,13 +317,11 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRequest: {
-            update: jest
-              .fn()
-              .mockResolvedValue({
-                ...existing,
-                status: SignatureRequestStatus.PUBLISHED,
-                recipients: [makeRecipient(recipient1, request1, userId)],
-              }),
+            update: jest.fn().mockResolvedValue({
+              ...existing,
+              status: SignatureRequestStatus.PUBLISHED,
+              recipients: [makeRecipient(recipient1, request1, userId)],
+            }),
           },
           signatureRecipient: {
             findMany: jest.fn().mockResolvedValue([makeRecipient(recipient1, request1, userId)]),
@@ -384,24 +382,20 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRecipient: {
-            update: jest
-              .fn()
-              .mockResolvedValue({
-                ...rec,
-                status: SignatureRecipientStatus.SIGNED,
-                signedAt: new Date(),
-              }),
+            update: jest.fn().mockResolvedValue({
+              ...rec,
+              status: SignatureRecipientStatus.SIGNED,
+              signedAt: new Date(),
+            }),
             count: jest.fn().mockResolvedValue(0),
             findMany: jest.fn(),
           },
           signatureRequest: {
-            update: jest
-              .fn()
-              .mockResolvedValue({
-                ...req,
-                status: SignatureRequestStatus.COMPLETED,
-                recipients: [{ ...rec, status: SignatureRecipientStatus.SIGNED }],
-              }),
+            update: jest.fn().mockResolvedValue({
+              ...req,
+              status: SignatureRequestStatus.COMPLETED,
+              recipients: [{ ...rec, status: SignatureRecipientStatus.SIGNED }],
+            }),
           },
         };
         return cb(tx);
@@ -494,13 +488,11 @@ describe('SignaturesService', () => {
       prismaMock.$transaction.mockImplementation(async (cb: (tx: any) => Promise<any>) => {
         const tx = {
           signatureRequest: {
-            update: jest
-              .fn()
-              .mockResolvedValue({
-                ...req,
-                status: SignatureRequestStatus.INACTIVE,
-                recipients: [],
-              }),
+            update: jest.fn().mockResolvedValue({
+              ...req,
+              status: SignatureRequestStatus.INACTIVE,
+              recipients: [],
+            }),
           },
           signatureRecipient: {
             findMany: jest.fn().mockResolvedValue([makeRecipient(recipient1, request1, userId)]),

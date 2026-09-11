@@ -368,7 +368,7 @@ describe('UserDetailPage', () => {
   });
 
   it('unlinks a user', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    window.confirm = vi.fn().mockReturnValue(true);
 
     render(<UserDetailPage />, { wrapper: createWrapper(['/admin/users/mem-1']) });
 

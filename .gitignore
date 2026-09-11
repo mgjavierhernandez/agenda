@@ -38,7 +38,7 @@ apps/api/prisma/migrations/dev.db
 apps/web/dist/
 
 # File uploads (local storage)
-storage/
+/storage/
 
 # Playwright
 test-results/

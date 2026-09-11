@@ -51,9 +51,7 @@ export class InstitutionsService {
     return institution;
   }
 
-  async findAll(
-    query: ListInstitutionsQueryDto,
-  ): Promise<{
+  async findAll(query: ListInstitutionsQueryDto): Promise<{
     data: Institution[];
     meta: { page: number; limit: number; total: number; totalPages: number };
   }> {

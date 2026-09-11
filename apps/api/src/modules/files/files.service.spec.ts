@@ -44,13 +44,11 @@ describe('FilesService', () => {
     };
     auditMock = { log: jest.fn(), prisma: jest.fn() };
     storageMock = {
-      upload: jest
-        .fn()
-        .mockResolvedValue({
-          storageKey: 'tenant/inst-1/files/abc.pdf',
-          sizeBytes: 1024,
-          checksum: 'abc123',
-        }),
+      upload: jest.fn().mockResolvedValue({
+        storageKey: 'tenant/inst-1/files/abc.pdf',
+        sizeBytes: 1024,
+        checksum: 'abc123',
+      }),
       delete: jest.fn(),
       read: jest.fn(),
       exists: jest.fn(),
