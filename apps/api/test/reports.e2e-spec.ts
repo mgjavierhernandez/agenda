@@ -68,6 +68,7 @@ describe('Reports Module (e2e)', () => {
   let unrelatedCourseId: string | null;
   let liveStudentId: string;
   let secondAdminUserId: string | null = null;
+  let liveStudentCreated = false;
 
   beforeAll(async () => {
     prisma = new PrismaClient();
@@ -178,6 +179,7 @@ describe('Reports Module (e2e)', () => {
           status: 'ACTIVE',
         },
       });
+      liveStudentCreated = true;
     }
     liveStudentId = liveStudent.id;
 
@@ -204,7 +206,7 @@ describe('Reports Module (e2e)', () => {
   }, 30000);
 
   afterAll(async () => {
-    if (liveStudentId) {
+    if (liveStudentId && liveStudentCreated) {
       await prisma.student.delete({ where: { id: liveStudentId } }).catch(() => {});
     }
     await prisma.auditLog
