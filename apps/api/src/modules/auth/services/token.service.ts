@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import type { StringValue } from 'ms';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../../common/prisma';
 
@@ -39,7 +38,8 @@ export class TokenService {
     const expiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', '15m');
 
     const options: JwtSignOptions = {
-      expiresIn: expiresIn as StringValue,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expiresIn: expiresIn as any,
     };
 
     return this.jwtService.sign(payload, options);

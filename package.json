@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "npm run dev --workspace=@agenda/web",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "format": "npm run format --workspaces --if-present",

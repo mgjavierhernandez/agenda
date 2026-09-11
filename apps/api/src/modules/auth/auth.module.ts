@@ -1,8 +1,7 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import type { StringValue } from 'ms';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PasswordService } from './services/password.service';
@@ -33,7 +32,8 @@ import { AuditModule } from '../../common/audit/audit.module';
         return {
           secret,
           signOptions: {
-            expiresIn: expiresIn as StringValue,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expiresIn: expiresIn as any,
           },
         };
       },

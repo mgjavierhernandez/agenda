@@ -1,0 +1,6 @@
+{
+  "name": "Agenda Escolar Digital",
+  "description": "Plataforma SaaS multi-institución de gestión y comunicación escolar",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

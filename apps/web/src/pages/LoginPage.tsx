@@ -37,6 +37,21 @@ export function LoginPage() {
     window.location.href = `${apiUrl}/auth/google`;
   };
 
+  const handleQuickLogin = async (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword('Demo1234!');
+    setError('');
+    setIsSubmitting(true);
+    try {
+      await login(demoEmail, 'Demo1234!');
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Error al iniciar sesión de demostración');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
       <h1 className="text-xl font-semibold text-gray-900 mb-6">Iniciar sesión</h1>
@@ -76,6 +91,31 @@ export function LoginPage() {
         >
           Entrar
         </Button>
+        <div className="pt-2 border-t border-gray-100">
+          <p className="text-xs text-gray-500 mb-2 font-medium">Accesos rápidos de demostración:</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="text-xs truncate"
+              onClick={() => handleQuickLogin('superadmin@agenda.dev')}
+              disabled={isSubmitting || isGoogleLoading}
+            >
+              Demo Admin
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="text-xs truncate"
+              onClick={() => handleQuickLogin('teacher@demo-school.dev')}
+              disabled={isSubmitting || isGoogleLoading}
+            >
+              Demo Docente
+            </Button>
+          </div>
+        </div>
         <Button
           type="button"
           variant="secondary"

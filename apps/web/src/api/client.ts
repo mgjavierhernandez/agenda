@@ -1,4 +1,5 @@
 import type { ApiError } from './types';
+import { handleMockRequest } from './mock/mock-handler';
 
 // Normaliza la URL base: sin espacios accidentales ni barras finales,
 // para que `${API_URL}${path}` nunca genere rutas como `/api/v1%20/...`.
@@ -34,10 +35,18 @@ export const apiClient = {
       headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(`${API_URL}${path}`, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}${path}`, {
+        ...options,
+        headers,
+      });
+      if (response.status === 404 || response.status === 502 || response.status === 503) {
+        return await handleMockRequest<T>(path, options);
+      }
+    } catch {
+      return await handleMockRequest<T>(path, options);
+    }
 
     if (response.status === 401) {
       onUnauthorized?.();
