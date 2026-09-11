@@ -23,12 +23,24 @@ export async function getUserRoleNames(
     where: { userId_institutionId: { userId, institutionId } },
     select: { id: true },
   });
-  if (!membership) return [];
+  if (!membership) {
+    const globalAdmin = await prisma.globalUserRole.findFirst({
+      where: { userId, role: { name: 'SUPER_ADMIN' } },
+    });
+    return globalAdmin ? ['SUPER_ADMIN'] : [];
+  }
   const userRoles = await prisma.userRole.findMany({
     where: { userInstitutionId: membership.id },
     include: { role: { select: { name: true } } },
   });
-  return userRoles.map((ur) => ur.role.name);
+  const tenantRoles = userRoles.map((ur) => ur.role.name);
+  if (tenantRoles.length === 0) {
+    const globalAdmin = await prisma.globalUserRole.findFirst({
+      where: { userId, role: { name: 'SUPER_ADMIN' } },
+    });
+    if (globalAdmin) tenantRoles.push('SUPER_ADMIN');
+  }
+  return tenantRoles;
 }
 
 export function hasFullAccess(roleNames: string[]): boolean {

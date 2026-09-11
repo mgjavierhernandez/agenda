@@ -669,6 +669,8 @@ async function main(): Promise<void> {
         documentNumber: s.documentNumber,
         dateOfBirth: s.dateOfBirth,
         status: 'ACTIVE',
+        // Link first student to the student user account
+        ...(s === demoStudents[0] ? { userId: studentUser.id } : {}),
       },
     });
   }

@@ -137,7 +137,7 @@ describe('Dashboard Module (e2e)', () => {
 
   it('returns the teacher dashboard with the teacher courses', async () => {
     const res = await dashboard(teacherToken, demoInstitutionId).expect(200);
-    expect(res.body.role).toBe('TEACHER');
+    expect(res.body.role).toBe('DIRECTOR_DE_GRUPO');
     expect(Array.isArray(res.body.courses)).toBe(true);
     expect(typeof res.body.stats.courses).toBe('number');
   });

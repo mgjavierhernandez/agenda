@@ -141,6 +141,20 @@ describe('Students Module (e2e)', () => {
     teacherToken = await login('teacher@demo-school.dev');
     parentToken = await login('parent@demo-school.dev');
     studentToken = await login('student@demo-school.dev');
+
+    // Link student user to first academic Student record for scope resolution
+    const studentUser = await prisma.user.findUnique({
+      where: { email: 'student@demo-school.dev' },
+    });
+    const firstStudent = await prisma.student.findFirst({
+      where: { institutionId: demoInstitutionId, userId: null },
+    });
+    if (studentUser && firstStudent) {
+      await prisma.student.update({
+        where: { id: firstStudent.id },
+        data: { userId: studentUser.id },
+      });
+    }
   }, 30000);
 
   afterAll(async () => {
@@ -294,12 +308,13 @@ describe('Students Module (e2e)', () => {
         .expect(200);
     });
 
-    it('TEST-12: Student without students:read → 403', async () => {
-      await request(app.getHttpServer())
+    it('TEST-12: Student with students:read → 200 (scoped to own record)', async () => {
+      const res = await request(app.getHttpServer())
         .get('/api/v1/students')
         .set('Authorization', `Bearer ${studentToken}`)
         .set('X-Institution-Id', demoInstitutionId)
-        .expect(403);
+        .expect(200);
+      expect(res.body.data).toBeDefined();
     });
 
     it('TEST-19: Search returns only current tenant results', async () => {

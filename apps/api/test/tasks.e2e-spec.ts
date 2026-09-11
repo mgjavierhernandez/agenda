@@ -142,6 +142,20 @@ describe('Tasks Module (e2e)', () => {
     teacherToken = await login('teacher@demo-school.dev');
     parentToken = await login('parent@demo-school.dev');
     studentToken = await login('student@demo-school.dev');
+
+    // Link student user to first academic Student record for scope resolution
+    const studentUser = await prisma.user.findUnique({
+      where: { email: 'student@demo-school.dev' },
+    });
+    const firstStudent = await prisma.student.findFirst({
+      where: { institutionId: demoInstitutionId, userId: null },
+    });
+    if (studentUser && firstStudent) {
+      await prisma.student.update({
+        where: { id: firstStudent.id },
+        data: { userId: studentUser.id },
+      });
+    }
   }, 30000);
 
   afterAll(async () => {
