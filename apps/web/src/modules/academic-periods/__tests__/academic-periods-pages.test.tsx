@@ -51,8 +51,8 @@ const mockPeriod: AcademicPeriod = {
   institutionId: 'inst-1',
   name: '2026 - Periodo 1',
   code: '2026-P1',
-  startDate: '2026-01-15T00:00:00.000Z',
-  endDate: '2026-06-30T00:00:00.000Z',
+  startDate: '2026-01-15T12:00:00.000Z',
+  endDate: '2026-06-30T12:00:00.000Z',
   status: 'ACTIVE',
   createdAt: '2026-01-01T10:00:00Z',
   updatedAt: '2026-01-01T10:00:00Z',
@@ -255,8 +255,8 @@ describe('AcademicPeriodDetailPage', () => {
     render(<AcademicPeriodDetailPage />, { wrapper: createWrapper(['/academic-periods/ap-1']) });
 
     await waitFor(() => {
-      expect(screen.getByText(/14 de enero de 2026/)).toBeInTheDocument();
-      expect(screen.getByText(/29 de junio de 2026/)).toBeInTheDocument();
+      expect(screen.getByText(/15 de enero de 2026/)).toBeInTheDocument();
+      expect(screen.getByText(/30 de junio de 2026/)).toBeInTheDocument();
     });
   });
 });

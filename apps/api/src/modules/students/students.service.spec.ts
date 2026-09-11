@@ -19,6 +19,7 @@ describe('StudentsService', () => {
     };
     userInstitution: { findUnique: jest.Mock };
     userRole: { findMany: jest.Mock };
+    globalUserRole: { findFirst: jest.Mock };
     teacherAssignment: { findMany: jest.Mock };
     courseDirectorAssignment: { findMany: jest.Mock };
     enrollment: { findMany: jest.Mock };
@@ -44,6 +45,7 @@ describe('StudentsService', () => {
       },
       userInstitution: { findUnique: jest.fn() },
       userRole: { findMany: jest.fn() },
+      globalUserRole: { findFirst: jest.fn() },
       teacherAssignment: { findMany: jest.fn() },
       courseDirectorAssignment: { findMany: jest.fn() },
       enrollment: { findMany: jest.fn() },
@@ -60,6 +62,7 @@ describe('StudentsService', () => {
     prismaMock.courseDirectorAssignment.findMany.mockResolvedValue([]);
     prismaMock.enrollment.findMany.mockResolvedValue([]);
     prismaMock.guardianStudent.findMany.mockResolvedValue([]);
+    prismaMock.globalUserRole.findFirst.mockResolvedValue(null);
   });
 
   describe('create', () => {
