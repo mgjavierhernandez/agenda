@@ -167,14 +167,21 @@ describe('Grades Module (e2e)', () => {
     const studentUser = await prisma.user.findUnique({
       where: { email: 'student@demo-school.dev' },
     });
-    const firstStudent = await prisma.student.findFirst({
-      where: { institutionId: demoInstitutionId, userId: null },
-    });
-    if (studentUser && firstStudent) {
-      await prisma.student.update({
-        where: { id: firstStudent.id },
-        data: { userId: studentUser.id },
+    if (studentUser) {
+      const alreadyLinked = await prisma.student.findFirst({
+        where: { institutionId: demoInstitutionId, userId: studentUser.id },
       });
+      if (!alreadyLinked) {
+        const firstStudent = await prisma.student.findFirst({
+          where: { institutionId: demoInstitutionId, userId: null },
+        });
+        if (firstStudent) {
+          await prisma.student.update({
+            where: { id: firstStudent.id },
+            data: { userId: studentUser.id },
+          });
+        }
+      }
     }
   }, 30000);
 

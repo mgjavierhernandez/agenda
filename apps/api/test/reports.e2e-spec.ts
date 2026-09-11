@@ -142,21 +142,26 @@ describe('Reports Module (e2e)', () => {
     unrelatedStudentId =
       allStudentIds.find((s) => !linkedIds.includes(s.id) && s.id !== teacherStudentId)?.id ?? null;
 
-    // Live student: a Student record owned by the STUDENT user login.
+    // Live student: a Student record owned by the STUDENT user login (reuse if seed already linked).
     const studentUser = await prisma.user.findUnique({
       where: { email: 'student@demo-school.dev' },
     });
-    const liveStudent = await prisma.student.create({
-      data: {
-        institutionId: demoInstitutionId,
-        userId: studentUser!.id,
-        firstName: 'Estudiante',
-        lastName: 'Vivo',
-        documentType: 'DNI',
-        documentNumber: `9999${Date.now().toString().slice(-4)}`,
-        status: 'ACTIVE',
-      },
+    let liveStudent = await prisma.student.findFirst({
+      where: { institutionId: demoInstitutionId, userId: studentUser!.id },
     });
+    if (!liveStudent) {
+      liveStudent = await prisma.student.create({
+        data: {
+          institutionId: demoInstitutionId,
+          userId: studentUser!.id,
+          firstName: 'Estudiante',
+          lastName: 'Vivo',
+          documentType: 'DNI',
+          documentNumber: `9999${Date.now().toString().slice(-4)}`,
+          status: 'ACTIVE',
+        },
+      });
+    }
     liveStudentId = liveStudent.id;
 
     // Cross-tenant institution.

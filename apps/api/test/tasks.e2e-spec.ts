@@ -143,18 +143,25 @@ describe('Tasks Module (e2e)', () => {
     parentToken = await login('parent@demo-school.dev');
     studentToken = await login('student@demo-school.dev');
 
-    // Link student user to first academic Student record for scope resolution
+    // Link student user to first academic Student record for scope resolution (idempotent: seed may already have linked)
     const studentUser = await prisma.user.findUnique({
       where: { email: 'student@demo-school.dev' },
     });
-    const firstStudent = await prisma.student.findFirst({
-      where: { institutionId: demoInstitutionId, userId: null },
-    });
-    if (studentUser && firstStudent) {
-      await prisma.student.update({
-        where: { id: firstStudent.id },
-        data: { userId: studentUser.id },
+    if (studentUser) {
+      const alreadyLinked = await prisma.student.findFirst({
+        where: { institutionId: demoInstitutionId, userId: studentUser.id },
       });
+      if (!alreadyLinked) {
+        const firstStudent = await prisma.student.findFirst({
+          where: { institutionId: demoInstitutionId, userId: null },
+        });
+        if (firstStudent) {
+          await prisma.student.update({
+            where: { id: firstStudent.id },
+            data: { userId: studentUser.id },
+          });
+        }
+      }
     }
   }, 30000);
 
