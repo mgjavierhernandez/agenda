@@ -65,6 +65,7 @@ describe('Reports Module (e2e)', () => {
   let teacherStudentId: string;
   let parentLinkedStudentId: string;
   let unrelatedStudentId: string | null;
+  let unrelatedCourseId: string | null;
   let liveStudentId: string;
   let secondAdminUserId: string | null = null;
 
@@ -99,6 +100,8 @@ describe('Reports Module (e2e)', () => {
     studentToken = await login('student@demo-school.dev');
 
     // Teacher fixtures: ACTIVE assignment -> its period + course -> an enrolled student.
+    // We pick the SECOND enrollment (skip:1) so that teacherStudentId != liveStudentId
+    // (the seed links the first student to student@demo-school.dev).
     const teacherUser = await prisma.user.findUnique({
       where: { email: 'teacher@demo-school.dev' },
     });
@@ -115,8 +118,22 @@ describe('Reports Module (e2e)', () => {
           academicPeriodId: assignment.academicPeriodId,
           status: 'ACTIVE',
         },
+        orderBy: { createdAt: 'asc' },
+        skip: 1,
       });
-      teacherStudentId = enrollment!.studentId;
+      if (enrollment) {
+        teacherStudentId = enrollment.studentId;
+      } else {
+        const fallback = await prisma.enrollment.findFirst({
+          where: {
+            institutionId: demoInstitutionId,
+            courseId: assignment.courseId,
+            academicPeriodId: assignment.academicPeriodId,
+            status: 'ACTIVE',
+          },
+        });
+        teacherStudentId = fallback!.studentId;
+      }
     }
 
     // Parent fixtures: linked student + a real unrelated student (when one exists).
@@ -163,6 +180,18 @@ describe('Reports Module (e2e)', () => {
       });
     }
     liveStudentId = liveStudent.id;
+
+    // Find a course the STUDENT user is NOT enrolled in (for the course IDOR test).
+    const studentEnrollments = await prisma.enrollment.findMany({
+      where: { institutionId: demoInstitutionId, studentId: liveStudentId, status: 'ACTIVE' },
+      select: { courseId: true },
+    });
+    const enrolledCourseIds = new Set(studentEnrollments.map((e) => e.courseId));
+    const allCourses = await prisma.course.findMany({
+      where: { institutionId: demoInstitutionId },
+      select: { id: true },
+    });
+    unrelatedCourseId = allCourses.find((c) => !enrolledCourseIds.has(c.id))?.id ?? null;
 
     // Cross-tenant institution.
     const second = await createSecondInstitution(prisma, 'rpt');
@@ -359,8 +388,9 @@ describe('Reports Module (e2e)', () => {
     });
 
     it('should deny a STUDENT for a course they are not enrolled in', async () => {
+      if (!unrelatedCourseId) return;
       await request(app.getHttpServer())
-        .get(`/api/v1/reports/courses/${teacherCourseId}?academicPeriodId=${teacherPeriodId}`)
+        .get(`/api/v1/reports/courses/${unrelatedCourseId}?academicPeriodId=${teacherPeriodId}`)
         .set('Authorization', `Bearer ${studentToken}`)
         .set('X-Institution-Id', demoInstitutionId)
         .expect(404);
